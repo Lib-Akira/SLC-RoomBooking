@@ -74,34 +74,37 @@
         <!-- ฝั่งขวา: ตารางแสดงข้อมูลการจอง -->
         <div class="col-md-7">
             <div class="card p-4">
-                <h4 class="mb-3 text-success">📋 รายการที่มีคนจองแล้ววันนี้/เร็วๆ นี้</h4>
+                <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                    <h4 class="mb-0 text-success">📋 รายการที่มีคนจองแล้ว</h4>
+                    <!-- เพิ่มกล่องเลือกวันที่ตรงนี้ -->
+                    <div class="d-flex align-items-center gap-2">
+                        <label for="filterDate" class="text-muted small fw-bold text-nowrap">เลือกวันที่ต้องการดู:</label>
+                        <input type="date" class="form-control form-control-sm" id="filterDate" onchange="filterBookingsByDate()">
+                    </div>
+                </div>
                 <div class="table-responsive">
                     <table class="table table-hover">
                         <thead class="table-light">
                             <tr>
                                 <th>ตึก/ห้อง</th>
-                                <th>วันที่</th>
                                 <th>เวลา</th>
                                 <th>ผู้จอง</th>
                             </tr>
                         </thead>
                         <tbody id="bookingTableBody">
-                            <tr><td colspan="4" class="text-center text-muted">กำลังโหลดข้อมูลความว่าง...</td></tr>
+                            <tr><td colspan="3" class="text-center text-muted">กำลังโหลดข้อมูล...</td></tr>
                         </tbody>
                     </table>
                 </div>
             </div>
         </div>
-    </div>
-</div>
 
 <script>
-    // 🔴 ใส่ URL Web App ที่ได้จาก Apps Script ตรงนี้ครับ 🔴
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzDSTAZ097LZcya3VfwHOigdPEzboHnYYVOMGkpAz-X66UQEfg7BpdkRTWuIf5Wxc9MYw/exec";
 
     const rooms = {
-        "Saint Louis": ["Conference Room 1", "Conference Room 2", "Conference Room 3", "mini theater room", "Research Room"],
-        "Saint Benedict": ["Conference Room 1", "Conference Room 2", "mini theater room", "multiple purpose room"]
+        "Saint Louis": ["Conference Room 1", "Conference Room 2", "Conference Room 3", "Mini Theater Room", "Research Room"],
+        "Saint Benedict": ["Conference Room 1", "Conference Room 2", , "Multiple Purpose Room"]
     };
 
     function generateTimeOptions(startHour, endHour) {
@@ -178,7 +181,14 @@
                 return;
             }
             data.forEach(b => {
-                let formattedDate = new Date(b.date).toLocaleDateString('th-TH', {day: 'numeric', month: 'short', year: 'numeric'});
+                let formattedDate = b.date;
+                    if (b.date && b.date.includes('-')) {
+                    const [yy, mm, dd] = b.date.split('-');
+                    if(yy && mm && dd) {
+                    const months = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
+                    formattedDate = `${parseInt(dd)} ${months[parseInt(mm)-1]} ${parseInt(yy) + 543}`;
+              }
+        }
                 tbody.innerHTML += `
                     <tr>
                         <td><small class="badge bg-secondary">${b.building}</small><br>${b.room}</td>
@@ -216,7 +226,7 @@
         .then(res => res.json())
         .then(res => {
             if(res.status === "success") {
-                alert("🎉 จองห้องประชุมสำเร็จเรียบร้อย โปรดแสดงตนต่อเจ้าหน้าที่ก่อนใช้ห้อง!");
+                alert("🎉 จองห้องประชุมสำเร็จ โปรดแสดงตนต่อเจ้าหน้าที่ก่อนใช้ห้อง!");
                 document.getElementById("bookingForm").reset();
                 updateRoomsAndTimes();
                 loadBookings();
