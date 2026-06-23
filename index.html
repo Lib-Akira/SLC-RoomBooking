@@ -147,4 +147,360 @@
 
         .time-pill {
             font-weight: 600;
-            color: #2a
+            color: #2a5298;
+            background: #f0f4f8;
+            padding: 5px 10px;
+            border-radius: 6px;
+            font-size: 0.86rem;
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+<div class="container py-4">
+    <div class="header-banner text-center">
+        <h2 class="fw-bold mb-2"><i class="fa-solid fa-hotel me-2"></i>ระบบจองห้องประชุม SLC Library</h2>
+        <p class="mb-0 opacity-75">สำนักหอสมุดดิจิทัล วิทยาลัยเซนต์หลุยส์ (Saint Louis College)</p>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-md-5">
+            <div class="card p-4">
+                <div class="card-title-custom">
+                    <i class="fa-solid fa-pen-to-square text-primary"></i> กรอกรายละเอียดการจอง
+                </div>
+                <form id="bookingForm">
+                    <div class="mb-3">
+                        <label class="form-label">🏢 เลือกอาคารที่ต้องการใช้งาน</label>
+                        <select class="form-select" id="building" required onchange="updateRoomsAndTimes()">
+                            <option value="">-- กรุณาเลือกอาคาร --</option>
+                            <option value="Saint Louis">อาคาร Saint Louis (ฝั่งโรงพยาบาล) [10.00-19.00 น.]</option>
+                            <option value="Saint Benedict">อาคาร Saint Benedict (ฝั่งอาคารเรียน) [08.00-17.00 น.]</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">🚪 เลือกห้องประชุม</label>
+                        <select class="form-select" id="room" required disabled>
+                            <option value="">-- กรุณาเลือกอาคารก่อน --</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">📅 วันที่ต้องการจอง</label>
+                        <input type="date" class="form-control" id="date" required>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-6 mb-3">
+                            <label class="form-label">⏰ เวลาเริ่มต้น</label>
+                            <select class="form-select" id="startTime" required disabled onchange="validateTimeSlot()"></select>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <label class="form-label">⏰ เวลาสิ้นสุด</label>
+                            <select class="form-select" id="endTime" required disabled onchange="validateTimeSlot()"></select>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">👤 ชื่อผู้จอง / รหัสประจำตัว</label>
+                        <input type="text" class="form-control" id="requester" placeholder="ตัวอย่าง: นายโซล่าร์ 100xxx" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">🎓 สถานะผู้ใช้งาน</label>
+                        <select class="form-select" id="userStatus" required onchange="updateDepartmentOptions()">
+                            <option value="">-- กรุณาเลือกสถานะ --</option>
+                            <option value="นักศึกษา">นักศึกษา</option>
+                            <option value="อาจารย์">อาจารย์</option>
+                            <option value="บุคลากร">บุคลากร</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3" id="departmentWrapper" style="display: none;">
+                        <label class="form-label" id="departmentLabel">📋 คณะ / หน่วยงาน</label>
+                        <select class="form-select" id="departmentSelect" style="display: none;">
+                            <option value="">-- กรุณาเลือกคณะ --</option>
+                        </select>
+                        <input type="text" class="form-control" id="departmentInput" placeholder="ระบุชื่อแผนก/ฝ่าย เช่น ฝ่ายการเงิน, สำนักอธิการบดี" style="display: none;">
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label">📝 วัตถุประสงค์การใช้งาน</label>
+                        <textarea class="form-control" id="purpose" rows="2" placeholder="ระบุหัวข้อประชุม/กิจกรรมสัมมนา"></textarea>
+                    </div>
+
+                    <button type="submit" class="btn btn-modern w-100" id="submitBtn">
+                        <i class="fa-solid fa-paper-plane me-2"></i>ส่งข้อมูลการจอง
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <div class="col-md-7">
+            <div class="card p-4">
+                <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
+                    <div class="card-title-custom mb-0 border-0 pb-0">
+                        <i class="fa-solid fa-calendar-check text-success"></i> ตรวจสอบตารางการจอง
+                    </div>
+                </div>
+
+                <div class="filter-wrapper d-flex align-items-center justify-content-between flex-wrap gap-2">
+                    <span class="text-muted small fw-bold"><i class="fa-solid fa-filter me-1"></i> ตัวกรองข้อมูลความว่าง:</span>
+                    <div class="d-flex align-items-center gap-2">
+                        <label for="filterDate" class="text-muted small fw-bold text-nowrap">เลือกวันที่ต้องการดู:</label>
+                        <input type="date" class="form-control form-control-sm" id="filterDate" onchange="filterBookingsByDate()" style="max-width: 160px;">
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-modern table-hover">
+                        <thead>
+                            <tr>
+                                <th>ตึก / ห้องประชุม</th>
+                                <th style="width: 135px;">ช่วงเวลา</th>
+                                <th>ผู้รับสิทธิ์จอง</th>
+                            </tr>
+                        </thead>
+                        <tbody id="bookingTableBody">
+                            <tr><td colspan="3" class="text-center text-muted py-4"><i class="fa-solid fa-spinner fa-spin me-2"></i>กำลังดึงข้อมูลความว่างระบบ...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzDSTAZ097LZcya3VfwHOigdPEzboHnYYVOMGkpAz-X66UQEfg7BpdkRTWuIf5Wxc9MYw/exec";
+
+    const rooms = {
+        "Saint Louis": ["Conference Room 1", "Conference Room 2", "Conference Room 3", "Mini Theater Room", "Research Room"],
+        "Saint Benedict": ["Conference Room 1", "Conference Room 2", "Multiple Purpose room"]
+    };
+
+    let allBookings = []; 
+
+    function generateTimeOptions(startHour, endHour) {
+        let options = [];
+        for (let h = startHour; h <= endHour; h++) {
+            let hourStr = h.toString().padStart(2, '0');
+            options.push(`${hourStr}:00`);
+            if (h !== endHour) options.push(`${hourStr}:30`);
+        }
+        return options;
+    }
+
+    function updateRoomsAndTimes() {
+        const building = document.getElementById("building").value;
+        const roomSelect = document.getElementById("room");
+        const startSelect = document.getElementById("startTime");
+        const endSelect = document.getElementById("endTime");
+
+        roomSelect.innerHTML = '<option value="">-- เลือกห้อง --</option>';
+        if (!building) {
+            roomSelect.disabled = startSelect.disabled = endSelect.disabled = true;
+            return;
+        }
+
+        rooms[building].forEach(r => {
+            roomSelect.innerHTML += `<option value="${r}">${r}</option>`;
+        });
+        roomSelect.disabled = false;
+
+        let timeOpts = building === "Saint Louis" ? generateTimeOptions(10, 19) : generateTimeOptions(8, 17);
+        
+        startSelect.innerHTML = '<option value="">-- เริ่ม --</option>';
+        endSelect.innerHTML = '<option value="">-- สิ้นสุด --</option>';
+        
+        timeOpts.forEach(t => {
+            startSelect.innerHTML += `<option value="${t}">${t}</option>`;
+            endSelect.innerHTML += `<option value="${t}">${t}</option>`;
+        });
+        
+        startSelect.disabled = endSelect.disabled = false;
+    }
+
+    // 🟢 แก้ไขจุดที่ 1: เติมปีกกาปิดฟังก์ชันควบคุมตัวเลือกเงื่อนไขเรียบร้อย
+    function updateDepartmentOptions() {
+        const status = document.getElementById("userStatus").value;
+        const wrapper = document.getElementById("departmentWrapper");
+        const selectField = document.getElementById("departmentSelect");
+        const inputField = document.getElementById("departmentInput");
+        const label = document.getElementById("departmentLabel");
+
+        wrapper.style.display = "none";
+        selectField.style.display = "none";
+        selectField.required = false;
+        inputField.style.display = "none";
+        inputField.required = false;
+        
+        if (!status) return;
+
+        wrapper.style.display = "block"; 
+
+        if (status === "นักศึกษา") {
+            label.innerHTML = "📋 คณะที่สังกัด";
+            selectField.innerHTML = `
+                <option value="">-- กรุณาเลือกคณะ --</option>
+                <option value="คณะพยาบาลศาสตร์">คณะพยาบาลศาสตร์</option>
+                <option value="คณะจิตวิทยา">คณะจิตวิทยา</option>
+                <option value="คณะกายภาพบำบัด">คณะกายภาพบำบัด</option>
+            `;
+            selectField.style.display = "block";
+            selectField.required = true;
+        } else if (status === "อาจารย์") {
+            label.innerHTML = "📋 คณะ / สำนักวิชาที่สังกัด";
+            selectField.innerHTML = `
+                <option value="">-- กรุณาเลือกคณะ/สำนักวิชา --</option>
+                <option value="คณะพยาบาลศาสตร์">คณะพยาบาลศาสตร์</option>
+                <option value="คณะจิตวิทยา">คณะจิตวิทยา</option>
+                <option value="คณะกายภาพบำบัด">คณะกายภาพบำบัด</option>
+                <option value="สำนักวิชาศึกษาทั่วไป">สำนักวิชาศึกษาทั่วไป</option>
+            `;
+            selectField.style.display = "block";
+            selectField.required = true;
+        } else if (status === "บุคลากร") {
+            label.innerHTML = "🏢 แผนก / ฝ่ายงานที่สังกัด";
+            inputField.style.display = "block";
+            inputField.required = true;
+            inputField.value = "";
+        }
+    }
+        
+    function validateTimeSlot() {
+        const start = document.getElementById("startTime").value;
+        const end = document.getElementById("endTime").value;
+        const submitBtn = document.getElementById("submitBtn");
+
+        if (start && end) {
+            let [sH, sM] = start.split(':').map(Number);
+            let [eH, eM] = end.split(':').map(Number);
+            let diff = (eH * 60 + eM) - (sH * 60 + sM);
+
+            if (diff <= 0) {
+                Swal.fire({ title: 'ข้อผิดพลาดเกี่ยวกับเวลา', text: 'เวลาสิ้นสุดต้องอยู่หลังเวลาเริ่มต้นครับ', icon: 'warning', confirmButtonColor: '#2a5298' });
+                submitBtn.disabled = true;
+            } else if (diff > 120) {
+                Swal.fire({ title: 'เงื่อนไขของสถาบัน', text: '⚠️ สามารถขอใช้งานห้องประชุมได้ครั้งละไม่เกิน 2 ชั่วโมงต่อคนค่ะ', icon: 'info', confirmButtonColor: '#2a5298' });
+                submitBtn.disabled = true;
+            } else {
+                submitBtn.disabled = false;
+            }
+        }
+    }
+
+    function loadBookings() {
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById("filterDate").value = today;
+
+        fetch(SCRIPT_URL)
+        .then(res => res.json())
+        .then(data => {
+            allBookings = data; 
+            filterBookingsByDate(); 
+        }).catch(err => {
+            document.getElementById("bookingTableBody").innerHTML = "<tr><td colspan='3' class='text-center text-danger py-4'><i class='fa-solid fa-triangle-exclamation me-2'></i>โหลดข้อมูลระบบล้มเหลว</td></tr>";
+        });
+    }
+
+    function filterBookingsByDate() {
+        const selectedDate = document.getElementById("filterDate").value;
+        const tbody = document.getElementById("bookingTableBody");
+        tbody.innerHTML = "";
+
+        const filteredData = allBookings.filter(b => {
+            if (!b.date) return false;
+            const bDateStr = new Date(b.date).toISOString().split('T')[0];
+            return bDateStr === selectedDate;
+        });
+
+        if (filteredData.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="3" class="text-center text-muted py-5">
+                        <i class="fa-regular fa-folder-open d-block mb-2 opacity-50" style="font-size: 2.2rem; color: #94a3b8;"></i>
+                        ยังไม่มีคนจองในวันนี้ สามารถเลือกห้องประชุมและลงทะเบียนจองได้เลยครับ
+                    </td>
+                </tr>`;
+            return;
+        }
+
+        filteredData.forEach(b => {
+            const isSL = b.building === "Saint Louis";
+            const tagClass = isSL ? "tag-sl" : "tag-sb";
+            const displayName = isSL ? "ตึก 1 (รพ.)" : "ตึก 2 (เรียน)";
+
+            tbody.innerHTML += `
+                <tr>
+                    <td>
+                        <span class="building-tag ${tagClass} mb-1">${displayName}</span>
+                        <div class="fw-bold text-dark" style="font-size:0.95rem;">${b.room}</div>
+                    </td>
+                    <td><span class="time-pill"><i class="fa-regular fa-clock me-1"></i>${b.startTime} - ${b.endTime}</span></td>
+                    <td>
+                        <div class="fw-semibold text-dark">${b.requester}</div>
+                        <small class="text-muted" style="font-size:0.8rem;">${b.purpose || '-'}</small>
+                    </td>
+                </tr>
+            `;
+        });
+    }
+
+    document.getElementById("bookingForm").addEventListener("submit", function(e) {
+        e.preventDefault();
+        document.getElementById("submitBtn").disabled = true;
+        document.getElementById("submitBtn").innerHTML = "<i class='fa-solid fa-spinner fa-spin me-2'></i>กำลังบันทึกข้อมูล...";
+
+        // 🟢 แก้ไขจุดที่ 2 และ 3: เติมจุลภาค (,) และจัดโครงสร้าง Object Payload ฝั่งหน้าบ้านใหม่ให้เสถียร
+        const payload = {
+            building: document.getElementById("building").value,
+            room: document.getElementById("room").value,
+            date: document.getElementById("date").value,
+            startTime: document.getElementById("startTime").value,
+            endTime: document.getElementById("endTime").value,
+            requester: document.getElementById("requester").value,
+            purpose: document.getElementById("purpose").value,
+            userStatus: document.getElementById("userStatus").value,
+            department: document.getElementById("userStatus").value === "บุคลากร" ? document.getElementById("departmentInput").value : document.getElementById("departmentSelect").value
+        };
+
+        fetch(SCRIPT_URL, {
+            method: "POST",
+            body: JSON.stringify(payload)
+        })
+        .then(res => res.json())
+        .then(res => {
+            if(res.status === "success") {
+                Swal.fire({
+                    title: 'จองห้องประชุมสำเร็จ!',
+                    text: 'โปรดติดต่อเจ้าหน้าที่ห้องสมุด SLC ก่อนเข้าใช้งานห้องทุกครั้ง',
+                    icon: 'success',
+                    confirmButtonText: 'ตกลง',
+                    confirmButtonColor: '#2a5298'
+                });
+                
+                document.getElementById("filterDate").value = payload.date;
+                document.getElementById("bookingForm").reset();
+                updateRoomsAndTimes();
+                loadBookings();
+            } else if(res.status === "error") {
+                Swal.fire({
+                    title: 'จองไม่สำเร็จ!',
+                    html: res.message,
+                    icon: 'error',
+                    confirmButtonText: 'รับทราบ',
+                    confirmButtonColor: '#d33'
+                });
+            }
+        }).finally(() => {
+            document.getElementById("submitBtn").innerHTML = "<i class='fa-solid fa-paper-plane me-2'></i>ส่งข้อมูลการจอง";
+            document.getElementById("submitBtn").disabled = false;
+        });
+    });
+
+    window.onload = loadBookings;
+</script>
+</body>
+</html>
