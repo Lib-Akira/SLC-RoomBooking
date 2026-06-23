@@ -211,9 +211,28 @@
 
                     <div class="mb-3">
                         <label class="form-label">👤 ชื่อผู้จอง / รหัสประจำตัว</label>
-                        <input type="text" class="form-control" id="requester" placeholder="ตัวอย่าง: นายโซล่าร์ 100xxx / คณะพยาบาลศาสตร์" required>
+                        <input type="text" class="form-control" id="requester" placeholder="ตัวอย่าง: นายโซล่าร์ 100xxx" required>
                     </div>
 
+                    <div class="mb-3">
+                        <label class="form-label">🎓 สถานะผู้ใช้งาน</label>
+                        <select class="form-select" id="userStatus" required onchange="updateDepartmentOptions()">
+                            <option value="">-- กรุณาเลือกสถานะ --</option>
+                            <option value="นักศึกษา">นักศึกษา</option>
+                            <option value="อาจารย์">อาจารย์</option>
+                            <option value="บุคลากร">บุคลากร</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3" id="departmentWrapper" style="display: none;">
+                        <label class="form-label" id="departmentLabel">📋 คณะ / หน่วยงาน</label>
+                        
+                        <select class="form-select" id="departmentSelect" style="display: none;">
+                            <option value="">-- กรุณาเลือกคณะ --</option>
+                        </select>
+                        
+                        <input type="text" class="form-control" id="departmentInput" placeholder="ระบุชื่อแผนก/ฝ่าย เช่น ฝ่ายการเงิน, สำนักอธิการบดี" style="display: none;">
+                    </div>
                     <div class="mb-4">
                         <label class="form-label">📝 วัตถุประสงค์การใช้งาน</label>
                         <textarea class="form-control" id="purpose" rows="2" placeholder="ระบุหัวข้อประชุม/กิจกรรมสัมมนา"></textarea>
@@ -311,6 +330,52 @@
         startSelect.disabled = endSelect.disabled = false;
     }
 
+    function updateDepartmentOptions() {
+        const status = document.getElementById("userStatus").value;
+        const wrapper = document.getElementById("departmentWrapper");
+        const selectField = document.getElementById("departmentSelect");
+        const inputField = document.getElementById("departmentInput");
+        const label = document.getElementById("departmentLabel");
+
+        // รีเซ็ตค่าและซ่อนทุกฟลด์ก่อน
+        wrapper.style.display = "none";
+        selectField.style.display = "none";
+        selectField.required = false;
+        inputField.style.display = "none";
+        inputField.required = false;
+        
+        if (!status) return;
+
+        wrapper.style.display = "block"; // แสดงกล่องคลุมใหญ่
+
+        if (status === "นักศึกษา") {
+            label.innerHTML = "📋 คณะที่สังกัด";
+            selectField.innerHTML = `
+                <option value="">-- กรุณาเลือกคณะ --</option>
+                <option value="คณะพยาบาลศาสตร์">คณะพยาบาลศาสตร์</option>
+                <option value="คณะจิตวิทยา">คณะจิตวิทยา</option>
+                <option value="คณะกายภาพบำบัด">คณะกายภาพบำบัด</option>
+            `;
+            selectField.style.display = "block";
+            selectField.required = true;
+        } else if (status === "อาจารย์") {
+            label.innerHTML = "📋 คณะ / สำนักวิชาที่สังกัด";
+            selectField.innerHTML = `
+                <option value="">-- กรุณาเลือกคณะ/สำนักวิชา --</option>
+                <option value="คณะพยาบาลศาสตร์">คณะพยาบาลศาสตร์</option>
+                <option value="คณะจิตวิทยา">คณะจิตวิทยา</option>
+                <option value="คณะกายภาพบำบัด">คณะกายภาพบำบัด</option>
+                <option value="สำนักวิชาศึกษาทั่วไป">สำนักวิชาศึกษาทั่วไป</option>
+            `;
+            selectField.style.display = "block";
+            selectField.required = true;
+        } else if (status === "บุคลากร") {
+            label.innerHTML = "🏢 แผนก / ฝ่ายงานที่สังกัด";
+            inputField.style.display = "block";
+            inputField.required = true;
+            inputField.value = "";
+        }
+    
     function validateTimeSlot() {
         const start = document.getElementById("startTime").value;
         const end = document.getElementById("endTime").value;
@@ -410,6 +475,9 @@
             endTime: document.getElementById("endTime").value,
             requester: document.getElementById("requester").value,
             purpose: document.getElementById("purpose").value
+            userStatus: document.getElementById("userStatus").value,
+            department: document.getElementById("userStatus").value === "บุคลากร" ? document.getElementById("departmentInput").value : document.getElementById("departmentSelect").value
+    
         };
 
         fetch(SCRIPT_URL, {
