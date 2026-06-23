@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบจองห้องประชุม SLC Library</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #f8f9fa; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .card { border: none; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border-radius: 12px; }
+        .header-banner { background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); color: white; padding: 30px; border-radius: 12px; margin-bottom: 25px; }
+    </style>
+</head>
+<body>
+<div class="container py-4">
+    <div class="header-banner text-center">
+        <h2>📅 ระบบจองห้องประชุม SLC Library</h2>
+        <p class="mb-0">วิทยาลัยเซนต์หลุยส์ (Saint Louis College)</p>
+    </div>
+
+    <div class="row g-4">
+        <!-- ฝั่งซ้าย: ฟอร์มจอง -->
+        <div class="col-md-5">
+            <div class="card p-4">
+                <h4 class="mb-3 text-primary">✍️ กรอกรายละเอียดการจอง</h4>
+                <form id="bookingForm">
+                    <div class="mb-3">
+                        <label class="form-label">🏢 เลือกตึกที่ต้องการใช้งาน</label>
+                        <select class="form-select" id="building" required onchange="updateRoomsAndTimes()">
+                            <option value="">-- กรุณาเลือกตึก --</option>
+                            <option value="Saint Louis">ตึก 1 Saint Louis (ฝั่งโรงพยาบาล) [10.00-19.00 น.]</option>
+                            <option value="Saint Benedict">ตึก 2 Saint Benedict (ฝั่งอาคารเรียน) [08.00-17.00 น.]</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">🚪 เลือกห้องประชุม</label>
+                        <select class="form-select" id="room" required disabled>
+                            <option value="">-- กรุณาเลือกตึกก่อน --</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">📆 วันที่ต้องการจอง</label>
+                        <input type="date" class="form-control" id="date" required>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">⏰ เวลาเริ่มต้น</label>
+                            <select class="form-select" id="startTime" required disabled onchange="validateTimeSlot()"></select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">⏰ เวลาสิ้นสุด</label>
+                            <select class="form-select" id="endTime" required disabled onchange="validateTimeSlot()"></select>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">👤 ชื่อผู้จอง / รหัสประจำตัว</label>
+                        <input type="text" class="form-control" id="requester" placeholder="ตัวอย่าง: นายโซล่าร์ 100xxx" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">📝 วัตถุประสงค์</label>
+                        <textarea class="form-control" id="purpose" rows="2" placeholder="ระบุหัวข้อประชุม/กิจกรรม"></textarea>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100" id="submitBtn">ส่งข้อมูลการจอง</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- ฝั่งขวา: ตารางแสดงข้อมูลการจอง -->
+        <div class="col-md-7">
+            <div class="card p-4">
+                <h4 class="mb-3 text-success">📋 รายการที่มีคนจองแล้ววันนี้/เร็วๆ นี้</h4>
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>ตึก/ห้อง</th>
+                                <th>วันที่</th>
+                                <th>เวลา</th>
+                                <th>ผู้จอง</th>
+                            </tr>
+                        </thead>
+                        <tbody id="bookingTableBody">
+                            <tr><td colspan="4" class="text-center text-muted">กำลังโหลดข้อมูลความว่าง...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 🔴 ใส่ URL Web App ที่ได้จาก Apps Script ตรงนี้ครับ 🔴
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzDSTAZ097LZcya3VfwHOigdPEzboHnYYVOMGkpAz-X66UQEfg7BpdkRTWuIf5Wxc9MYw/exec";
+
+    const rooms = {
+        "Saint Louis": ["Conference Room 1", "Conference Room 2", "Conference Room 3", "mini theater room", "Research Room"],
+        "Saint Benedict": ["Conference Room 1", "Conference Room 2", "mini theater room", "multiple purpose room"]
+    };
+
+    function generateTimeOptions(startHour, endHour) {
+        let options = [];
+        for (let h = startHour; h <= endHour; h++) {
+            let hourStr = h.toString().padStart(2, '0');
+            options.push(`${hourStr}:00`);
+            if (h !== endHour) options.push(`${hourStr}:30`);
+        }
+        return options;
+    }
+
+    function updateRoomsAndTimes() {
+        const building = document.getElementById("building").value;
+        const roomSelect = document.getElementById("room");
+        const startSelect = document.getElementById("startTime");
+        const endSelect = document.getElementById("endTime");
+
+        roomSelect.innerHTML = '<option value="">-- เลือกห้อง --</option>';
+        if (!building) {
+            roomSelect.disabled = startSelect.disabled = endSelect.disabled = true;
+            return;
+        }
+
+        rooms[building].forEach(r => {
+            roomSelect.innerHTML += `<option value="${r}">${r}</option>`;
+        });
+        roomSelect.disabled = false;
+
+        let timeOpts = building === "Saint Louis" ? generateTimeOptions(10, 19) : generateTimeOptions(8, 17);
+        
+        startSelect.innerHTML = '<option value="">-- เริ่ม --</option>';
+        endSelect.innerHTML = '<option value="">-- สิ้นสุด --</option>';
+        
+        timeOpts.forEach(t => {
+            startSelect.innerHTML += `<option value="${t}">${t}</option>`;
+            endSelect.innerHTML += `<option value="${t}">${t}</option>`;
+        });
+        
+        startSelect.disabled = endSelect.disabled = false;
+    }
+
+    function validateTimeSlot() {
+        const start = document.getElementById("startTime").value;
+        const end = document.getElementById("endTime").value;
+        const submitBtn = document.getElementById("submitBtn");
+
+        if (start && end) {
+            let [sH, sM] = start.split(':').map(Number);
+            let [eH, eM] = end.split(':').map(Number);
+            let diff = (eH * 60 + eM) - (sH * 60 + sM);
+
+            if (diff <= 0) {
+                alert("เวลาสิ้นสุดต้องอยู่หลังเวลาเริ่มต้น");
+                submitBtn.disabled = true;
+            } else if (diff > 120) {
+                alert("⚠️ เงื่อนไข: สามารถใช้งานได้ไม่เกิน 2 ชั่วโมงต่อคนครับ");
+                submitBtn.disabled = true;
+            } else {
+                submitBtn.disabled = false;
+            }
+        }
+    }
+
+    // ดึงข้อมูลจาก Google Sheets มาโชว์ในตาราง
+    function loadBookings() {
+        fetch(SCRIPT_URL)
+        .then(res => res.json())
+        .then(data => {
+            const tbody = document.getElementById("bookingTableBody");
+            tbody.innerHTML = "";
+            if(data.length === 0) {
+                tbody.innerHTML = "<tr><td colspan='4' class='text-center text-muted'>ยังไม่มีประวัติการจอง สามารถจองได้เลยครับ</td></tr>";
+                return;
+            }
+            data.forEach(b => {
+                let formattedDate = new Date(b.date).toLocaleDateString('th-TH', {day: 'numeric', month: 'short', year: 'numeric'});
+                tbody.innerHTML += `
+                    <tr>
+                        <td><small class="badge bg-secondary">${b.building}</small><br>${b.room}</td>
+                        <td>${formattedDate}</td>
+                        <td><strong class="text-primary">${b.startTime} - ${b.endTime}</strong></td>
+                        <td>${b.requester}</td>
+                    </tr>
+                `;
+            });
+        }).catch(err => {
+            document.getElementById("bookingTableBody").innerHTML = "<tr><td colspan='4' class='text-center text-danger'>โหลดข้อมูลล้มเหลว</td></tr>";
+        });
+    }
+
+    // ส่งข้อมูลฟอร์มเข้า Google Sheets
+    document.getElementById("bookingForm").addEventListener("submit", function(e) {
+        e.preventDefault();
+        document.getElementById("submitBtn").disabled = true;
+        document.getElementById("submitBtn").innerText = "กำลังบันทึกข้อมูล...";
+
+        const payload = {
+            building: document.getElementById("building").value,
+            room: document.getElementById("room").value,
+            date: document.getElementById("date").value,
+            startTime: document.getElementById("startTime").value,
+            endTime: document.getElementById("endTime").value,
+            requester: document.getElementById("requester").value,
+            purpose: document.getElementById("purpose").value
+        };
+
+        fetch(SCRIPT_URL, {
+            method: "POST",
+            body: JSON.stringify(payload)
+        })
+        .then(res => res.json())
+        .then(res => {
+            if(res.status === "success") {
+                alert("🎉 จองห้องประชุมสำเร็จเรียบร้อย โปรดแสดงตนต่อเจ้าหน้าที่ก่อนใช้ห้อง!");
+                document.getElementById("bookingForm").reset();
+                updateRoomsAndTimes();
+                loadBookings();
+            }
+        }).finally(() => {
+            document.getElementById("submitBtn").innerText = "ส่งข้อมูลการจอง";
+            document.getElementById("submitBtn").disabled = false;
+        });
+    });
+
+    window.onload = loadBookings;
+</script>
+</body>
+</html>
