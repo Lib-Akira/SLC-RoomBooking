@@ -4,25 +4,178 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ระบบจองห้องประชุม SLC Library</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"><script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
     <style>
-        body { background-color: #f8f9fa; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        .card { border: none; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border-radius: 12px; }
-        .header-banner { background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); color: white; padding: 30px; border-radius: 12px; margin-bottom: 25px; }
+        :root {
+            --primary-gradient: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            --text-dark: #2d3748;
+            --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+            --card-radius: 16px;
+        }
+
+        body { 
+            background-color: #f4f7f6; 
+            font-family: 'Sarabun', sans-serif; 
+            color: var(--text-dark);
+            background-image: radial-gradient(#2a52980a 1px, transparent 0);
+            background-size: 20px 20px;
+        }
+
+        /* ดีไซน์ป้ายแบนเนอร์ด้านบนให้ดูหรูหรามีมิติ */
+        .header-banner { 
+            background: var(--primary-gradient); 
+            color: white; 
+            padding: 40px 30px; 
+            border-radius: var(--card-radius); 
+            margin-bottom: 35px; 
+            box-shadow: 0 12px 35px rgba(30, 60, 114, 0.18);
+            position: relative;
+            overflow: hidden;
+        }
+        .header-banner::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -10%;
+            width: 260px;
+            height: 260px;
+            background: rgba(255, 255, 255, 0.04);
+            border-radius: 50%;
+        }
+
+        /* การ์ดสไตล์คลีนโค้งมนสไตล์โมเดิร์นเว็บแอป */
+        .card { 
+            border: none; 
+            box-shadow: var(--card-shadow); 
+            border-radius: var(--card-radius); 
+            background: #ffffff;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .card:hover {
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.07);
+        }
+
+        .card-title-custom {
+            font-size: 1.22rem;
+            font-weight: 600;
+            color: #1e3c72;
+            border-bottom: 2px solid #f1f5f9;
+            padding-bottom: 15px;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* ปรับแต่งฟอร์ม input และ select ให้ดูซอฟต์และกดง่าย */
+        .form-label {
+            font-weight: 500;
+            color: #4a5568;
+            font-size: 0.9rem;
+            margin-bottom: 6px;
+        }
+        .form-control, .form-select {
+            border: 1.5px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 10px 14px;
+            font-size: 0.95rem;
+            transition: all 0.2s ease;
+        }
+        .form-control:focus, .form-select:focus {
+            border-color: #2a5298;
+            box-shadow: 0 0 0 3.5px rgba(42, 82, 152, 0.12);
+        }
+
+        /* ดีไซน์ปุ่มส่งแบบไล่เฉดสีนุ่มนวลมีมิติ */
+        .btn-modern {
+            background: var(--primary-gradient);
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 10px;
+            font-weight: 500;
+            transition: all 0.25s ease;
+            box-shadow: 0 4px 15px rgba(42, 82, 152, 0.2);
+        }
+        .btn-modern:hover {
+            transform: translateY(-1.5px);
+            box-shadow: 0 6px 20px rgba(42, 82, 152, 0.28);
+            color: white;
+        }
+        .btn-modern:disabled {
+            background: #cbd5e1;
+            box-shadow: none;
+            transform: none;
+        }
+
+        /* ปรับแต่งส่วนตัวกรองวันที่ให้ดูกลืนกับดีไซน์ตาราง */
+        .filter-wrapper {
+            background-color: #f8fafc;
+            padding: 12px 16px;
+            border-radius: 12px;
+            border: 1px solid #edf2f7;
+            margin-bottom: 20px;
+        }
+
+        /* ตกแต่งตารางแสดงผลให้อ่านง่ายและโมเดิร์น */
+        .table-modern {
+            vertical-align: middle;
+        }
+        .table-modern thead th {
+            background-color: #f8fafc;
+            color: #64748b;
+            font-weight: 600;
+            font-size: 0.82rem;
+            text-transform: uppercase;
+            padding: 14px;
+            border-bottom: 1px solid #e2e8f0;
+            letter-spacing: 0.3px;
+        }
+        .table-modern tbody td {
+            padding: 15px 14px;
+            border-bottom: 1px solid #f1f5f9;
+            font-size: 0.93rem;
+        }
+
+        /* ป้ายกำกับตึกและแคปซูลแสดงช่วงเวลา */
+        .building-tag {
+            font-size: 0.76rem;
+            font-weight: 600;
+            padding: 4px 8px;
+            border-radius: 6px;
+            display: inline-block;
+        }
+        .tag-sl { background-color: #e0f2fe; color: #0369a1; }
+        .tag-sb { background-color: #fef3c7; color: #b45309; }
+
+        .time-pill {
+            font-weight: 600;
+            color: #2a5298;
+            background: #f0f4f8;
+            padding: 5px 10px;
+            border-radius: 6px;
+            font-size: 0.86rem;
+            display: inline-block;
+        }
     </style>
 </head>
 <body>
 <div class="container py-4">
     <div class="header-banner text-center">
-        <h2>📅 ระบบจองห้องประชุม SLC Library</h2>
-        <p class="mb-0">วิทยาลัยเซนต์หลุยส์ (Saint Louis College)</p>
+        <h2 class="fw-bold mb-2"><i class="fa-solid fa-hotel me-2"></i>ระบบจองห้องประชุม SLC Library</h2>
+        <p class="mb-0 opacity-75">สำนักหอสมุดดิจิทัล วิทยาลัยเซนต์หลุยส์ (Saint Louis College)</p>
     </div>
 
     <div class="row g-4">
-        <!-- ฝั่งซ้าย: ฟอร์มจอง -->
         <div class="col-md-5">
             <div class="card p-4">
-                <h4 class="mb-3 text-primary">✍️ กรอกรายละเอียดการจอง</h4>
+                <div class="card-title-custom">
+                    <i class="fa-solid fa-pen-to-square text-primary"></i> กรอกรายละเอียดการจอง
+                </div>
                 <form id="bookingForm">
                     <div class="mb-3">
                         <label class="form-label">🏢 เลือกอาคารที่ต้องการใช้งาน</label>
@@ -41,16 +194,16 @@
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label">📆 วันที่ต้องการจอง</label>
+                        <label class="form-label">📅 วันที่ต้องการจอง</label>
                         <input type="date" class="form-control" id="date" required>
                     </div>
 
                     <div class="row">
-                        <div class="col-md-6 mb-3">
+                        <div class="col-6 mb-3">
                             <label class="form-label">⏰ เวลาเริ่มต้น</label>
                             <select class="form-select" id="startTime" required disabled onchange="validateTimeSlot()"></select>
                         </div>
-                        <div class="col-md-6 mb-3">
+                        <div class="col-6 mb-3">
                             <label class="form-label">⏰ เวลาสิ้นสุด</label>
                             <select class="form-select" id="endTime" required disabled onchange="validateTimeSlot()"></select>
                         </div>
@@ -58,46 +211,55 @@
 
                     <div class="mb-3">
                         <label class="form-label">👤 ชื่อผู้จอง / รหัสประจำตัว</label>
-                        <input type="text" class="form-control" id="requester" placeholder="ตัวอย่าง: นายโซล่าร์ 100xxx" required>
+                        <input type="text" class="form-control" id="requester" placeholder="ตัวอย่าง: นายโซล่าร์ 100xxx / คณะพยาบาลศาสตร์" required>
                     </div>
 
-                    <div class="mb-3">
-                        <label class="form-label">📝 วัตถุประสงค์</label>
-                        <textarea class="form-control" id="purpose" rows="2" placeholder="ระบุหัวข้อประชุม/กิจกรรม"></textarea>
+                    <div class="mb-4">
+                        <label class="form-label">📝 วัตถุประสงค์การใช้งาน</label>
+                        <textarea class="form-control" id="purpose" rows="2" placeholder="ระบุหัวข้อประชุม/กิจกรรมสัมมนา"></textarea>
                     </div>
 
-                    <button type="submit" class="btn btn-primary w-100" id="submitBtn">ส่งข้อมูลการจอง</button>
+                    <button type="submit" class="btn btn-modern w-100" id="submitBtn">
+                        <i class="fa-solid fa-paper-plane me-2"></i>ส่งข้อมูลการจอง
+                    </button>
                 </form>
             </div>
         </div>
 
-        <!-- ฝั่งขวา: ตารางแสดงข้อมูลการจอง -->
         <div class="col-md-7">
             <div class="card p-4">
-                <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-                    <h4 class="mb-0 text-success">📋 รายการที่มีคนจองแล้ว</h4>
-                    <!-- เพิ่มกล่องเลือกวันที่ตรงนี้ -->
-                    <div class="d-flex align-items-center gap-2">
-                        <label for="filterDate" class="text-muted small fw-bold text-nowrap">เลือกวันที่ต้องการดู:</label>
-                        <input type="date" class="form-control form-control-sm" id="filterDate" onchange="filterBookingsByDate()">
+                <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
+                    <div class="card-title-custom mb-0 border-0 pb-0">
+                        <i class="fa-solid fa-calendar-check text-success"></i> ตรวจสอบตารางการจอง
                     </div>
                 </div>
+
+                <div class="filter-wrapper d-flex align-items-center justify-content-between flex-wrap gap-2">
+                    <span class="text-muted small fw-bold"><i class="fa-solid fa-filter me-1"></i> ตัวกรองข้อมูลความว่าง:</span>
+                    <div class="d-flex align-items-center gap-2">
+                        <label for="filterDate" class="text-muted small fw-bold text-nowrap">เลือกวันที่ต้องการดู:</label>
+                        <input type="date" class="form-control form-control-sm" id="filterDate" onchange="filterBookingsByDate()" style="max-width: 160px;">
+                    </div>
+                </div>
+
                 <div class="table-responsive">
-                    <table class="table table-hover">
-                        <thead class="table-light">
+                    <table class="table table-modern table-hover">
+                        <thead>
                             <tr>
-                                <th>ตึก/ห้อง</th>
-                                <th>เวลา</th>
-                                <th>ผู้จอง</th>
+                                <th>ตึก / ห้องประชุม</th>
+                                <th style="width: 135px;">ช่วงเวลา</th>
+                                <th>ผู้รับสิทธิ์จอง</th>
                             </tr>
                         </thead>
                         <tbody id="bookingTableBody">
-                            <tr><td colspan="3" class="text-center text-muted">กำลังโหลดข้อมูล...</td></tr>
+                            <tr><td colspan="3" class="text-center text-muted py-4"><i class="fa-solid fa-spinner fa-spin me-2"></i>กำลังดึงข้อมูลความว่างระบบ...</td></tr>
                         </tbody>
                     </table>
                 </div>
             </div>
         </div>
+    </div>
+</div>
 
 <script>
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzDSTAZ097LZcya3VfwHOigdPEzboHnYYVOMGkpAz-X66UQEfg7BpdkRTWuIf5Wxc9MYw/exec";
@@ -160,10 +322,10 @@
             let diff = (eH * 60 + eM) - (sH * 60 + sM);
 
             if (diff <= 0) {
-                alert("เวลาสิ้นสุดต้องอยู่หลังเวลาเริ่มต้นครับ");
+                Swal.fire({ title: 'ข้อผิดพลาดเกี่ยวกับเวลา', text: 'เวลาสิ้นสุดต้องอยู่หลังเวลาเริ่มต้นครับ', icon: 'warning', confirmButtonColor: '#2a5298' });
                 submitBtn.disabled = true;
             } else if (diff > 120) {
-                alert("⚠️ เงื่อนไขสถาบัน: สามารถใช้งานได้ไม่เกิน 2 ชั่วโมงต่อคนครับ");
+                Swal.fire({ title: 'เงื่อนไขของสถาบัน', text: '⚠️ สามารถขอใช้งานห้องประชุมได้ครั้งละไม่เกิน 2 ชั่วโมงต่อคนค่ะ', icon: 'info', confirmButtonColor: '#2a5298' });
                 submitBtn.disabled = true;
             } else {
                 submitBtn.disabled = false;
@@ -183,7 +345,7 @@
             allBookings = data; // บันทึกข้อมูลเข้าตัวแปรส่วนกลาง
             filterBookingsByDate(); // เรียกฟังก์ชันคัดกรองข้อมูล
         }).catch(err => {
-            document.getElementById("bookingTableBody").innerHTML = "<tr><td colspan='3' class='text-center text-danger'>โหลดข้อมูลล้มเหลว</td></tr>";
+            document.getElementById("bookingTableBody").innerHTML = "<tr><td colspan='3' class='text-center text-danger py-4'><i class='fa-solid fa-triangle-exclamation me-2'></i>โหลดข้อมูลระบบล้มเหลว</td></tr>";
         });
     }
 
@@ -202,16 +364,33 @@
         });
 
         if (filteredData.length === 0) {
-            tbody.innerHTML = "<tr><td colspan='3' class='text-center text-muted py-4'>ยังไม่มีคนจองในวันนี้...</td></tr>";
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="3" class="text-center text-muted py-5">
+                        <i class="fa-regular fa-folder-open d-block mb-2 opacity-50" style="font-size: 2.2rem; color: #94a3b8;"></i>
+                        ยังไม่มีคนจองในวันนี้ สามารถเลือกห้องประชุมและลงทะเบียนจองได้เลยค่ะ
+                    </td>
+                </tr>`;
             return;
         }
 
         filteredData.forEach(b => {
+            // เลือกดีไซน์สี Badge ตามชื่อตึกให้แตกต่างชัดเจน
+            const isSL = b.building === "Saint Louis";
+            const tagClass = isSL ? "tag-sl" : "tag-sb";
+            const displayName = isSL ? "ตึก 1 (รพ.)" : "ตึก 2 (เรียน)";
+
             tbody.innerHTML += `
                 <tr>
-                    <td><small class="badge bg-secondary">${b.building}</small><br>${b.room}</td>
-                    <td><strong class="text-primary">${b.startTime} - ${b.endTime}</strong></td>
-                    <td>${b.requester}</td>
+                    <td>
+                        <span class="building-tag ${tagClass} mb-1">${displayName}</span>
+                        <div class="fw-bold text-dark" style="font-size:0.95rem;">${b.room}</div>
+                    </td>
+                    <td><span class="time-pill"><i class="fa-regular fa-clock me-1"></i>${b.startTime} - ${b.endTime}</span></td>
+                    <td>
+                        <div class="fw-semibold text-dark">${b.requester}</div>
+                        <small class="text-muted" style="font-size:0.8rem;">${b.purpose || '-'}</small>
+                    </td>
                 </tr>
             `;
         });
@@ -221,7 +400,7 @@
     document.getElementById("bookingForm").addEventListener("submit", function(e) {
         e.preventDefault();
         document.getElementById("submitBtn").disabled = true;
-        document.getElementById("submitBtn").innerText = "กำลังบันทึกข้อมูล...";
+        document.getElementById("submitBtn").innerHTML = "<i class='fa-solid fa-spinner fa-spin me-2'></i>กำลังบันทึกข้อมูล...";
 
         const payload = {
             building: document.getElementById("building").value,
@@ -243,7 +422,7 @@
                 // 🎉 แจ้งเตือนสำเร็จ แบบเด้งกลางจอพร้อมไอคอนติ๊กถูกสีเขียว
                 Swal.fire({
                     title: 'จองห้องประชุมสำเร็จ!',
-                    text: 'โปรดติดต่อเจ้าหน้าที่ก่อนใช้ห้องทุกครั้ง',
+                    text: 'โปรดติดต่อเจ้าหน้าที่ห้องสมุด SLC ก่อนเข้าใช้งานห้องทุกครั้งนะคะ',
                     icon: 'success',
                     confirmButtonText: 'ตกลง',
                     confirmButtonColor: '#2a5298'
@@ -254,7 +433,7 @@
                 updateRoomsAndTimes();
                 loadBookings();
             } else if(res.status === "error") {
-                // ❌ แจ้งเตือนจองซ้ำ แบบเด้งกลางจอพร้อมไอคอนกากบาทสีแดง
+                // ❌ แจ้งเตือนจองซ้ำ แบบเด้งกลางจอพร้อมไอคอนกากบาทสีแดงในโหมด HTML (จัดบรรทัดสวยเป๊ะ)
                 Swal.fire({
                     title: 'จองไม่สำเร็จ!',
                     html: res.message,
@@ -264,7 +443,7 @@
                 });
             }
         }).finally(() => {
-            document.getElementById("submitBtn").innerText = "ส่งข้อมูลการจอง";
+            document.getElementById("submitBtn").innerHTML = "<i class='fa-solid fa-paper-plane me-2'></i>ส่งข้อมูลการจอง";
             document.getElementById("submitBtn").disabled = false;
         });
     });
