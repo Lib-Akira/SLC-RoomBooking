@@ -265,8 +265,8 @@
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzDSTAZ097LZcya3VfwHOigdPEzboHnYYVOMGkpAz-X66UQEfg7BpdkRTWuIf5Wxc9MYw/exec";
 
     const rooms = {
-        "Saint Louis": ["Conference Room 1", "Conference Room 2", "Conference Room 3", "mini theater room", "Research Room"],
-        "Saint Benedict": ["Conference Room 1", "Conference Room 2", "mini theater room", "multiple purpose room"]
+        "Saint Louis": ["Conference Room 1", "Conference Room 2", "Conference Room 3", "Mini Theater Room", "Research Room"],
+        "Saint Benedict": ["Conference Room 1", "Conference Room 2", "Multiple Purpose room"]
     };
 
     let allBookings = []; // ตัวแปรสำหรับเก็บข้อมูลการจองทั้งหมดที่ดึงมาจาก Sheets
@@ -368,7 +368,7 @@
                 <tr>
                     <td colspan="3" class="text-center text-muted py-5">
                         <i class="fa-regular fa-folder-open d-block mb-2 opacity-50" style="font-size: 2.2rem; color: #94a3b8;"></i>
-                        ยังไม่มีคนจองในวันนี้ สามารถเลือกห้องประชุมและลงทะเบียนจองได้เลยค่ะ
+                        ยังไม่มีคนจองในวันนี้ สามารถเลือกห้องประชุมและลงทะเบียนจองได้เลยครับ
                     </td>
                 </tr>`;
             return;
@@ -422,7 +422,7 @@
                 // 🎉 แจ้งเตือนสำเร็จ แบบเด้งกลางจอพร้อมไอคอนติ๊กถูกสีเขียว
                 Swal.fire({
                     title: 'จองห้องประชุมสำเร็จ!',
-                    text: 'โปรดติดต่อเจ้าหน้าที่ห้องสมุด SLC ก่อนเข้าใช้งานห้องทุกครั้งนะคะ',
+                    text: 'โปรดติดต่อเจ้าหน้าที่ห้องสมุด SLC ก่อนเข้าใช้งานห้องทุกครั้ง',
                     icon: 'success',
                     confirmButtonText: 'ตกลง',
                     confirmButtonColor: '#2a5298'
