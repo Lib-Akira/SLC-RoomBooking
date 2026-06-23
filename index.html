@@ -25,11 +25,11 @@
                 <h4 class="mb-3 text-primary">✍️ กรอกรายละเอียดการจอง</h4>
                 <form id="bookingForm">
                     <div class="mb-3">
-                        <label class="form-label">🏢 เลือกตึกที่ต้องการใช้งาน</label>
+                        <label class="form-label">🏢 เลือกอาคารที่ต้องการใช้งาน</label>
                         <select class="form-select" id="building" required onchange="updateRoomsAndTimes()">
-                            <option value="">-- กรุณาเลือกตึก --</option>
-                            <option value="Saint Louis">ตึก 1 Saint Louis (ฝั่งโรงพยาบาล) [10.00-19.00 น.]</option>
-                            <option value="Saint Benedict">ตึก 2 Saint Benedict (ฝั่งอาคารเรียน) [08.00-17.00 น.]</option>
+                            <option value="">-- กรุณาเลือกอาคาร --</option>
+                            <option value="Saint Louis">อาคาร Saint Louis (ฝั่งโรงพยาบาล) [10.00-19.00 น.]</option>
+                            <option value="Saint Benedict">อาคาร Saint Benedict (ฝั่งอาคารเรียน) [08.00-17.00 น.]</option>
                         </select>
                     </div>
 
@@ -202,7 +202,7 @@
         });
 
         if (filteredData.length === 0) {
-            tbody.innerHTML = "<tr><td colspan='3' class='text-center text-muted py-4'>ยังไม่มีคนจองในวันนี้ สามารถจองได้เลยครับห้องว่างว่างม้ากกก</td></tr>";
+            tbody.innerHTML = "<tr><td colspan='3' class='text-center text-muted py-4'>ยังไม่มีคนจองในวันนี้...</td></tr>";
             return;
         }
 
@@ -240,7 +240,7 @@
         .then(res => res.json())
         .then(res => {
             if(res.status === "success") {
-                alert("🎉 จองห้องประชุมสำเร็จเรียบร้อยครับ!");
+                alert("🎉 จองห้องประชุมสำเร็จ โปรดแสดงตนต่อเจ้าหน้าที่ก่อนใช้ห้อง.");
                 document.getElementById("filterDate").value = payload.date;
                 document.getElementById("bookingForm").reset();
                 updateRoomsAndTimes();
