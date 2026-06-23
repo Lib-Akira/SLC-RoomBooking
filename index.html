@@ -103,9 +103,11 @@
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzDSTAZ097LZcya3VfwHOigdPEzboHnYYVOMGkpAz-X66UQEfg7BpdkRTWuIf5Wxc9MYw/exec";
 
     const rooms = {
-        "Saint Louis": ["Conference Room 1", "Conference Room 2", "Conference Room 3", "Mini Theater Room", "Research Room"],
-        "Saint Benedict": ["Conference Room 1", "Conference Room 2", , "Multiple Purpose Room"]
+        "Saint Louis": ["Conference Room 1", "Conference Room 2", "Conference Room 3", "mini theater room", "Research Room"],
+        "Saint Benedict": ["Conference Room 1", "Conference Room 2", "mini theater room", "multiple purpose room"]
     };
+
+    let allBookings = []; // ตัวแปรสำหรับเก็บข้อมูลการจองทั้งหมดที่ดึงมาจาก Sheets
 
     function generateTimeOptions(startHour, endHour) {
         let options = [];
@@ -158,10 +160,10 @@
             let diff = (eH * 60 + eM) - (sH * 60 + sM);
 
             if (diff <= 0) {
-                alert("เวลาสิ้นสุดต้องอยู่หลังเวลาเริ่มต้น");
+                alert("เวลาสิ้นสุดต้องอยู่หลังเวลาเริ่มต้นครับ");
                 submitBtn.disabled = true;
             } else if (diff > 120) {
-                alert("⚠️ เงื่อนไข: สามารถใช้งานได้ไม่เกิน 2 ชั่วโมงต่อคนครับ");
+                alert("⚠️ เงื่อนไขสถาบัน: สามารถใช้งานได้ไม่เกิน 2 ชั่วโมงต่อคนครับ");
                 submitBtn.disabled = true;
             } else {
                 submitBtn.disabled = false;
@@ -169,37 +171,49 @@
         }
     }
 
-    // ดึงข้อมูลจาก Google Sheets มาโชว์ในตาราง
+    // ฟังก์ชันดึงข้อมูลรอบแรก และตั้งค่าให้ดึงวันที่ปัจจุบันขึ้นมาโชว์ก่อน
     function loadBookings() {
+        // ตั้งค่ากล่องเลือกวันที่ให้เป็น "วันนี้" เป็นค่าเริ่มต้น
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById("filterDate").value = today;
+
         fetch(SCRIPT_URL)
         .then(res => res.json())
         .then(data => {
-            const tbody = document.getElementById("bookingTableBody");
-            tbody.innerHTML = "";
-            if(data.length === 0) {
-                tbody.innerHTML = "<tr><td colspan='4' class='text-center text-muted'>ยังไม่มีประวัติการจอง สามารถจองได้เลยครับ</td></tr>";
-                return;
-            }
-            data.forEach(b => {
-                let formattedDate = b.date;
-                    if (b.date && b.date.includes('-')) {
-                    const [yy, mm, dd] = b.date.split('-');
-                    if(yy && mm && dd) {
-                    const months = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
-                    formattedDate = `${parseInt(dd)} ${months[parseInt(mm)-1]} ${parseInt(yy) + 543}`;
-              }
-        }
-                tbody.innerHTML += `
-                    <tr>
-                        <td><small class="badge bg-secondary">${b.building}</small><br>${b.room}</td>
-                        <td>${formattedDate}</td>
-                        <td><strong class="text-primary">${b.startTime} - ${b.endTime}</strong></td>
-                        <td>${b.requester}</td>
-                    </tr>
-                `;
-            });
+            allBookings = data; // บันทึกข้อมูลเข้าตัวแปรส่วนกลาง
+            filterBookingsByDate(); // เรียกฟังก์ชันคัดกรองข้อมูล
         }).catch(err => {
-            document.getElementById("bookingTableBody").innerHTML = "<tr><td colspan='4' class='text-center text-danger'>โหลดข้อมูลล้มเหลว</td></tr>";
+            document.getElementById("bookingTableBody").innerHTML = "<tr><td colspan='3' class='text-center text-danger'>โหลดข้อมูลล้มเหลว</td></tr>";
+        });
+    }
+
+    // ฟังก์ชันคัดกรองข้อมูลตามวันที่เลือก
+    function filterBookingsByDate() {
+        const selectedDate = document.getElementById("filterDate").value;
+        const tbody = document.getElementById("bookingTableBody");
+        tbody.innerHTML = "";
+
+        // กรองเอาเฉพาะข้อมูลการจองที่ตรงกับวันที่เราเลือก
+        const filteredData = allBookings.filter(b => {
+            if (!b.date) return false;
+            // จัดฟอร์แมตวันที่ให้ตรงกันเพื่อใช้เทียบ (yyyy-mm-dd)
+            const bDateStr = new Date(b.date).toISOString().split('T')[0];
+            return bDateStr === selectedDate;
+        });
+
+        if (filteredData.length === 0) {
+            tbody.innerHTML = "<tr><td colspan='3' class='text-center text-muted py-4'>ยังไม่มีคนจองในวันนี้ สามารถจองได้เลยครับห้องว่างว่างม้ากกก</td></tr>";
+            return;
+        }
+
+        filteredData.forEach(b => {
+            tbody.innerHTML += `
+                <tr>
+                    <td><small class="badge bg-secondary">${b.building}</small><br>${b.room}</td>
+                    <td><strong class="text-primary">${b.startTime} - ${b.endTime}</strong></td>
+                    <td>${b.requester}</td>
+                </tr>
+            `;
         });
     }
 
@@ -226,7 +240,9 @@
         .then(res => res.json())
         .then(res => {
             if(res.status === "success") {
-                alert("🎉 จองห้องประชุมสำเร็จ โปรดแสดงตนต่อเจ้าหน้าที่ก่อนใช้ห้อง!");
+                alert("🎉 จองห้องประชุมสำเร็จเรียบร้อยครับ!");
+                // อัปเดตตัวกรองตารางให้เปลี่ยนไปแสดงผลวันที่เพิ่งจองไปด้วยเลย
+                document.getElementById("filterDate").value = payload.date;
                 document.getElementById("bookingForm").reset();
                 updateRoomsAndTimes();
                 loadBookings();
