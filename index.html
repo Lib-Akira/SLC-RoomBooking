@@ -241,11 +241,13 @@
         .then(res => {
             if(res.status === "success") {
                 alert("🎉 จองห้องประชุมสำเร็จเรียบร้อยครับ!");
-                // อัปเดตตัวกรองตารางให้เปลี่ยนไปแสดงผลวันที่เพิ่งจองไปด้วยเลย
                 document.getElementById("filterDate").value = payload.date;
                 document.getElementById("bookingForm").reset();
                 updateRoomsAndTimes();
                 loadBookings();
+            } else if(res.status === "error") {
+                // หากหลังบ้านส่งกลับมาว่าเวลาซ้ำ ให้แจ้งเตือนข้อความเตือนสีแดงทันที
+                alert(res.message);
             }
         }).finally(() => {
             document.getElementById("submitBtn").innerText = "ส่งข้อมูลการจอง";
