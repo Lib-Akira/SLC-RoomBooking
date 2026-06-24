@@ -516,47 +516,26 @@
             return;
         }
 
-        let tableRowsHtml = "";
+        filteredData.forEach(b => {
+            const isSL = b.building === "Saint Louis";
+            const tagClass = isSL ? "tag-sl" : "tag-sb";
+            const displayName = isSL ? "Saint Louis" : "Saint Benedict";
 
-    filteredData.forEach(b => {
-        const isSL = b.building === "Saint Louis";
-        // ปรับสไตล์สีของ Tag ประจำอาคาร
-        const tagStyles = isSL 
-            ? "background-color: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd;" 
-            : "background-color: #fef3c7; color: #b45309; border: 1px solid #fde68a;"; 
-        const displayName = isSL ? "Saint Louis" : "Saint Benedict";
-
-        // 🟢 2. เก็บสะสมแถวตารางไว้ในตัวแปร (แก้ไข white-space: nowrap; เรียบร้อยครับ)
-        tableRowsHtml += `
-            <tr style="vertical-align: middle; border-bottom: 1px solid #f1f5f9;">
-                
-                <td style="padding: 16px; width: 45%;">
-                    <div class="d-flex align-items-center gap-2 flex-wrap">
-                        <span class="badge fw-bold" style="${tagStyles} font-size: 0.75rem; padding: 4px 8px; border-radius: 6px;">
-                            ${displayName}
-                        </span>
-                        <span class="fw-bold text-dark" style="font-size: 0.95rem;">${b.room}</span>
-                    </div>
-                </td>
-                
-                <td style="padding: 16px; width: 25%;">
-                    <div style="background-color: #f1f5f9; color: #334155; font-size: 0.85rem; padding: 6px 14px; border-radius: 20px; font-weight: 500; display: inline-flex; align-items: center; white-space: nowrap;">
-                        <i class="fa-regular fa-clock me-2 text-primary"></i>
-                        <span>${b.startTime} - ${b.endTime}</span>
-                    </div>
-                </td>
-                
-                <td style="padding: 16px; width: 30%;">
-                    <div class="fw-bold text-dark" style="font-size: 0.95rem; line-height: 1.2;">${b.requester}</div>
-                    ${b.purpose ? `<div class="text-muted small mt-1" style="font-size: 0.8rem;"><i class="fa-solid fa-circle-info me-1 opacity-70"></i>${b.purpose}</div>` : ''}
-                </td>
-
-            </tr>
-        `;
-    });
-
-    // 🟢 3. พ่นข้อมูลที่สะสมไว้ทั้งหมดลงตารางทีเดียวลวดเดียวจบ
-    tbody.innerHTML = tableRowsHtml;
+            tbody.innerHTML += `
+                <tr>
+                    <td>
+                        <span class="building-tag ${tagClass} mb-1">${displayName}</span>
+                        <div class="fw-bold text-dark" style="font-size:0.95rem;">${b.room}</div>
+                    </td>
+                    <td><span class="time-pill"><i class="fa-regular fa-clock me-1"></i>${b.startTime} - ${b.endTime}</span></td>
+                    <td>
+                        <div class="fw-semibold text-dark">${b.requester}</div>
+                        <small class="text-muted" style="font-size:0.8rem;">${b.purpose || '-'}</small>
+                    </td>
+                </tr>
+            `;
+        });
+    }
     
     // 🟢 แก้ไขปุ่ม Submit ให้ทำงานได้ถูกต้อง 100% แล้ว
    document.getElementById("bookingForm").addEventListener("submit", function(e) {
