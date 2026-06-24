@@ -153,7 +153,17 @@
             border-radius: 6px;
             font-size: 0.86rem;
             display: inline-block;
+        /* 🔵 ปรับสีของอาคาร Saint Louis */
+        .building-tag.tag-sl {
+            background-color: #ede4a8 !important; /* สีพื้นหลัง (ตัวอย่าง: ฟ้าอ่อน) */
+            color: #c9983c !important;            /* สีตัวอักษร (ตัวอย่าง: น้ำเงินเข้ม) */
         }
+
+    /* 🟡 ปรับสีของอาคาร Saint Benedict */
+        .building-tag.tag-sb {
+            background-color: #28a745 !important; /* สีพื้นหลัง (ตัวอย่าง: เหลืองอ่อน) */
+            color: #d4d6d5 !important;            /* สีตัวอักษร (ตัวอย่าง: น้ำตาลส้ม) */
+    }
     </style>
 </head>
 <body>
@@ -577,8 +587,8 @@
         });
     } else {
         Swal.fire({
-            title: 'ส่งข้อมูลการจองเรียบร้อย!',
-            text: 'โปรดตรวจสอบสถานะการอนุมัติ หรือติดต่อเจ้าหน้าที่ห้องสมุด SLC ก่อนเข้าใช้งาน',
+            title: 'จองสำเร็จ!',
+            text: 'โปรดติดต่อเจ้าหน้าที่ห้องสมุด SLC ก่อนเข้าใช้งาน',
             icon: 'success',
             confirmButtonText: 'ตกลง',
             confirmButtonColor: '#2a5298'
