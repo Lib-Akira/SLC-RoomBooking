@@ -249,7 +249,7 @@
                         <i class="fa-solid fa-calendar-check text-success"></i> ตรวจสอบตารางการจอง
                     </div>
                 </div>
-
+                
                 <div class="filter-wrapper">
     <div class="row g-2 align-items-center">
         <div class="col-12 col-sm-auto">
@@ -269,7 +269,7 @@
                 <option value="Saint Benedict">Saint Benedict</option>
             </select>
         </div>
-        <div class="col-12 col-sm-auto d-flex align-items-center gap-2">
+        <div class="col-12 col-sm-auto d-flex align-items-center gap-2 d-none" id="filterRoomWrapper">
             <label for="filterRoom" class="text-muted small fw-bold text-nowrap">ห้อง:</label>
             <select class="form-select form-select-sm" id="filterRoom" onchange="filterBookings()" style="max-width: 260px;">
                 <option value="">-- ทั้งหมด --</option>
@@ -435,16 +435,31 @@
     function updateFilterRooms() {
         const building = document.getElementById("filterBuilding").value;
         const roomSelect = document.getElementById("filterRoom");
+        const roomWrapper = document.getElementById("filterRoomWrapper"); // 🟢 ดึง Wrapper มาควบคุม
         
+        // 🟢 กรณีที่ 1: หากไม่ได้เลือกอาคาร หรือเลือกกลับมาเป็น "-- ทั้งหมด --"
+        if (!building) {
+            roomSelect.innerHTML = '<option value="">-- ทั้งหมด --</option>';
+            roomSelect.value = ""; // เคลียร์ค่าห้องที่เคยเลือกค้างไว้
+            
+            roomWrapper.classList.add("d-none"); // 🟢 สั่งให้ช่องเลือกห้อง "หายไปเลย"
+            
+            filterBookings(); // อัปเดตตารางใหม่
+            return;
+        }
+        
+        // 🟢 กรณีที่ 2: มีการเลือกอาคารอย่างถูกต้อง
         roomSelect.innerHTML = '<option value="">-- ทั้งหมด --</option>';
         
-        if (building && rooms[building]) {
+        if (rooms[building]) {
             rooms[building].forEach(r => {
                 roomSelect.innerHTML += `<option value="${r}">${r}</option>`;
             });
         }
         
-        // เมื่อเปลี่ยนอาคาร ให้ทำการกรองตารางใหม่ทันที
+        roomWrapper.classList.remove("d-none"); // 🟢 เอา d-none ออก เพื่อให้ช่องเลือกห้อง "โผล่ขึ้นมา"
+        
+        // เมื่อเปลี่ยนอาคาร ให้ทำการกรองตารางข้อมูลอัปเดตใหม่ทันที
         filterBookings();
     }
 
