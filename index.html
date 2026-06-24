@@ -516,15 +516,17 @@
             return;
         }
 
-        filteredData.forEach(b => {
+        let tableRowsHtml = "";
+
+    filteredData.forEach(b => {
         const isSL = b.building === "Saint Louis";
-        // ปรับสี Tag ให้สวยงามและแตกต่างชัดเจน
         const tagStyles = isSL 
             ? "background-color: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd;" 
             : "background-color: #fef3c7; color: #b45309; border: 1px solid #fde68a;"; 
         const displayName = isSL ? "Saint Louis" : "Saint Benedict";
 
-        tbody.innerHTML += `
+        // 🟢 2. เปลี่ยนจาก tbody.innerHTML += มาเป็นเก็บสะสมตัวแปรในนี้แทน
+        tableRowsHtml += `
             <tr style="vertical-align: middle; border-bottom: 1px solid #f1f5f9;">
                 
                 <td style="padding: 16px; width: 45%;">
@@ -537,8 +539,8 @@
                 </td>
                 
                 <td style="padding: 16px; width: 25%;">
-                    <div style="background-color: #f1f5f9; color: #334155; font-size: 0.85rem; padding: 6px 14px; border-radius: 20px; font-weight: 500; display: inline-flex; align-items: center; white-space: text-nowrap;">
-                        <i class="fa-regular fa-clock me-1.5 text-primary"></i>
+                    <div style="background-color: #f1f5f9; color: #334155; font-size: 0.85rem; padding: 6px 14px; border-radius: 20px; font-weight: 500; display: inline-flex; align-items: center; white-space: nowrap;">
+                        <i class="fa-regular fa-clock me-2 text-primary"></i>
                         <span>${b.startTime} - ${b.endTime}</span>
                     </div>
                 </td>
@@ -551,6 +553,9 @@
             </tr>
         `;
     });
+
+    // 🟢 3. พ่นข้อมูลทั้งหมดลงตารางในทีเดียว (เบราว์เซอร์จะทำงานเร็วกว่าเดิมมาก)
+    tbody.innerHTML = tableRowsHtml;
 
     
     // 🟢 แก้ไขปุ่ม Submit ให้ทำงานได้ถูกต้อง 100% แล้ว
