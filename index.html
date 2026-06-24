@@ -250,19 +250,39 @@
                     </div>
                 </div>
 
-                <div class="filter-wrapper d-flex align-items-center justify-content-between flex-wrap gap-2">
-                    <span class="text-muted small fw-bold"><i class="fa-solid fa-filter me-1"></i> ตัวกรองข้อมูล:</span>
-                    <div class="d-flex align-items-center gap-2">
-                        <label for="filterDate" class="text-muted small fw-bold text-nowrap">เลือกวันที่ต้องการดู:</label>
-                        <input type="date" class="form-control form-control-sm" id="filterDate" onchange="filterBookingsByDate()" style="max-width: 160px;">
-                    </div>
-                </div>
+                <div class="filter-wrapper">
+    <div class="row g-2 align-items-center">
+        <div class="col-12 col-sm-auto">
+            <span class="text-muted small fw-bold text-nowrap">
+                <i class="fa-solid fa-filter me-1"></i> ตัวกรองข้อมูล:
+            </span>
+        </div>
+        <div class="col-6 col-sm-auto d-flex align-items-center gap-2">
+            <label for="filterDate" class="text-muted small fw-bold text-nowrap">วันที่:</label>
+            <input type="date" class="form-control form-control-sm" id="filterDate" onchange="filterBookings()" style="max-width: 140px;">
+        </div>
+        <div class="col-6 col-sm-auto d-flex align-items-center gap-2">
+            <label for="filterBuilding" class="text-muted small fw-bold text-nowrap">อาคาร:</label>
+            <select class="form-select form-select-sm" id="filterBuilding" onchange="updateFilterRooms()" style="max-width: 150px;">
+                <option value="">-- ทั้งหมด --</option>
+                <option value="Saint Louis">Saint Louis</option>
+                <option value="Saint Benedict">Saint Benedict</option>
+            </select>
+        </div>
+        <div class="col-12 col-sm-auto d-flex align-items-center gap-2">
+            <label for="filterRoom" class="text-muted small fw-bold text-nowrap">ห้อง:</label>
+            <select class="form-select form-select-sm" id="filterRoom" onchange="filterBookings()" style="max-width: 180px;">
+                <option value="">-- ทั้งหมด --</option>
+            </select>
+        </div>
+    </div>
+</div>
 
                 <div class="table-responsive">
                     <table class="table table-modern table-hover">
                         <thead>
                             <tr>
-                                <th>ตึก / ห้องประชุม</th>
+                                <th>อาคาร / ห้องประชุม</th>
                                 <th style="width: 135px;">ช่วงเวลา</th>
                                 <th>ผู้รับสิทธิ์จอง</th>
                             </tr>
@@ -412,23 +432,69 @@
         });
     }
 
-    function filterBookingsByDate() {
+    function updateFilterRooms() {
+        const building = document.getElementById("filterBuilding").value;
+        const roomSelect = document.getElementById("filterRoom");
+        
+        roomSelect.innerHTML = '<option value="">-- ทั้งหมด --</option>';
+        
+        if (building && rooms[building]) {
+            rooms[building].forEach(r => {
+                roomSelect.innerHTML += `<option value="${r}">${r}</option>`;
+            });
+        }
+        
+        // เมื่อเปลี่ยนอาคาร ให้ทำการกรองตารางใหม่ทันที
+        filterBookings();
+    }
+
+    // 🟢 แก้ไขฟังก์ชัน loadBookings ให้เรียกตัวกรองตัวใหม่
+    function loadBookings() {
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById("filterDate").value = today;
+
+        fetch(SCRIPT_URL)
+        .then(res => res.json())
+        .then(data => {
+            allBookings = data; 
+            filterBookings(); // เปลี่ยนมาเรียกฟังก์ชันรวมตรงนี้ครับ
+        }).catch(err => {
+            document.getElementById("bookingTableBody").innerHTML = "<tr><td colspan='3' class='text-center text-danger py-4'><i class='fa-solid fa-triangle-exclamation me-2'></i>โหลดข้อมูลระบบล้มเหลว</td></tr>";
+        });
+    }
+
+    // 🟢 รวมศูนย์การกรองข้อมูลแบบ Multi-Filter (แทนที่ filterBookingsByDate เดิม)
+    function filterBookings() {
         const selectedDate = document.getElementById("filterDate").value;
+        const selectedBuilding = document.getElementById("filterBuilding").value;
+        const selectedRoom = document.getElementById("filterRoom").value;
         const tbody = document.getElementById("bookingTableBody");
         tbody.innerHTML = "";
 
+        // กรองข้อมูลพร้อมกัน 3 เงื่อนไข (วันที่ + อาคาร + ห้อง)
         const filteredData = allBookings.filter(b => {
             if (!b.date) return false;
+            
+            // แปลงวันที่ตรวจสอบให้ตรงกัน
             const bDateStr = new Date(b.date).toISOString().split('T')[0];
-            return bDateStr === selectedDate;
+            const matchDate = bDateStr === selectedDate;
+            
+            // ตรวจสอบเงื่อนไขอาคาร (ถ้าเลือกทั้งหมด ให้ผ่านฉลุย)
+            const matchBuilding = selectedBuilding === "" || b.building === selectedBuilding;
+            
+            // ตรวจสอบเงื่อนไขห้องประชุม (ถ้าเลือกทั้งหมด ให้ผ่านฉลุย)
+            const matchRoom = selectedRoom === "" || b.room === selectedRoom;
+
+            return matchDate && matchBuilding && matchRoom;
         });
 
+        // แสดงผลลัพธ์ลงตารางเหมือนเดิม
         if (filteredData.length === 0) {
             tbody.innerHTML = `
                 <tr>
                     <td colspan="3" class="text-center text-muted py-5">
                         <i class="fa-regular fa-folder-open d-block mb-2 opacity-50" style="font-size: 2.2rem; color: #94a3b8;"></i>
-                        ยังไม่มีคนจองในวันนี้ สามารถเลือกห้องประชุมและลงทะเบียนจองได้เลยครับ
+                        ไม่พบข้อมูลการจองตามเงื่อนไขที่เลือกในวันนี้ครับ
                     </td>
                 </tr>`;
             return;
