@@ -145,8 +145,6 @@
             border-radius: 6px;
             display: inline-block;
         }
-        .tag-sl { background-color: #e0f2fe; color: #0369a1; }
-        .tag-sb { background-color: #fef3c7; color: #b45309; }
 
         .time-pill {
             font-weight: 600;
@@ -324,6 +322,7 @@
     };
 
     let allBookings = []; 
+    let fpBookingInstance, fpFilterInstance; // ตัวแปรเก็บ Instance ของ Flatpickr เก็บค่าค.ศ.แม่นยำกว่าดึง ID ตรงๆ
 
     function generateTimeOptions(startHour, endHour) {
         let options = [];
@@ -435,15 +434,10 @@
     }
 
     function loadBookings() {
-        // ให้ฟังก์ชันดึงค่า ISO Date เป็น YYYY-MM-DD (ค.ศ.) ตามมาตรฐานหลังบ้าน
-        const todayStr = new Date().toLocaleDateString('sv-SE'); // จะได้ความชัวร์แบบ "2026-06-24" เสมอ ไม่ผูกกับภาษาเครื่อง
+        const todayStr = new Date().toLocaleDateString('sv-SE'); // ได้ "YYYY-MM-DD" ชัวร์ 100%
         
-        // เซ็ตค่าให้ Flatpickr คอนโทรลอินพุตหลักตัวกรอง
-        const filterInput = document.getElementById("filterDate");
-        if(filterInput._flatpickr) {
-            filterInput._flatpickr.setDate(todayStr);
-        } else {
-            filterInput.value = todayStr;
+        if(fpFilterInstance) {
+            fpFilterInstance.setDate(todayStr);
         }
 
         fetch(SCRIPT_URL)
@@ -480,7 +474,8 @@
     }
 
     function filterBookings() {
-        const selectedDate = document.getElementById("filterDate").value; // ค่าจะเป็น ค.ศ. "YYYY-MM-DD" แน่นอน
+        // ✅ ดึงตรงจาก Instance ของ Flatpickr เพื่อตัดปัญหากล่อง Input ซ้อนแล้วค่าหลุดหาย
+        const selectedDate = fpFilterInstance ? fpFilterInstance.input.value : new Date().toLocaleDateString('sv-SE');
         const selectedBuilding = document.getElementById("filterBuilding").value;
         const selectedRoom = document.getElementById("filterRoom").value;
         const tbody = document.getElementById("bookingTableBody");
@@ -489,7 +484,7 @@
         const filteredData = allBookings.filter(b => {
             if (!b.date) return false;
             
-            // จัดการแปลงค่าวันที่จากของหลังบ้านให้เป็นฟอร์แมต YYYY-MM-DD (ค.ศ.) เพื่อชนกับกล่องฟิลเตอร์
+            // ดึงค่าวันที่แถวนั้น ๆ แปลงฟอร์แมตให้ชนสากล YYYY-MM-DD ตรงกับฟิลเตอร์
             const bDateStr = new Date(b.date).toLocaleDateString('sv-SE');
             const matchDate = bDateStr === selectedDate;
             const matchBuilding = selectedBuilding === "" || b.building === selectedBuilding;
@@ -541,10 +536,13 @@
         document.getElementById("submitBtn").disabled = true;
         document.getElementById("submitBtn").innerHTML = "<i class='fa-solid fa-spinner fa-spin me-2'></i>กำลังบันทึกข้อมูล...";
 
+        // ✅ ดึงจากอินสแตนซ์ของปฏิทินตรงตัว ได้ค่าแม่นยำแน่นอน
+        const bookingDateValue = fpBookingInstance ? fpBookingInstance.input.value : "";
+
         const payload = {
             building: document.getElementById("building").value,
             room: document.getElementById("room").value,
-            date: document.getElementById("bookingDate").value, // ✅ แก้ไขจาก .value ของ id='date' (ที่ไม่มีอยู่จริง) มาใช้ id='bookingDate' ที่เป็น ค.ศ. แทน
+            date: bookingDateValue, 
             startTime: document.getElementById("startTime").value,
             endTime: document.getElementById("endTime").value,
             requester: document.getElementById("requester").value,
@@ -579,15 +577,12 @@
                     confirmButtonColor: '#2a5298'
                 });
                 
-                // อัปเดตตารางตัวกรองให้เป็นวันที่เพิ่งทำการจองไป
-                const filterInput = document.getElementById("filterDate");
-                if (filterInput._flatpickr) {
-                    filterInput._flatpickr.setDate(payload.date);
-                } else {
-                    filterInput.value = payload.date;
+                if (fpFilterInstance) {
+                    fpFilterInstance.setDate(payload.date);
                 }
 
                 document.getElementById("bookingForm").reset();
+                if(fpBookingInstance) fpBookingInstance.clear(); // ล้างหน้าปฏิทินฟอร์มกรอก
                 updateRoomsAndTimes();
                 loadBookings();
             }
@@ -609,10 +604,31 @@
     });
 
     window.onload = function() {
-        // 1. เรียกใช้งาน Flatpickr สำหรับฟอร์มกรอกข้อมูลการจอง
-        flatpickr("#bookingDate", {
-            dateFormat: "Y-m-d", // ส่งค่าแบบ ค.ศ. (เช่น 2026-06-24) ไปในโค้ดและส่งฐานข้อมูล
+        // 1. เรียกใช้งานและเก็บตัวแปร Instance ของปฏิทินฟอร์มจอง
+        fpBookingInstance = flatpickr("#bookingDate", {
+            dateFormat: "Y-m-d", 
             altInput: true,      
-            altFormat: "d/m/Y",  // แสดงผลบนจอคอมและมือถือผู้ใช้เป็น วว/ดด/ค.ศ. (เช่น 24/06/2026) 
+            altFormat: "d/m/Y",  
             locale: "th",            
-            minDate: "
+            minDate: "today",        
+            allowInput: false
+        });
+
+        // 2. เรียกใช้งานและเก็บตัวแปร Instance ของปฏิทินช่องค้นหา/ตัวกรอง
+        fpFilterInstance = flatpickr("#filterDate", {
+            dateFormat: "Y-m-d", 
+            altInput: true,
+            altFormat: "d/m/Y",  
+            locale: "th",
+            allowInput: false,
+            onChange: function(selectedDates, dateStr, instance) {
+                filterBookings(); 
+            }
+        });
+
+        // 3. เรียกโหลดข้อมูลจากฐานข้อมูลมาลงตารางแสดงผลทันที
+        loadBookings();
+    };
+</script>
+</body>
+</html>
