@@ -156,16 +156,21 @@
         /* 🔵 ปรับสีของอาคาร Saint Louis */
          }
         
+        /* 🔵 ปรับ Saint Louis เป็นไล่สีน้ำเงิน-ม่วง แบบในรูปภาพ */
         .building-tag.tag-sl {
-            background-color: #f5f0d0 !important; /* สีพื้นหลัง (ตัวอย่าง: ฟ้าอ่อน) */
-            color: #c9983c !important;            /* สีตัวอักษร (ตัวอย่าง: น้ำเงินเข้ม) */
-        }
+            background: linear-gradient(135deg, #56CCF2 0%, #2F80ED 100%) !important; 
+            color: #ffffff !important;
+            border: none !important;
+            box-shadow: 0 2px 6px rgba(78, 84, 200, 0.2); /* แถมมิติเงาจาง ๆ */
+}
 
-    /* 🟡 ปรับสีของอาคาร Saint Benedict */
+        /* 🟢 ปรับ Saint Benedict เป็นไล่สีเขียวเข้ม-เขียวสว่าง ให้เข้าคู่กัน */
         .building-tag.tag-sb {
-            background-color: #28a745 !important; /* สีพื้นหลัง (ตัวอย่าง: เหลืองอ่อน) */
-            color: #ffffff !important;            /* สีตัวอักษร (ตัวอย่าง: น้ำตาลส้ม) */
-    }
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%) !important; 
+            color: #ffffff !important;
+            border: none !important;
+            box-shadow: 0 2px 6px rgba(17, 153, 142, 0.2);
+}
     </style>
 </head>
 <body>
@@ -534,8 +539,8 @@
             const displayName = isSL ? "Saint Louis" : "Saint Benedict";
 
             const customTagStyle = isSL 
-                ? "background-color: #f5f0d0 !important; color: #c9983c !important;" 
-                : "background-color: #28a745 !important; color: #ffffff !important;";
+            ? "background: linear-gradient(135deg, #56CCF2, #2F80ED) !important; color: #ffffff !important; border: none;" 
+            : "background: linear-gradient(135deg, #11998e, #38ef7d) !important; color: #ffffff !important; border: none;";
 
             tbody.innerHTML += `
                 <tr style="vertical-align: middle;">
