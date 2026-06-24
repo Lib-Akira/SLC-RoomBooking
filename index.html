@@ -250,31 +250,38 @@
                     </div>
                 </div>
 
-                <div class="filter-wrapper" style="background-color: #f8fafc; border: 1px solid #edf2f7; padding: 16px; border-radius: 12px; margin-bottom: 25px;">
-    <div class="row g-3 align-items-center">
-        <div class="col-12 col-md-auto">
-            <span class="text-muted small fw-bold text-nowrap d-block d-md-inline mb-1 mb-md-0">
+                <div class="filter-wrapper" style="background-color: #f8fafc; border: 1px solid #edf2f7; padding: 14px 20px; border-radius: 12px; margin-bottom: 25px;">
+    <div class="d-flex align-items-center flex-wrap gap-4">
+        
+        <div class="py-1">
+            <span class="text-muted small fw-bold text-nowrap">
                 <i class="fa-solid fa-filter me-1 text-primary"></i> ตัวกรองข้อมูล:
             </span>
         </div>
         
-        <div class="col-12 col-sm-4 col-md">
-            <div class="d-flex align-items-center gap-2">
-                <label for="filterDate" class="text-muted small fw-bold text-nowrap" style="min-width: 45px;">วันที่:</label>
-                <input type="date" class="form-control form-control-sm w-100" id="filterDate" onchange="filterBookings()">
-            </div>
+        <div class="d-flex align-items-center gap-2 py-1">
+            <label for="filterDate" class="text-muted small fw-bold text-nowrap">วันที่:</label>
+            <input type="date" class="form-control form-control-sm" id="filterDate" onchange="filterBookings()" style="width: 150px; min-width: 150px;">
         </div>
         
-        <div class="col-12 col-sm-4 col-md">
-            <div class="d-flex align-items-center gap-2">
-                <label for="filterBuilding" class="text-muted small fw-bold text-nowrap" style="min-width: 45px;">อาคาร:</label>
-                <select class="form-select form-select-sm w-100" id="filterBuilding" onchange="updateFilterRooms()">
-                    <option value="">-- ทั้งหมด --</option>
-                    <option value="Saint Louis">Saint Louis</option>
-                    <option value="Saint Benedict">Saint Benedict</option>
-                </select>
-            </div>
+        <div class="d-flex align-items-center gap-2 py-1">
+            <label for="filterBuilding" class="text-muted small fw-bold text-nowrap">อาคาร:</label>
+            <select class="form-select form-select-sm" id="filterBuilding" onchange="updateFilterRooms()" style="width: 160px; min-width: 160px;">
+                <option value="">-- ทั้งหมด --</option>
+                <option value="Saint Louis">Saint Louis</option>
+                <option value="Saint Benedict">Saint Benedict</option>
+            </select>
         </div>
+        
+        <div class="d-flex align-items-center gap-2 py-1">
+            <label for="filterRoom" class="text-muted small fw-bold text-nowrap">ห้อง:</label>
+            <select class="form-select form-select-sm" id="filterRoom" onchange="filterBookings()" style="width: 200px; min-width: 200px;">
+                <option value="">-- ทั้งหมด --</option>
+            </select>
+        </div>
+
+    </div>
+</div>
         
         <div class="col-12 col-sm-4 col-md">
             <div class="d-flex align-items-center gap-2">
