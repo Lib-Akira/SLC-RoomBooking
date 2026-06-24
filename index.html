@@ -520,12 +520,13 @@
 
     filteredData.forEach(b => {
         const isSL = b.building === "Saint Louis";
+        // ปรับสไตล์สีของ Tag ประจำอาคาร
         const tagStyles = isSL 
             ? "background-color: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd;" 
             : "background-color: #fef3c7; color: #b45309; border: 1px solid #fde68a;"; 
         const displayName = isSL ? "Saint Louis" : "Saint Benedict";
 
-        // 🟢 2. เปลี่ยนจาก tbody.innerHTML += มาเป็นเก็บสะสมตัวแปรในนี้แทน
+        // 🟢 2. เก็บสะสมแถวตารางไว้ในตัวแปร (แก้ไข white-space: nowrap; เรียบร้อยครับ)
         tableRowsHtml += `
             <tr style="vertical-align: middle; border-bottom: 1px solid #f1f5f9;">
                 
@@ -554,9 +555,8 @@
         `;
     });
 
-    // 🟢 3. พ่นข้อมูลทั้งหมดลงตารางในทีเดียว (เบราว์เซอร์จะทำงานเร็วกว่าเดิมมาก)
+    // 🟢 3. พ่นข้อมูลที่สะสมไว้ทั้งหมดลงตารางทีเดียวลวดเดียวจบ
     tbody.innerHTML = tableRowsHtml;
-
     
     // 🟢 แก้ไขปุ่ม Submit ให้ทำงานได้ถูกต้อง 100% แล้ว
    document.getElementById("bookingForm").addEventListener("submit", function(e) {
