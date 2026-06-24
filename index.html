@@ -156,24 +156,21 @@
             border-radius: 6px;
             font-size: 0.86rem;
             display: inline-block;
-        /* 🔵 ปรับสีของอาคาร Saint Louis */
          }
         
-        /* 🔵 ปรับ Saint Louis เป็นไล่สีน้ำเงิน-ม่วง แบบในรูปภาพ */
         .building-tag.tag-sl {
             background: linear-gradient(135deg, #56CCF2 0%, #2F80ED 100%) !important; 
             color: #ffffff !important;
             border: none !important;
-            box-shadow: 0 2px 6px rgba(78, 84, 200, 0.2); /* แถมมิติเงาจาง ๆ */
-}
+            box-shadow: 0 2px 6px rgba(78, 84, 200, 0.2);
+        }
 
-        /* 🟢 ปรับ Saint Benedict เป็นไล่สีเขียวเข้ม-เขียวสว่าง ให้เข้าคู่กัน */
         .building-tag.tag-sb {
             background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%) !important; 
             color: #ffffff !important;
             border: none !important;
             box-shadow: 0 2px 6px rgba(17, 153, 142, 0.2);
-}
+        }
     </style>
 </head>
 <body>
@@ -212,15 +209,15 @@
                     </div>
 
                     <div class="row">
-                    <div class="col-6 mb-3">
-                    <label class="form-label">⏰ เวลาเริ่มต้น</label>
-                    <select class="form-select" id="startTime" required disabled onchange="validateTimeSlot()"></select>
-                </div>
-                    <div class="col-6 mb-3">
-                    <label class="form-label">⏰ เวลาสิ้นสุด</label>
-                    <select class="form-select" id="endTime" required disabled onchange="validateTimeSlot()"></select>
-                </div>
-            </div>
+                        <div class="col-6 mb-3">
+                            <label class="form-label">⏰ เวลาเริ่มต้น</label>
+                            <select class="form-select" id="startTime" required disabled onchange="validateTimeSlot()"></select>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <label class="form-label">⏰ เวลาสิ้นสุด</label>
+                            <select class="form-select" id="endTime" required disabled onchange="validateTimeSlot()"></select>
+                        </div>
+                    </div>
 
                     <div class="mb-3">
                         <label class="form-label">👤 ชื่อผู้จอง / รหัสประจำตัว</label>
@@ -228,7 +225,7 @@
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label">🎓 สถานะผู้ใช้งาน</label>
+                        <label class="form-label">🎓 Status ผู้ใช้งาน</label>
                         <select class="form-select" id="userStatus" required onchange="updateDepartmentOptions()">
                             <option value="">-- กรุณาเลือกสถานะ --</option>
                             <option value="นักศึกษา">นักศึกษา</option>
@@ -271,33 +268,33 @@
                 </div>
                 
                 <div class="filter-wrapper">
-    <div class="row g-2 align-items-center">
-        <div class="col-12 col-sm-auto">
-            <span class="text-muted small fw-bold text-nowrap">
-                <i class="fa-solid fa-filter me-1"></i> ตัวกรองข้อมูล:
-            </span>
-        </div>
-        <div class="col-6 col-sm-auto d-flex align-items-center gap-2">
-            <label for="filterDate" class="text-muted small fw-bold text-nowrap">วันที่:</label>
-            <input type="text" class="form-control form-control-sm bg-white" id="filterDate" style="max-width: 140px;" placeholder="วว/ดด/ปปปป">
-        </div>
-        <div class="col-6 col-sm-auto d-flex align-items-center gap-2">
-            <label for="filterBuilding" class="text-muted small fw-bold text-nowrap">อาคาร:</label>
-            <select class="form-select form-select-sm" id="filterBuilding" onchange="updateFilterRooms()" style="max-width: 150px; padding-right: 30px;">
-                <option value="">-- ทั้งหมด --</option>
-                <option value="Saint Louis">Saint Louis</option>
-                <option value="Saint Benedict">Saint Benedict</option>
-            </select>
-        </div>
-        <div class="col-12 col-sm-auto d-flex align-items-center gap-2 d-none" id="filterRoomWrapper">
-            <label for="filterRoom" class="text-muted small fw-bold text-nowrap">ห้อง:</label>
-            <select class="form-select form-select-sm" id="filterRoom" onchange="filterBookings()" 
-                    style="max-width: 200px;  padding-right: 30px;">
-                <option value="">-- ทั้งหมด --</option>
-            </select>
-        </div>
-    </div>
-</div>
+                    <div class="row g-2 align-items-center">
+                        <div class="col-12 col-sm-auto">
+                            <span class="text-muted small fw-bold text-nowrap">
+                                <i class="fa-solid fa-filter me-1"></i> ตัวกรองข้อมูล:
+                            </span>
+                        </div>
+                        <div class="col-6 col-sm-auto d-flex align-items-center gap-2">
+                            <label for="filterDate" class="text-muted small fw-bold text-nowrap">วันที่:</label>
+                            <input type="text" class="form-control form-control-sm bg-white" id="filterDate" style="max-width: 140px;" placeholder="วว/ดด/ปปปป">
+                        </div>
+                        <div class="col-6 col-sm-auto d-flex align-items-center gap-2">
+                            <label for="filterBuilding" class="text-muted small fw-bold text-nowrap">อาคาร:</label>
+                            <select class="form-select form-select-sm" id="filterBuilding" onchange="updateFilterRooms()" style="max-width: 150px; padding-right: 30px;">
+                                <option value="">-- ทั้งหมด --</option>
+                                <option value="Saint Louis">Saint Louis</option>
+                                <option value="Saint Benedict">Saint Benedict</option>
+                            </select>
+                        </div>
+                        <div class="col-12 col-sm-auto d-flex align-items-center gap-2 d-none" id="filterRoomWrapper">
+                            <label for="filterRoom" class="text-muted small fw-bold text-nowrap">ห้อง:</label>
+                            <select class="form-select form-select-sm" id="filterRoom" onchange="filterBookings()" 
+                                    style="max-width: 200px;  padding-right: 30px;">
+                                <option value="">-- ทั้งหมด --</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
 
                 <div class="table-responsive">
                     <table class="table table-modern table-hover">
@@ -380,9 +377,7 @@
         
         wrapper.style.display = "none";
         selectField.style.display = "none";
-        selectField.required = false;
         inputField.style.display = "none";
-        inputField.required = false;
         
         if (!status) return;
 
@@ -415,7 +410,7 @@
             inputField.required = true;
             inputField.value = "";
         }
-    } // 🟢 ล็อคปีกกาปิดฟังก์ชันควบคุมแผนกตรงนี้ให้ถูกต้องแล้ว
+    }
         
     function validateTimeSlot() {
         const start = document.getElementById("startTime").value;
@@ -440,14 +435,22 @@
     }
 
     function loadBookings() {
-        const today = new Date().toISOString().split('T')[0];
-        document.getElementById("filterDate").value = today;
+        // ให้ฟังก์ชันดึงค่า ISO Date เป็น YYYY-MM-DD (ค.ศ.) ตามมาตรฐานหลังบ้าน
+        const todayStr = new Date().toLocaleDateString('sv-SE'); // จะได้ความชัวร์แบบ "2026-06-24" เสมอ ไม่ผูกกับภาษาเครื่อง
+        
+        // เซ็ตค่าให้ Flatpickr คอนโทรลอินพุตหลักตัวกรอง
+        const filterInput = document.getElementById("filterDate");
+        if(filterInput._flatpickr) {
+            filterInput._flatpickr.setDate(todayStr);
+        } else {
+            filterInput.value = todayStr;
+        }
 
         fetch(SCRIPT_URL)
         .then(res => res.json())
         .then(data => {
             allBookings = data; 
-            filterBookingsByDate(); 
+            filterBookings();
         }).catch(err => {
             document.getElementById("bookingTableBody").innerHTML = "<tr><td colspan='3' class='text-center text-danger py-4'><i class='fa-solid fa-triangle-exclamation me-2'></i>โหลดข้อมูลระบบล้มเหลว</td></tr>";
         });
@@ -456,75 +459,45 @@
     function updateFilterRooms() {
         const building = document.getElementById("filterBuilding").value;
         const roomSelect = document.getElementById("filterRoom");
-        const roomWrapper = document.getElementById("filterRoomWrapper"); // 🟢 ดึง Wrapper มาควบคุม
+        const roomWrapper = document.getElementById("filterRoomWrapper");
         
-        // 🟢 กรณีที่ 1: หากไม่ได้เลือกอาคาร หรือเลือกกลับมาเป็น "-- ทั้งหมด --"
         if (!building) {
             roomSelect.innerHTML = '<option value="">-- ทั้งหมด --</option>';
-            roomSelect.value = ""; // เคลียร์ค่าห้องที่เคยเลือกค้างไว้
-            
-            roomWrapper.classList.add("d-none"); // 🟢 สั่งให้ช่องเลือกห้อง "หายไปเลย"
-            
-            filterBookings(); // อัปเดตตารางใหม่
+            roomSelect.value = "";
+            roomWrapper.classList.add("d-none");
+            filterBookings();
             return;
         }
         
-        // 🟢 กรณีที่ 2: มีการเลือกอาคารอย่างถูกต้อง
         roomSelect.innerHTML = '<option value="">-- ทั้งหมด --</option>';
-        
         if (rooms[building]) {
             rooms[building].forEach(r => {
                 roomSelect.innerHTML += `<option value="${r}">${r}</option>`;
             });
         }
-        
-        roomWrapper.classList.remove("d-none"); // 🟢 เอา d-none ออก เพื่อให้ช่องเลือกห้อง "โผล่ขึ้นมา"
-        
-        // เมื่อเปลี่ยนอาคาร ให้ทำการกรองตารางข้อมูลอัปเดตใหม่ทันที
+        roomWrapper.classList.remove("d-none");
         filterBookings();
     }
 
-    // 🟢 แก้ไขฟังก์ชัน loadBookings ให้เรียกตัวกรองตัวใหม่
-    function loadBookings() {
-        const today = new Date().toISOString().split('T')[0];
-        document.getElementById("filterDate").value = today;
-
-        fetch(SCRIPT_URL)
-        .then(res => res.json())
-        .then(data => {
-            allBookings = data; 
-            filterBookings(); // เปลี่ยนมาเรียกฟังก์ชันรวมตรงนี้ครับ
-        }).catch(err => {
-            document.getElementById("bookingTableBody").innerHTML = "<tr><td colspan='3' class='text-center text-danger py-4'><i class='fa-solid fa-triangle-exclamation me-2'></i>โหลดข้อมูลระบบล้มเหลว</td></tr>";
-        });
-    }
-
-    // 🟢 รวมศูนย์การกรองข้อมูลแบบ Multi-Filter (แทนที่ filterBookingsByDate เดิม)
     function filterBookings() {
-        const selectedDate = document.getElementById("filterDate").value;
+        const selectedDate = document.getElementById("filterDate").value; // ค่าจะเป็น ค.ศ. "YYYY-MM-DD" แน่นอน
         const selectedBuilding = document.getElementById("filterBuilding").value;
         const selectedRoom = document.getElementById("filterRoom").value;
         const tbody = document.getElementById("bookingTableBody");
         tbody.innerHTML = "";
 
-        // กรองข้อมูลพร้อมกัน 3 เงื่อนไข (วันที่ + อาคาร + ห้อง)
         const filteredData = allBookings.filter(b => {
             if (!b.date) return false;
             
-            // แปลงวันที่ตรวจสอบให้ตรงกัน
-            const bDateStr = new Date(b.date).toISOString().split('T')[0];
+            // จัดการแปลงค่าวันที่จากของหลังบ้านให้เป็นฟอร์แมต YYYY-MM-DD (ค.ศ.) เพื่อชนกับกล่องฟิลเตอร์
+            const bDateStr = new Date(b.date).toLocaleDateString('sv-SE');
             const matchDate = bDateStr === selectedDate;
-            
-            // ตรวจสอบเงื่อนไขอาคาร (ถ้าเลือกทั้งหมด ให้ผ่านฉลุย)
             const matchBuilding = selectedBuilding === "" || b.building === selectedBuilding;
-            
-            // ตรวจสอบเงื่อนไขห้องประชุม (ถ้าเลือกทั้งหมด ให้ผ่านฉลุย)
             const matchRoom = selectedRoom === "" || b.room === selectedRoom;
 
             return matchDate && matchBuilding && matchRoom;
         });
 
-        // แสดงผลลัพธ์ลงตารางเหมือนเดิม
         if (filteredData.length === 0) {
             tbody.innerHTML = `
                 <tr>
@@ -552,7 +525,7 @@
                         <div class="fw-bold text-dark" style="font-size:0.95rem;">${b.room}</div>
                     </td>
                     <td style="padding: 12px 16px; width: 25%;">
-                    <span class="time-pill"><i class="fa-regular fa-clock me-1"></i>${b.startTime} - ${b.endTime}</span>
+                        <span class="time-pill"><i class="fa-regular fa-clock me-1"></i>${b.startTime} - ${b.endTime}</span>
                     </td>
                     <td style="padding: 12px 16px; width: 35%;">
                         <div class="fw-semibold text-dark">${b.requester}</div>
@@ -563,111 +536,83 @@
         });
     }
     
-    // 🟢 แก้ไขปุ่ม Submit ให้ทำงานได้ถูกต้อง 100% แล้ว
-   document.getElementById("bookingForm").addEventListener("submit", function(e) {
+    document.getElementById("bookingForm").addEventListener("submit", function(e) {
         e.preventDefault();
         document.getElementById("submitBtn").disabled = true;
         document.getElementById("submitBtn").innerHTML = "<i class='fa-solid fa-spinner fa-spin me-2'></i>กำลังบันทึกข้อมูล...";
 
         const payload = {
-    building: document.getElementById("building").value,
-    room: document.getElementById("room").value,
-    date: document.getElementById("date").value,
-    startTime: document.getElementById("startTime").value,
-    endTime: document.getElementById("endTime").value,
-    requester: document.getElementById("requester").value,
-    purpose: document.getElementById("purpose").value,
-    userStatus: document.getElementById("userStatus").value,
-    department: document.getElementById("userStatus").value === "บุคลากร" 
-        ? document.getElementById("departmentInput").value 
-        : document.getElementById("departmentSelect").value,
-    attendees: document.getElementById("attendees").value  // ← เพิ่มบรรทัดนี้
-};
+            building: document.getElementById("building").value,
+            room: document.getElementById("room").value,
+            date: document.getElementById("bookingDate").value, // ✅ แก้ไขจาก .value ของ id='date' (ที่ไม่มีอยู่จริง) มาใช้ id='bookingDate' ที่เป็น ค.ศ. แทน
+            startTime: document.getElementById("startTime").value,
+            endTime: document.getElementById("endTime").value,
+            requester: document.getElementById("requester").value,
+            purpose: document.getElementById("purpose").value,
+            userStatus: document.getElementById("userStatus").value,
+            department: document.getElementById("userStatus").value === "บุคลากร" 
+                ? document.getElementById("departmentInput").value 
+                : document.getElementById("departmentSelect").value,
+            attendees: document.getElementById("attendees").value
+        };
 
-        // เปลี่ยนรูปแบบการส่งให้เข้ากับระบบ Apps Script ได้ดียิ่งขึ้น
-      fetch(SCRIPT_URL, {
-    method: "POST",
-    headers: { "Content-Type": "text/plain;charset=utf-8" },
-    body: JSON.stringify(payload)
-})
-.then(res => res.json())
-.then(result => {
-    if (result.status === "error") {
-        Swal.fire({
-            title: 'ไม่สามารถจองได้',
-            html: result.message,
-            icon: 'warning',
-            confirmButtonColor: '#2a5298'
+        fetch(SCRIPT_URL, {
+            method: "POST",
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
+            body: JSON.stringify(payload)
+        })
+        .then(res => res.json())
+        .then(result => {
+            if (result.status === "error") {
+                Swal.fire({
+                    title: 'ไม่สามารถจองได้',
+                    html: result.message,
+                    icon: 'warning',
+                    confirmButtonColor: '#2a5298'
+                });
+            } else {
+                Swal.fire({
+                    title: 'จองสำเร็จ!',
+                    text: 'โปรดติดต่อเจ้าหน้าที่ห้องสมุด SLC ก่อนเข้าใช้งาน',
+                    icon: 'success',
+                    confirmButtonText: 'ตกลง',
+                    confirmButtonColor: '#2a5298'
+                });
+                
+                // อัปเดตตารางตัวกรองให้เป็นวันที่เพิ่งทำการจองไป
+                const filterInput = document.getElementById("filterDate");
+                if (filterInput._flatpickr) {
+                    filterInput._flatpickr.setDate(payload.date);
+                } else {
+                    filterInput.value = payload.date;
+                }
+
+                document.getElementById("bookingForm").reset();
+                updateRoomsAndTimes();
+                loadBookings();
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            Swal.fire({
+                title: 'เกิดข้อผิดพลาด!',
+                text: 'ไม่สามารถติดต่อเซิร์ฟเวอร์ได้ กรุณาลองใหม่อีกครั้ง',
+                icon: 'error',
+                confirmButtonText: 'รับทราบ',
+                confirmButtonColor: '#d33'
+            });
+        })
+        .finally(() => {
+            document.getElementById("submitBtn").innerHTML = "<i class='fa-solid fa-paper-plane me-2'></i>ส่งข้อมูลการจอง";
+            document.getElementById("submitBtn").disabled = false;
         });
-    } else {
-        Swal.fire({
-            title: 'จองสำเร็จ!',
-            text: 'โปรดติดต่อเจ้าหน้าที่ห้องสมุด SLC ก่อนเข้าใช้งาน',
-            icon: 'success',
-            confirmButtonText: 'ตกลง',
-            confirmButtonColor: '#2a5298'
-        });
-        document.getElementById("filterDate").value = payload.date;
-        document.getElementById("bookingForm").reset();
-        updateRoomsAndTimes();
-        loadBookings();
-    }
-})
-.catch(err => {
-    console.error(err);
-    Swal.fire({
-        title: 'เกิดข้อผิดพลาด!',
-        text: 'ไม่สามารถติดต่อเซิร์ฟเวอร์ได้ กรุณาลองใหม่อีกครั้ง',
-        icon: 'error',
-        confirmButtonText: 'รับทราบ',
-        confirmButtonColor: '#d33'
     });
-})
-.finally(() => {
-    document.getElementById("submitBtn").innerHTML = "<i class='fa-solid fa-paper-plane me-2'></i>ส่งข้อมูลการจอง";
-    document.getElementById("submitBtn").disabled = false;
-});
-       });
 
     window.onload = function() {
-        // 1. เรียกใช้งาน Flatpickr สำหรับช่องกรอกข้อมูลการจอง (ใช้ id ให้ถูกเป็น #bookingDate)
+        // 1. เรียกใช้งาน Flatpickr สำหรับฟอร์มกรอกข้อมูลการจอง
         flatpickr("#bookingDate", {
-            dateFormat: "Y-m-d",     
-            altInput: true,          
-            altFormat: "d/m/Y",      
+            dateFormat: "Y-m-d", // ส่งค่าแบบ ค.ศ. (เช่น 2026-06-24) ไปในโค้ดและส่งฐานข้อมูล
+            altInput: true,      
+            altFormat: "d/m/Y",  // แสดงผลบนจอคอมและมือถือผู้ใช้เป็น วว/ดด/ค.ศ. (เช่น 24/06/2026) 
             locale: "th",            
-            minDate: "today",        
-            allowInput: false,       // ล็อกโครงสร้างห้ามพิมพ์มือผ่านคอม/มือถือเด็ดขาด ป้องกันการเขียนทับคลาสหลอก
-            formatDate: (date, format, locale) => {
-                const day = date.getDate().toString().padStart(2, '0');
-                const month = (date.getMonth() + 1).toString().padStart(2, '0');
-                const yearBE = date.getFullYear() + 543; 
-                return `${day}/${month}/${yearBE}`;
-            }
-        });
-
-        // 2. เรียกใช้งาน Flatpickr สำหรับช่องตัวกรองในตาราง
-        flatpickr("#filterDate", {
-            dateFormat: "Y-m-d",
-            altInput: true,
-            altFormat: "d/m/Y",
-            locale: "th",
-            defaultDate: "today", 
-            allowInput: false,       // ห้ามพิมพ์มือ เลือกจากปฏิทินเท่านั้น
-            onChange: function(selectedDates, dateStr, instance) {
-                filterBookings(); 
-            },
-            formatDate: (date, format, locale) => {
-                const day = date.getDate().toString().padStart(2, '0');
-                const month = (date.getMonth() + 1).toString().padStart(2, '0');
-                const yearBE = date.getFullYear() + 543;
-                return `${day}/${month}/${yearBE}`;
-            }
-        });
-
-        // 3. โหลดข้อมูลตารางจองครั้งแรก
-        loadBookings();
-    };
-</script>
-</body>
-</html>
+            minDate: "
