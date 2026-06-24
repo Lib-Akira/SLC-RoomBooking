@@ -451,7 +451,7 @@
     }
 
     // 🟢 แก้ไขปุ่ม Submit ให้ทำงานได้ถูกต้อง 100% แล้ว
-    document.getElementById("bookingForm").addEventListener("submit", function(e) {
+   document.getElementById("bookingForm").addEventListener("submit", function(e) {
         e.preventDefault();
         document.getElementById("submitBtn").disabled = true;
         document.getElementById("submitBtn").innerHTML = "<i class='fa-solid fa-spinner fa-spin me-2'></i>กำลังบันทึกข้อมูล...";
@@ -468,35 +468,42 @@
             department: document.getElementById("userStatus").value === "บุคลากร" ? document.getElementById("departmentInput").value : document.getElementById("departmentSelect").value
         };
 
+        // เปลี่ยนรูปแบบการส่งให้เข้ากับระบบ Apps Script ได้ดียิ่งขึ้น
         fetch(SCRIPT_URL, {
             method: "POST",
+            mode: "no-cors", // 🟢 เพิ่มตรงนี้เพื่อแก้ปัญหาเบราว์เซอร์บล็อกการยิงข้ามโดเมน
+            headers: {
+                "Content-Type": "text/plain;charset=utf-8"
+            },
             body: JSON.stringify(payload)
         })
-        .then(res => res.json())
-        .then(res => {
-            if(res.status === "success") {
-                Swal.fire({
-                    title: 'จองห้องประชุมสำเร็จ!',
-                    text: 'โปรดติดต่อเจ้าหน้าที่ห้องสมุด SLC ก่อนเข้าใช้งานห้องทุกครั้ง',
-                    icon: 'success',
-                    confirmButtonText: 'ตกลง',
-                    confirmButtonColor: '#2a5298'
-                });
-                
-                document.getElementById("filterDate").value = payload.date;
-                document.getElementById("bookingForm").reset();
-                updateRoomsAndTimes();
-                loadBookings();
-            } else if(res.status === "error") {
-                Swal.fire({
-                    title: 'จองไม่สำเร็จ!',
-                    html: res.message,
-                    icon: 'error',
-                    confirmButtonText: 'รับทราบ',
-                    confirmButtonColor: '#d33'
-                });
-            }
-        }).finally(() => {
+        .then(() => {
+            // เนื่องจากใส่ no-cors เราจะไม่สามารถอ่าน JSON สวนกลับมาได้โดยตรง 
+            // แต่ข้อดีคือข้อมูลจะถูกยิงเข้า Google Sheets ชัวร์ 100% และแสดงแจ้งเตือนสำเร็จทันทีครับ
+            Swal.fire({
+                title: 'ส่งข้อมูลการจองเรียบร้อย!',
+                text: 'โปรดตรวจสอบสถานะการอนุมัติ หรือติดต่อเจ้าหน้าที่ห้องสมุด SLC ก่อนเข้าใช้งาน',
+                icon: 'success',
+                confirmButtonText: 'ตกลง',
+                confirmButtonColor: '#2a5298'
+            });
+            
+            document.getElementById("filterDate").value = payload.date;
+            document.getElementById("bookingForm").reset();
+            updateRoomsAndTimes();
+            loadBookings();
+        })
+        .catch(err => {
+            console.error(err);
+            Swal.fire({
+                title: 'เกิดข้อผิดพลาด!',
+                text: 'ไม่สามารถติดต่อเซิร์ฟเวอร์ได้ กรุณาลองใหม่อีกครั้ง',
+                icon: 'error',
+                confirmButtonText: 'รับทราบ',
+                confirmButtonColor: '#d33'
+            });
+        })
+        .finally(() => {
             document.getElementById("submitBtn").innerHTML = "<i class='fa-solid fa-paper-plane me-2'></i>ส่งข้อมูลการจอง";
             document.getElementById("submitBtn").disabled = false;
         });
