@@ -630,42 +630,54 @@
        });
 
     window.onload = function() {
-        // 1. เรียกใช้งาน Flatpickr สำหรับช่องกรอกข้อมูลการจอง (ล็อกไม่ให้เลือกวันย้อนหลัง)
-        flatpickr("#date", {
-            dateFormat: "Y-m-d", // ฟอร์แมตส่งค่าให้ระบบหลังบ้าน
-            altInput: true,      // เปิดใช้งานการแสดงผลแยกต่างหาก
-            altFormat: "d/m/Y",   
-            locale: "th",        // หน้าต่างปฏิทินภาษาไทย
-            minDate: "today",    // ห้ามเลือกวันย้อนหลัง
-            formatDate: (date, format, locale) => {
-                const day = date.getDate().toString().padStart(2, '0');
-                const month = (date.getMonth() + 1).toString().padStart(2, '0');
-                const yearBE = date.getFullYear() + 543; // แปลงเป็น พ.ศ.
-                return `${day}/${month}/${yearBE}`;
+    // 1. สำหรับช่องกรอกข้อมูลการจอง (คลิกเลือกปฏิทินภาษาไทย)
+    flatpickr("#date", {
+        dateFormat: "Y-m-d",     // ฟอร์แมตส่งค่าให้ระบบ (ค.ศ.)
+        altInput: true,          // เปิดใช้งานกล่องแสดงผลแยก
+        altFormat: "d/m/Y",      // ฟอร์แมตที่จะโชว์บนหน้าเว็บ (วัน/เดือน/ปี)
+        locale: "th",            // หน้าต่างปฏิทินเมนูไทย
+        minDate: "today",        // ห้ามเลือกวันย้อนหลัง
+        // จุดสำคัญ: ตัวนี้จะแปลงปีตอนที่ "คลิกเลือกจากปฏิทิน" ให้โชว์เป็น พ.ศ. ทันทีโดยไม่ต้องพิมพ์เอง
+        onReady: function(selectedDates, dateStr, instance) {
+            if (instance.altInput) {
+                instance.altInput.addEventListener('keydown', (e) => e.preventDefault()); // บล็อกไม่ให้พิมพ์มือ ป้องกันการกรอกผิด
             }
-        });
+        },
+        formatDate: (date, format, locale) => {
+            const day = date.getDate().toString().padStart(2, '0');
+            const month = (date.getMonth() + 1).toString().padStart(2, '0');
+            const yearBE = date.getFullYear() + 543; // เปลี่ยนเป็น พ.ศ.
+            return `${day}/${month}/${yearBE}`;
+        }
+    });
 
-        // 2. เรียกใช้งาน Flatpickr สำหรับช่องตัวกรองในตาราง
-        flatpickr("#filterDate", {
-            dateFormat: "Y-m-d",
-            altInput: true,
-            altFormat: "d/m/Y",
-            locale: "th",
-            defaultDate: "today", // ตั้งค่าเริ่มต้นเป็นวันปัจจุบัน
-            onChange: function(selectedDates, dateStr, instance) {
-                filterBookings(); // เมื่อเปลี่ยนวันที่ให้ทำการกรองข้อมูลทันที
-            },
-            formatDate: (date, format, locale) => {
-                const day = date.getDate().toString().padStart(2, '0');
-                const month = (date.getMonth() + 1).toString().padStart(2, '0');
-                const yearBE = date.getFullYear() + 543;
-                return `${day}/${month}/${yearBE}`;
+    // 2. สำหรับช่องตัวกรองในตาราง (คลิกปุ๊บ กรองปั๊บ)
+    flatpickr("#filterDate", {
+        dateFormat: "Y-m-d",
+        altInput: true,
+        altFormat: "d/m/Y",
+        locale: "th",
+        defaultDate: "today", 
+        onReady: function(selectedDates, dateStr, instance) {
+            if (instance.altInput) {
+                instance.altInput.addEventListener('keydown', (e) => e.preventDefault()); // บล็อกไม่ให้พิมพ์มือ ให้จิ้มเลือกอย่างเดียว
             }
-        });
+        },
+        onChange: function(selectedDates, dateStr, instance) {
+            // เมื่อจิ้มเปลี่ยนวันที่บนปฏิทิน ให้ทำการกรองตารางทันที
+            filterBookings(); 
+        },
+        formatDate: (date, format, locale) => {
+            const day = date.getDate().toString().padStart(2, '0');
+            const month = (date.getMonth() + 1).toString().padStart(2, '0');
+            const yearBE = date.getFullYear() + 543;
+            return `${day}/${month}/${yearBE}`;
+        }
+    });
 
-        // โหลดข้อมูลตารางจองครั้งแรก
-        loadBookings();
-    };
+    // 3. โหลดข้อมูลตารางจองครั้งแรก
+    loadBookings();
+};
 </script>
 </body>
 </html>
