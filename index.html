@@ -425,7 +425,7 @@
                 Swal.fire({ title: 'ข้อผิดพลาดเกี่ยวกับเวลา', text: 'เวลาสิ้นสุดต้องอยู่หลังเวลาเริ่มต้นครับ', icon: 'warning', confirmButtonColor: '#2a5298' });
                 submitBtn.disabled = true;
             } else if (diff > 120) {
-                Swal.fire({ title: 'เงื่อนไขของสถาบัน', text: '⚠️ สามารถขอใช้งานห้องประชุมได้ครั้งละไม่เกิน 2 ชั่วโมงต่อคน', icon: 'info', confirmButtonColor: '#2a5298' });
+                Swal.fire({ title: 'เงื่อนไขของสถาบัน', text: '⚠️ ขอใช้งานห้องประชุมได้ครั้งละไม่เกิน 2 ชั่วโมงต่อคน', icon: 'info', confirmButtonColor: '#2a5298' });
                 submitBtn.disabled = true;
             } else {
                 submitBtn.disabled = false;
