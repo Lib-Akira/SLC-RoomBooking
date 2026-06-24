@@ -518,24 +518,32 @@
 
         filteredData.forEach(b => {
             const isSL = b.building === "Saint Louis";
-            const tagClass = isSL ? "tag-sl" : "tag-sb";
+            // จับคู่สี Tag ให้เข้ากับอาคาร
+            const tagClass = isSL ? "bg-info text-dark" : "bg-warning text-dark"; 
             const displayName = isSL ? "Saint Louis" : "Saint Benedict";
 
             tbody.innerHTML += `
-                <tr>
-                    <td>
-                        <span class="building-tag ${tagClass} mb-1">${displayName}</span>
-                        <div class="fw-bold text-dark" style="font-size:0.95rem;">${b.room}</div>
+                <tr style="vertical-align: middle;">
+                    <td style="padding: 14px 16px; width: 40%;">
+                        <div class="d-flex align-items-center gap-2 flex-wrap">
+                            <span class="badge ${tagClass} fw-bold" style="font-size: 0.75rem; padding: 5px 9px; border-radius: 6px;">${displayName}</span>
+                            <span class="fw-bold text-dark" style="font-size: 0.95rem;">${b.room}</span>
+                        </div>
                     </td>
-                    <td><span class="time-pill"><i class="fa-regular fa-clock me-1"></i>${b.startTime} - ${b.endTime}</span></td>
-                    <td>
-                        <div class="fw-semibold text-dark">${b.requester}</div>
-                        <small class="text-muted" style="font-size:0.8rem;">${b.purpose || '-'}</small>
+                    
+                    <td style="padding: 14px 16px; width: 25%;">
+                        <span class="badge bg-light text-dark border" style="font-size: 0.85rem; padding: 6px 12px; border-radius: 20px; font-weight: 500;">
+                            <i class="fa-regular fa-clock me-1 text-primary"></i> ${b.startTime} - ${b.endTime}
+                        </span>
+                    </td>
+                    
+                    <td style="padding: 14px 16px; width: 35%;">
+                        <div class="fw-bold text-dark" style="font-size: 0.95rem;">${b.requester}</div>
+                        ${b.purpose ? `<div class="text-muted small mt-0.5" style="font-size: 0.8rem;"><i class="fa-solid fa-circle-info me-1 opacity-70"></i>${b.purpose}</div>` : ''}
                     </td>
                 </tr>
             `;
         });
-    }
 
     // 🟢 แก้ไขปุ่ม Submit ให้ทำงานได้ถูกต้อง 100% แล้ว
    document.getElementById("bookingForm").addEventListener("submit", function(e) {
