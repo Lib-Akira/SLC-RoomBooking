@@ -499,7 +499,12 @@
         });
     });
 
-    window.onload = loadBookings;
+    window.onload = function() {
+    loadBookings();
+    // บล็อกวันที่ย้อนหลังในฟอร์มจอง
+    const todayStr = new Date().toISOString().split('T')[0];
+    document.getElementById("date").min = todayStr;
+};
 </script>
 </body>
 </html>
