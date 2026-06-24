@@ -267,29 +267,34 @@
                 
                 <div class="filter-wrapper">
                     <div class="row g-2 align-items-center">
-                        <div class="col-12 col-sm-auto">
+                        <div class="col-12 col-md-auto mb-1 mb-md-0">
                             <span class="text-muted small fw-bold text-nowrap">
                                 <i class="fa-solid fa-filter me-1"></i> ตัวกรองข้อมูล:
                             </span>
                         </div>
-                        <div class="col-6 col-sm-auto d-flex align-items-center gap-2">
-                            <label for="filterDate" class="text-muted small fw-bold text-nowrap">วันที่:</label>
-                            <input type="text" class="form-control form-control-sm bg-white" id="filterDate" style="max-width: 140px;" placeholder="วว/ดด/ปปปป">
+                        <div class="col-12 col-sm-6 col-md-auto">
+                            <div class="d-flex align-items-center gap-2">
+                                <label for="filterDate" class="text-muted small fw-bold text-nowrap">วันที่:</label>
+                                <input type="text" class="form-control form-control-sm bg-white w-100" id="filterDate" placeholder="วว/ดด/ปปปป">
+                            </div>
                         </div>
-                        <div class="col-6 col-sm-auto d-flex align-items-center gap-2">
-                            <label for="filterBuilding" class="text-muted small fw-bold text-nowrap">อาคาร:</label>
-                            <select class="form-select form-select-sm" id="filterBuilding" onchange="updateFilterRooms()" style="max-width: 150px; padding-right: 30px;">
-                                <option value="">-- ทั้งหมด --</option>
-                                <option value="Saint Louis">Saint Louis</option>
-                                <option value="Saint Benedict">Saint Benedict</option>
-                            </select>
+                        <div class="col-12 col-sm-6 col-md-auto">
+                            <div class="d-flex align-items-center gap-2">
+                                <label for="filterBuilding" class="text-muted small fw-bold text-nowrap">อาคาร:</label>
+                                <select class="form-select form-select-sm w-100" id="filterBuilding" onchange="updateFilterRooms()" style="padding-right: 30px;">
+                                    <option value="">-- ทั้งหมด --</option>
+                                    <option value="Saint Louis">Saint Louis</option>
+                                    <option value="Saint Benedict">Saint Benedict</option>
+                                </select>
+                            </div>
                         </div>
-                        <div class="col-12 col-sm-auto d-flex align-items-center gap-2 d-none" id="filterRoomWrapper">
-                            <label for="filterRoom" class="text-muted small fw-bold text-nowrap">ห้อง:</label>
-                            <select class="form-select form-select-sm" id="filterRoom" onchange="filterBookings()" 
-                                    style="max-width: 200px;  padding-right: 30px;">
-                                <option value="">-- ทั้งหมด --</option>
-                            </select>
+                        <div class="col-12 col-md-auto d-none" id="filterRoomWrapper">
+                            <div class="d-flex align-items-center gap-2">
+                                <label for="filterRoom" class="text-muted small fw-bold text-nowrap">ห้อง:</label>
+                                <select class="form-select form-select-sm w-100" id="filterRoom" onchange="filterBookings()" style="padding-right: 30px;">
+                                    <option value="">-- ทั้งหมด --</option>
+                                </select>
+                            </div>
                         </div>
                     </div>
                 </div>
