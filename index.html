@@ -226,6 +226,11 @@
                     </div>
 
                     <div class="mb-4">
+                        <label class="form-label">👥 จำนวนผู้เข้าใช้งาน (คน)</label>
+                        <input type="number" class="form-control" id="attendees" min="1" max="50" placeholder="ระบุจำนวนคน" required>
+                    </div>
+                    
+                    <div class="mb-4">
                         <label class="form-label">📝 วัตถุประสงค์การใช้งาน</label>
                         <textarea class="form-control" id="purpose" rows="2" placeholder="ระบุหัวข้อประชุม/กิจกรรมสัมมนา"></textarea>
                     </div>
@@ -457,16 +462,19 @@
         document.getElementById("submitBtn").innerHTML = "<i class='fa-solid fa-spinner fa-spin me-2'></i>กำลังบันทึกข้อมูล...";
 
         const payload = {
-            building: document.getElementById("building").value,
-            room: document.getElementById("room").value,
-            date: document.getElementById("date").value,
-            startTime: document.getElementById("startTime").value,
-            endTime: document.getElementById("endTime").value,
-            requester: document.getElementById("requester").value,
-            purpose: document.getElementById("purpose").value,
-            userStatus: document.getElementById("userStatus").value,
-            department: document.getElementById("userStatus").value === "บุคลากร" ? document.getElementById("departmentInput").value : document.getElementById("departmentSelect").value
-        };
+    building: document.getElementById("building").value,
+    room: document.getElementById("room").value,
+    date: document.getElementById("date").value,
+    startTime: document.getElementById("startTime").value,
+    endTime: document.getElementById("endTime").value,
+    requester: document.getElementById("requester").value,
+    purpose: document.getElementById("purpose").value,
+    userStatus: document.getElementById("userStatus").value,
+    department: document.getElementById("userStatus").value === "บุคลากร" 
+        ? document.getElementById("departmentInput").value 
+        : document.getElementById("departmentSelect").value,
+    attendees: document.getElementById("attendees").value  // ← เพิ่มบรรทัดนี้
+};
 
         // เปลี่ยนรูปแบบการส่งให้เข้ากับระบบ Apps Script ได้ดียิ่งขึ้น
       fetch(SCRIPT_URL, {
