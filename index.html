@@ -703,7 +703,7 @@
     function deleteBooking(requester, date, startTime, room) {
         Swal.fire({
             title: '🔒 ยืนยันการลบรายการ',
-            text: 'ฟังก์ชันนี้เฉพาะเจ้าหน้าที่ห้องสมุดเท่านั้น<br>กรุณาใส่รหัสผ่านแอดมิน:',
+            html: 'ฟังก์ชันนี้เฉพาะเจ้าหน้าที่ห้องสมุดเท่านั้น<br>กรุณาใส่รหัสผ่านแอดมิน:',
             input: 'password', 
             inputAttributes: {
                 autocapitalize: 'off',
