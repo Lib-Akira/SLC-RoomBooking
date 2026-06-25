@@ -327,7 +327,7 @@
     };
 
     let allBookings = []; 
-    let fpBookingInstance, fpFilterInstance; // ตัวแปรเก็บ Instance ของ Flatpickr เก็บค่าค.ศ.แม่นยำกว่าดึง ID ตรงๆ
+    let fpBookingInstance, fpFilterInstance; 
 
     function generateTimeOptions(startHour, endHour) {
         let options = [];
@@ -439,11 +439,15 @@
     }
 
     function loadBookings() {
-        const todayStr = new Date().toLocaleDateString('sv-SE'); // ได้ "YYYY-MM-DD" ชัวร์ 100%
+        const selectedDate = fpFilterInstance && fpFilterInstance.selectedDates.length > 0 
+            ? fpFilterInstance.input.value 
+            : new Date().toLocaleDateString('sv-SE');
         
-        if(fpFilterInstance) {
-            fpFilterInstance.setDate(todayStr);
+        if(fpFilterInstance && fpFilterInstance.selectedDates.length === 0) {
+            fpFilterInstance.setDate(selectedDate);
         }
+
+        document.getElementById("bookingTableBody").innerHTML = "<tr><td colspan='3' class='text-center text-muted py-4'><i class='fa-solid fa-spinner fa-spin me-2'></i>กำลังโหลดข้อมูล...</td></tr>";
 
         fetch(SCRIPT_URL)
         .then(res => res.json())
@@ -479,8 +483,7 @@
     }
 
     function filterBookings() {
-        // ✅ ดึงตรงจาก Instance ของ Flatpickr เพื่อตัดปัญหากล่อง Input ซ้อนแล้วค่าหลุดหาย
-        const selectedDate = fpFilterInstance ? fpFilterInstance.input.value : new Date().toLocaleDateString('sv-SE');
+        const selectedDate = fpFilterInstance && fpFilterInstance.selectedDates.length > 0 ? fpFilterInstance.input.value : new Date().toLocaleDateString('sv-SE');
         const selectedBuilding = document.getElementById("filterBuilding").value;
         const selectedRoom = document.getElementById("filterRoom").value;
         const tbody = document.getElementById("bookingTableBody");
@@ -488,8 +491,6 @@
 
         const filteredData = allBookings.filter(b => {
             if (!b.date) return false;
-            
-            // ดึงค่าวันที่แถวนั้น ๆ แปลงฟอร์แมตให้ชนสากล YYYY-MM-DD ตรงกับฟิลเตอร์
             const bDateStr = new Date(b.date).toLocaleDateString('sv-SE');
             const matchDate = bDateStr === selectedDate;
             const matchBuilding = selectedBuilding === "" || b.building === selectedBuilding;
@@ -527,22 +528,36 @@
                     <td style="padding: 12px 16px; width: 25%;">
                         <span class="time-pill"><i class="fa-regular fa-clock me-1"></i>${b.startTime} - ${b.endTime}</span>
                     </td>
-                    <td style="padding: 12px 16px; width: 35%;">
-                        <div class="fw-semibold text-dark">${b.requester}</div>
-                        <small class="text-muted" style="font-size:0.8rem;">${b.userStatus || '-'}</small>
+                    <td style="padding: 12px 16px; width: 35%; display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <div class="fw-semibold text-dark">${b.requester}</div>
+                            <small class="text-muted" style="font-size:0.8rem;">${b.userStatus || '-'}</small>
+                        </div>
+                        <button class="btn btn-sm btn-outline-danger border-0" 
+                            onclick="deleteBooking('${b.requester}', '${b.date}', '${b.startTime}', '${b.room}')" 
+                            title="ยกเลิกการจองนี้ (เฉพาะแอดมิน)">
+                            ✕
+                        </button>
                     </td>
                 </tr>
             `;
         });
     }
-    
+        
     document.getElementById("bookingForm").addEventListener("submit", function(e) {
         e.preventDefault();
         document.getElementById("submitBtn").disabled = true;
         document.getElementById("submitBtn").innerHTML = "<i class='fa-solid fa-spinner fa-spin me-2'></i>กำลังบันทึกข้อมูล...";
 
-        // ✅ ดึงจากอินสแตนซ์ของปฏิทินตรงตัว ได้ค่าแม่นยำแน่นอน
         const bookingDateValue = fpBookingInstance ? fpBookingInstance.input.value : "";
+        const statusValue = document.getElementById("userStatus").value;
+
+        let deptValue = "";
+        if (statusValue === "บุคลากร") {
+            deptValue = document.getElementById("departmentInput").value;
+        } else if (statusValue === "นักศึกษา" || statusValue === "อาจารย์") {
+            deptValue = document.getElementById("departmentSelect").value;
+        }
 
         const payload = {
             building: document.getElementById("building").value,
@@ -552,10 +567,8 @@
             endTime: document.getElementById("endTime").value,
             requester: document.getElementById("requester").value,
             purpose: document.getElementById("purpose").value,
-            userStatus: document.getElementById("userStatus").value,
-            department: document.getElementById("userStatus").value === "บุคลากร" 
-                ? document.getElementById("departmentInput").value 
-                : document.getElementById("departmentSelect").value,
+            userStatus: statusValue,
+            department: deptValue,
             attendees: document.getElementById("attendees").value
         };
 
@@ -587,8 +600,16 @@
                 }
 
                 document.getElementById("bookingForm").reset();
-                if(fpBookingInstance) fpBookingInstance.clear(); // ล้างหน้าปฏิทินฟอร์มกรอก
-                updateRoomsAndTimes();
+                if(fpBookingInstance) fpBookingInstance.clear(); 
+                
+                document.getElementById("room").disabled = true;
+                document.getElementById("startTime").disabled = true;
+                document.getElementById("endTime").disabled = true;
+                
+                document.getElementById("departmentWrapper").style.display = "none";
+                document.getElementById("departmentSelect").style.display = "none";
+                document.getElementById("departmentInput").style.display = "none";
+
                 loadBookings();
             }
         })
@@ -609,7 +630,6 @@
     });
 
     window.onload = function() {
-        // 1. เรียกใช้งานและเก็บตัวแปร Instance ของปฏิทินฟอร์มจอง
         fpBookingInstance = flatpickr("#bookingDate", {
             dateFormat: "Y-m-d", 
             altInput: true,      
@@ -619,7 +639,6 @@
             allowInput: false
         });
 
-        // 2. เรียกใช้งานและเก็บตัวแปร Instance ของปฏิทินช่องค้นหา/ตัวกรอง
         fpFilterInstance = flatpickr("#filterDate", {
             dateFormat: "Y-m-d", 
             altInput: true,
@@ -631,9 +650,65 @@
             }
         });
 
-        // 3. เรียกโหลดข้อมูลจากฐานข้อมูลมาลงตารางแสดงผลทันที
         loadBookings();
     };
+
+    function deleteBooking(requester, date, startTime, room) {
+        Swal.fire({
+            title: '🔒 ยืนยันการลบรายการ',
+            text: 'ฟังก์ชันนี้เฉพาะเจ้าหน้าที่ห้องสมุดเท่านั้น กรุณาใส่รหัสผ่านแอดมิน:',
+            input: 'password', 
+            inputAttributes: {
+                autocapitalize: 'off',
+                autocorrect: 'off'
+            },
+            showCancelButton: true,
+            confirmButtonText: 'ยืนยันการลบ',
+            cancelButtonText: 'ยกเลิก',
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#64748b',
+            showLoaderOnConfirm: true,
+            preConfirm: (password) => {
+                if (!password) {
+                    Swal.showValidationMessage('กรุณากรอกรหัสผ่านครับ');
+                    return false;
+                }
+                
+                return fetch(`${SCRIPT_URL}?action=delete&password=${encodeURIComponent(password)}&requester=${encodeURIComponent(requester)}&date=${encodeURIComponent(date)}&startTime=${encodeURIComponent(startTime)}&room=${encodeURIComponent(room)}`, {
+                    method: 'GET'
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(response.statusText);
+                    }
+                    return response.json();
+                })
+                .catch(error => {
+                    Swal.showValidationMessage(`เกิดข้อผิดพลาด: ${error}`);
+                });
+            },
+            allowOutsideClick: () => !Swal.isLoading()
+        }).then((result) => {
+            if (result.isConfirmed) {
+                if (result.value && result.value.status === "success") {
+                    Swal.fire({
+                        title: 'ลบรายการสำเร็จ!',
+                        text: 'รายการจองห้องถูกลบเรียบร้อยแล้ว',
+                        icon: 'success',
+                        confirmButtonColor: '#2a5298'
+                    });
+                    loadBookings();
+                } else {
+                    Swal.fire({
+                        title: 'ข้อผิดพลาด!',
+                        text: result.value ? result.value.message : 'รหัสผ่านไม่ถูกต้อง',
+                        icon: 'error',
+                        confirmButtonColor: '#2a5298'
+                    });
+                }
+            }
+        });
+    }
 </script>
 </body>
 </html>
