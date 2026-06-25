@@ -169,6 +169,32 @@
             border: none !important;
             box-shadow: 0 2px 6px rgba(17, 153, 142, 0.2);
         }
+
+        /* คอนเทนเนอร์ของหัวตาราง และ ทุกๆ แถวข้อมูล */
+.booking-header, .booking-row {
+    display: flex;
+    align-items: center; /* จัดให้วัตถุอยู่กึ่งกลางแนวตั้ง */
+    padding: 12px 16px;
+}
+
+/* กำหนดความกว้างคอลัมน์เป็น % หรือ flex-basis ให้ตรงกัน */
+.col-room {
+    flex: 0 0 35%; /* คอลัมน์ห้องประชุมเอาไป 35% */
+}
+
+.col-time {
+    flex: 0 0 25%; /* คอลัมน์เวลาเอาไป 25% */
+    text-align: center;
+}
+
+.col-user {
+    flex: 0 0 32%; /* คอลัมน์ข้อมูลผู้จองเอาไป 32% */
+}
+
+.col-action {
+    flex: 0 0 8%;  /* คอลัมน์ปุ่มลบเอาไป 8% */
+    text-align: right;
+}
     </style>
 </head>
 <body>
@@ -438,24 +464,107 @@
         }
     }
 
+    function timeToMinutes(timeStr) {
+        if (!timeStr) return 0;
+        var parts = timeStr.split(':');
+        return parseInt(parts[0]) * 60 + parseInt(parts[1]);
+    }
+
     function loadBookings() {
+        const filterDateInput = document.getElementById("filterDate");
         const selectedDate = fpFilterInstance && fpFilterInstance.selectedDates.length > 0 
-            ? fpFilterInstance.input.value 
+            ? filterDateInput.value 
             : new Date().toLocaleDateString('sv-SE');
         
         if(fpFilterInstance && fpFilterInstance.selectedDates.length === 0) {
             fpFilterInstance.setDate(selectedDate);
         }
 
-        document.getElementById("bookingTableBody").innerHTML = "<tr><td colspan='3' class='text-center text-muted py-4'><i class='fa-solid fa-spinner fa-spin me-2'></i>กำลังโหลดข้อมูล...</td></tr>";
+        const selectedBuilding = document.getElementById("filterBuilding").value;
+        const selectedRoom = document.getElementById("filterRoom") ? document.getElementById("filterRoom").value : "";
+        const tbody = document.getElementById("bookingTableBody");
+        
+        tbody.innerHTML = `<tr><td colspan="3" class="text-center text-muted py-4"><i class="fa-solid fa-spinner fa-spin me-2"></i>กำลังโหลดข้อมูล...</td></tr>`;
 
         fetch(SCRIPT_URL)
         .then(res => res.json())
         .then(data => {
             allBookings = data; 
-            filterBookings();
+
+            // นำ Logic การกรองข้อมูลมารวมไว้ตรงนี้
+            const filteredData = allBookings.filter(b => {
+                if (!b.date) return false;
+                const bDateStr = b.date.split('T')[0]; // ดึงเฉพาะรูปแบบ YYYY-MM-DD ตรงๆ
+                const matchDate = bDateStr === selectedDate;
+                const matchBuilding = selectedBuilding === "" || b.building === selectedBuilding;
+                const matchRoom = selectedRoom === "" || b.room === selectedRoom;
+
+                return matchDate && matchBuilding && matchRoom;
+            });
+
+            // เรียงลำดับเวลาจากเช้าไปเย็น
+            filteredData.sort((a, b) => timeToMinutes(a.startTime) - timeToMinutes(b.startTime));
+
+            tbody.innerHTML = "";
+
+            if (filteredData.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="3" class="text-center text-muted py-5">
+                            <i class="fa-regular fa-folder-open d-block mb-2 opacity-50" style="font-size: 2.2rem; color: #94a3b8;"></i>
+                            ไม่พบข้อมูลการจองตามเงื่อนไขที่เลือกในวันนี้ครับ
+                        </td>
+                    </tr>`;
+                return;
+            }
+
+            filteredData.forEach(b => {
+                const isSL = b.building === "Saint Louis";
+                const tagClass = isSL ? "tag-sl" : "tag-sb";
+                const displayName = isSL ? "Saint Louis" : "Saint Benedict";
+
+                const customTagStyle = isSL 
+                ? "background: linear-gradient(135deg, #56CCF2, #2F80ED) !important; color: #ffffff !important; border: none;" 
+                : "background: linear-gradient(135deg, #11998e, #38ef7d) !important; color: #ffffff !important; border: none;";
+
+                // จัดการเรื่องเครื่องหมาย ' ป้องกันไม่ให้ JavaScript Syntax พังตอนกดลบ
+                const safeRequester = b.requester.replace(/'/g, "\\'");
+                const safeRoom = b.room.replace(/'/g, "\\'");
+
+                // ✅ ปรับปรุงโครงสร้างคอลัมน์ภายใน <td> ใหม่ทั้งหมด โดยบังคับความกว้างด้วยสไตล์พิกเซล/เปอร์เซ็นต์ที่แน่นอน
+                tbody.innerHTML += `
+                    <tr class="hover-bg-light" style="vertical-align: middle;">
+                        <td style="padding: 14px 16px; width: 40%; min-width: 160px;">
+                            <span class="building-tag ${tagClass} mb-1" style="${customTagStyle}">${displayName}</span>
+                            <div class="fw-bold text-dark" style="font-size:0.95rem; line-height: 1.3;">${b.room}</div>
+                        </td>
+                        <td style="padding: 14px 16px; width: 25%; min-width: 120px;">
+                            <span class="time-pill" style="white-space: nowrap;"><i class="fa-regular fa-clock me-1"></i>${b.startTime} - ${b.endTime}</span>
+                        </td>
+                        <td style="padding: 14px 16px; width: 35%; min-width: 180px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px;">
+                                <div style="min-width: 0; flex: 1; line-height: 1.4;">
+                                    <div class="fw-semibold text-dark text-truncate" style="font-size:0.92rem;" title="${b.requester}">${b.requester}</div>
+                                    <small class="text-muted d-block" style="font-size:0.8rem; margin-top: 2px;">
+                                        <span class="badge bg-secondary bg-opacity-10 text-secondary px-1.5 py-0.5 rounded" style="font-size: 0.72rem; font-weight: 500;">
+                                            ${b.userStatus || '-'}
+                                        </span>
+                                    </small>
+                                </div>
+                                <button class="btn btn-sm btn-outline-danger border-0 rounded-circle flex-shrink-0 d-flex align-items-center justify-content-center" 
+                                    style="width: 28px; height: 28px; padding: 0;"
+                                    onclick="deleteBooking('${safeRequester}', '${b.date}', '${b.startTime}', '${safeRoom}')" 
+                                    title="ยกเลิกการจองนี้ (เฉพาะแอดมิน)">
+                                    <i class="fa-solid fa-trash-can" style="font-size: 0.85rem;"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            });
         }).catch(err => {
-            document.getElementById("bookingTableBody").innerHTML = "<tr><td colspan='3' class='text-center text-danger py-4'><i class='fa-solid fa-triangle-exclamation me-2'></i>โหลดข้อมูลระบบล้มเหลว</td></tr>";
+            console.error(err);
+            tbody.innerHTML = "<tr><td colspan='3' class='text-center text-danger py-4'><i class='fa-solid fa-triangle-exclamation me-2'></i>โหลดข้อมูลระบบล้มเหลว</td></tr>";
         });
     }
 
@@ -468,7 +577,7 @@
             roomSelect.innerHTML = '<option value="">-- ทั้งหมด --</option>';
             roomSelect.value = "";
             roomWrapper.classList.add("d-none");
-            filterBookings();
+            loadBookings(); // เรียกโหลดใหม่แบบ real-time
             return;
         }
         
@@ -479,69 +588,7 @@
             });
         }
         roomWrapper.classList.remove("d-none");
-        filterBookings();
-    }
-
-    function filterBookings() {
-        const selectedDate = fpFilterInstance && fpFilterInstance.selectedDates.length > 0 ? fpFilterInstance.input.value : new Date().toLocaleDateString('sv-SE');
-        const selectedBuilding = document.getElementById("filterBuilding").value;
-        const selectedRoom = document.getElementById("filterRoom").value;
-        const tbody = document.getElementById("bookingTableBody");
-        tbody.innerHTML = "";
-
-        const filteredData = allBookings.filter(b => {
-            if (!b.date) return false;
-            const bDateStr = new Date(b.date).toLocaleDateString('sv-SE');
-            const matchDate = bDateStr === selectedDate;
-            const matchBuilding = selectedBuilding === "" || b.building === selectedBuilding;
-            const matchRoom = selectedRoom === "" || b.room === selectedRoom;
-
-            return matchDate && matchBuilding && matchRoom;
-        });
-
-        if (filteredData.length === 0) {
-            tbody.innerHTML = `
-                <tr>
-                    <td colspan="3" class="text-center text-muted py-5">
-                        <i class="fa-regular fa-folder-open d-block mb-2 opacity-50" style="font-size: 2.2rem; color: #94a3b8;"></i>
-                        ไม่พบข้อมูลการจองตามเงื่อนไขที่เลือกในวันนี้ครับ
-                    </td>
-                </tr>`;
-            return;
-        }
-
-        filteredData.forEach(b => {
-            const isSL = b.building === "Saint Louis";
-            const tagClass = isSL ? "tag-sl" : "tag-sb";
-            const displayName = isSL ? "Saint Louis" : "Saint Benedict";
-
-            const customTagStyle = isSL 
-            ? "background: linear-gradient(135deg, #56CCF2, #2F80ED) !important; color: #ffffff !important; border: none;" 
-            : "background: linear-gradient(135deg, #11998e, #38ef7d) !important; color: #ffffff !important; border: none;";
-
-            tbody.innerHTML += `
-                <tr style="vertical-align: middle;">
-                    <td style="padding: 12px 16px; width: 40%;">
-                        <span class="building-tag ${tagClass} mb-1" style="${customTagStyle}">${displayName}</span>
-                        <div class="fw-bold text-dark" style="font-size:0.95rem;">${b.room}</div>
-                    </td>
-                    <td style="padding: 12px 16px; width: 25%;">
-                        <span class="time-pill"><i class="fa-regular fa-clock me-1"></i>${b.startTime} - ${b.endTime}</span>
-                    </td>
-                    <td style="padding: 12px 16px; width: 35%; display: flex; justify-content: space-between; align-items: center;">
-                        <div>
-                            <div class="fw-semibold text-dark">${b.requester}</div>
-                            <small class="text-muted" style="font-size:0.8rem;">${b.userStatus || '-'}</small>
-                        </div>
-                        <button class="btn btn-sm btn-outline-danger border-0" 
-                            onclick="deleteBooking('${b.requester}', '${b.date}', '${b.startTime}', '${b.room}')" 
-                            title="ยกเลิกการจองนี้ (เฉพาะแอดมิน)">
-                            ✕
-                        </button>
-                    </td>
-                </tr>
-            `;
-        });
+        loadBookings(); // เรียกโหลดใหม่แบบ real-time
     }
         
     document.getElementById("bookingForm").addEventListener("submit", function(e) {
@@ -689,25 +736,30 @@
             },
             allowOutsideClick: () => !Swal.isLoading()
         }).then((result) => {
-            if (result.isConfirmed) {
-                if (result.value && result.value.status === "success") {
+            if (result.isConfirmed && result.value) {
+                if (result.value.status === "success") {
                     Swal.fire({
                         title: 'ลบรายการสำเร็จ!',
-                        text: 'รายการจองห้องถูกลบเรียบร้อยแล้ว',
+                        text: 'ลบข้อมูลการจองเรียบร้อยแล้ว',
                         icon: 'success',
                         confirmButtonColor: '#2a5298'
                     });
-                    loadBookings();
+                    loadBookings(); // โหลดตารางใหม่หลังจากลบสำเร็จ
                 } else {
                     Swal.fire({
-                        title: 'ข้อผิดพลาด!',
-                        text: result.value ? result.value.message : 'รหัสผ่านไม่ถูกต้อง',
+                        title: 'ไม่สามารถลบได้!',
+                        text: result.value.message || 'รหัสผ่านไม่ถูกต้อง หรือไม่พบข้อมูล',
                         icon: 'error',
                         confirmButtonColor: '#2a5298'
                     });
                 }
             }
         });
+    }
+
+    // เพิ่มฟังก์ชัน filterBookings เผื่อไว้เนื่องจากในโค้ดมีการเรียกใช้ตอนเปลี่ยนตัวกรอง
+    function filterBookings() {
+        loadBookings();
     }
 </script>
 </body>
