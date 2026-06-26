@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ระบบจองห้องประชุม SLC Library</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
@@ -13,244 +13,202 @@
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     
     <style>
-        :root {
-            --primary-gradient: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-            --text-dark: #2d3748;
-            --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
-            --card-radius: 16px;
-        }
-
         body { 
-            background-color: #f4f7f6; 
-            font-family: 'Sarabun', sans-serif; 
-            color: var(--text-dark);
-            background-image: radial-gradient(#2a52980a 1px, transparent 0);
+            font-family: 'Sarabun', sans-serif;
+            background-image: radial-gradient(#3b82f60a 1px, transparent 0);
             background-size: 20px 20px;
         }
-
-        .header-banner { 
-            background: var(--primary-gradient); 
-            color: white; 
-            padding: 40px 30px; 
-            border-radius: var(--card-radius); 
-            margin-bottom: 35px; 
-            box-shadow: 0 12px 35px rgba(30, 60, 114, 0.18);
-            position: relative;
-            overflow: hidden;
-        }
-        .header-banner::after {
-            content: '';
-            position: absolute;
-            top: -50%;
-            right: -10%;
-            width: 260px;
-            height: 260px;
-            background: rgba(255, 255, 255, 0.04);
-            border-radius: 50%;
-        }
-
-        .card { 
-            border: none; 
-            box-shadow: var(--card-shadow); 
-            border-radius: var(--card-radius); 
-            background: #ffffff;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-        .card:hover {
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.07);
-        }
-
-        .card-title-custom {
-            font-size: 1.22rem;
-            font-weight: 600;
-            color: #1e3c72;
-            border-bottom: 2px solid #f1f5f9;
-            padding-bottom: 15px;
-            margin-bottom: 25px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .form-label {
-            font-weight: 500;
-            color: #4a5568;
-            font-size: 0.9rem;
-            margin-bottom: 6px;
-        }
-        .form-control, .form-select {
-            border: 1.5px solid #e2e8f0;
-            border-radius: 10px;
-            padding: 10px 14px;
-            font-size: 0.95rem;
-            transition: all 0.2s ease;
-        }
-        .form-control:focus, .form-select:focus {
-            border-color: #2a5298;
-            box-shadow: 0 0 0 3.5px rgba(42, 82, 152, 0.12);
-        }
-
-        .btn-modern {
-            background: var(--primary-gradient);
-            color: white;
-            border: none;
-            padding: 12px;
-            border-radius: 10px;
-            font-weight: 500;
-            transition: all 0.25s ease;
-            box-shadow: 0 4px 15px rgba(42, 82, 152, 0.2);
-        }
-        .btn-modern:hover {
-            transform: translateY(-1.5px);
-            box-shadow: 0 6px 20px rgba(42, 82, 152, 0.28);
-            color: white;
-        }
-        .btn-modern:disabled {
-            background: #cbd5e1;
-            box-shadow: none;
-            transform: none;
-        }
-
-        .filter-wrapper {
-            background-color: #f8fafc;
-            padding: 12px 16px;
-            border-radius: 12px;
-            border: 1px solid #edf2f7;
-            margin-bottom: 20px;
-        }
-
-        .table-modern {
-            vertical-align: middle;
-        }
-        .table-modern thead th {
-            background-color: #f8fafc;
-            color: #64748b;
-            font-weight: 600;
-            font-size: 0.82rem;
-            text-transform: uppercase;
-            padding: 14px;
-            border-bottom: 1px solid #e2e8f0;
-            letter-spacing: 0.3px;
-        }
-        .table-modern tbody td {
-            padding: 15px 14px;
-            border-bottom: 1px solid #f1f5f9;
-            font-size: 0.93rem;
-        }
-
-        .building-tag {
-            font-size: 0.76rem;
-            font-weight: 600;
-            padding: 4px 8px;
-            border-radius: 6px;
-            display: inline-block;
-        }
-
-        .time-pill {
-            font-weight: 600;
-            color: #2a5298;
-            background: #f0f4f8;
-            padding: 5px 10px;
-            border-radius: 6px;
-            font-size: 0.86rem;
-            display: inline-block;
-         }
-        
-        .building-tag.tag-sl {
-            background: linear-gradient(135deg, #56CCF2 0%, #2F80ED 100%) !important; 
-            color: #ffffff !important;
-            border: none !important;
-            box-shadow: 0 2px 6px rgba(78, 84, 200, 0.2);
-        }
-
-        .building-tag.tag-sb {
-            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%) !important; 
-            color: #ffffff !important;
-            border: none !important;
-            box-shadow: 0 2px 6px rgba(17, 153, 142, 0.2);
-        }
-
-        /* คอนเทนเนอร์ของหัวตาราง และ ทุกๆ แถวข้อมูล */
-.booking-header, .booking-row {
-    display: flex;
-    align-items: center; /* จัดให้วัตถุอยู่กึ่งกลางแนวตั้ง */
-    padding: 12px 16px;
-}
-
-/* กำหนดความกว้างคอลัมน์เป็น % หรือ flex-basis ให้ตรงกัน */
-.col-room {
-    flex: 0 0 35%; /* คอลัมน์ห้องประชุมเอาไป 35% */
-}
-
-.col-time {
-    flex: 0 0 25%; /* คอลัมน์เวลาเอาไป 25% */
-    text-align: center;
-}
-
-.col-user {
-    flex: 0 0 32%; /* คอลัมน์ข้อมูลผู้จองเอาไป 32% */
-}
-
-.col-action {
-    flex: 0 0 8%;  /* คอลัมน์ปุ่มลบเอาไป 8% */
-    text-align: right;
-}
     </style>
 </head>
-<body>
-<div class="container py-4">
-    <div class="header-banner text-center">
-        <h2 class="fw-bold mb-2"><i class="fa-solid fa-hotel me-2"></i>ระบบจองห้องประชุม SLC Library</h2>
-        <p class="mb-0 opacity-75">SLC Library วิทยาลัยเซนต์หลุยส์ (Saint Louis College)</p>
+<body class="bg-slate-50 text-slate-800 antialiased min-h-screen">
+
+<div class="max-w-7xl mx-auto px-4 mt-8 flex flex-row gap-6 items-stretch">
+
+    <div class="flex-[2] relative overflow-hidden bg-white/10 backdrop-blur-lg border border-white/20 text-[#0D2535] p-8 md:p-10 rounded-2xl shadow-[0_8px_32px_0_rgba(0,0,0,0.1)]">
+        <div class="absolute inset-0 bg-gradient-to-r from-[#5388D8]/30 to-[#F8DD9C]/30 -z-10"></div>
+        <div class="relative z-10 text-center">
+            <h1 class="text-2xl md:text-3xl font-bold mb-2 flex items-center justify-center gap-3">
+                <span class="[text-shadow:_0_2px_4px_rgba(0,0,0,0.3)] flex items-center gap-3">  
+                <svg width="35" height="35" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <g clip-path="url(#clip0_2770_70838)">
+                <path fill-rule="evenodd" clip-rule="evenodd" d="M4.59372 0.0297189L12.2376 0.029541C13.179 0.029541 13.9421 0.792642 13.9421 1.73398V8.22355C13.9421 9.16489 13.179 9.92799 12.2376 9.92799H10.8096V8.20132C10.8096 6.56963 9.48681 5.24689 7.85512 5.24689L2.88928 5.24703V1.73415C2.88928 0.792825 3.65239 0.0297284 4.59372 0.0297189Z" fill="#5388D8" fill-opacity="0.6"/>
+                <path d="M12.2376 0.029541L4.59372 0.0297189C3.65239 0.0297284 2.88928 0.792825 2.88928 1.73415V3H13.9421V1.73398C13.9421 0.792642 13.1789 0.029541 12.2376 0.029541Z" fill="#0D2535"/>
+                <path fill-rule="evenodd" clip-rule="evenodd" d="M7.85512 6.49683L1.80917 6.497C0.867846 6.49702 0.104736 7.26011 0.104736 8.20144V12.2328C0.104736 13.1741 0.867837 13.9373 1.80917 13.9373L7.85514 13.9371C8.79646 13.9371 9.55958 13.174 9.55958 12.2326V8.20126C9.55958 7.25993 8.79646 6.49683 7.85512 6.49683Z" fill="#FF9F40" fill-opacity="0.6"/>
+                <path d="M7.85512 6.49683L1.80917 6.497C0.867849 6.49702 0.104736 7.26011 0.104736 8.20144V9.49994H9.55958V8.20126C9.55958 7.25993 8.79646 6.49683 7.85512 6.49683Z" fill="#0D2535"/>
+                </g>
+                <defs>
+                <clipPath id="clip0_2770_70838">
+                <rect width="14" height="14" fill="white"/>
+                </clipPath>
+                </defs>
+                </svg>
+                ระบบจองห้องประชุม SLC Library
+                </span>
+            </h1>
+            <p class="text-sm md:text-base text-[#0D2535]/80 font-medium">งานวิทยบริการและวารสารวิชาการ วิทยาลัยเซนต์หลุยส์</p> 
+        </div>
+        <div class="absolute -top-12 -right-12 w-48 h-48 bg-white/20 rounded-full blur-2xl -z-10"></div>
     </div>
 
-    <div class="row g-4">
-        <div class="col-md-5">
-            <div class="card p-4">
-                <div class="card-title-custom">
-                    <i class="fa-solid fa-pen-to-square text-primary"></i> กรอกรายละเอียดการจอง
-                </div>
-                <form id="bookingForm">
-                    <div class="mb-3">
-                        <label class="form-label">🏢 เลือกอาคารที่ต้องการใช้งาน</label>
-                        <select class="form-select" id="building" required onchange="updateRoomsAndTimes()">
+    <div class="lg:col-span-1 bg-[#5388D8]/10 rounded-2xl shadow-sm border border-slate-100 p-6 flex flex-col justify-between h-full">
+        <div>
+            <h2 class="mt-5 text-lg font-semibold text-[#0D2535] border-b border-slate-100 pb-2 mb-3 flex items-center gap-2">
+                <i class="fa-solid fa-book-open"></i> ระเบียบการใช้ห้องประชุม
+            </h2>
+        </div>
+        <button onclick="toggleRules(true)" class="bg-[#0D2535] text-white py-2 rounded-lg text-sm hover:opacity-90 transition">
+            คลิกเพื่ออ่าน
+        </button>
+    </div>
+</div>
+
+<div id="rulesPopup" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" onclick="toggleRules(false)"></div>
+    <div class="bg-white rounded-2xl p-8 max-w-2xl w-full shadow-2xl relative z-10 animate-in fade-in zoom-in duration-200">
+        <h2 class="text-xl font-bold mb-4 text-[#0D2535] border-b pb-2 flex items-center gap-2">
+            <i class="fa-solid fa-book-open"></i> ระเบียบการใช้ห้องประชุม
+        </h2>
+        
+        <ul class="text-slate-600 text-sm space-y-3 list-disc list-outside ps-5 marker:text-[#5388D8]">
+            <li>จำกัดเวลาเข้าใช้บริการสูงสุดไม่เกิน 2 ชั่วโมง/คน/วัน</li>
+            <li>หากต้องการใช้งานเพิ่มเติม โปรดใช้สิทธิ์หรือรายชื่อของสมาชิกท่านอื่นในการจอง</li>
+            <li>กรุณาแสดงตนต่อเจ้าหน้าที่ภายใน 15 นาทีแรก หากเกินเวลาที่กำหนดจะถือว่าสละสิทธิ์ให้ผู้ใช้อื่น</li>
+            <li>หากต้องการยกเลิกการจอง กรุณาแจ้งเจ้าหน้าที่ล่วงหน้าก่อนถึงเวลาที่กำหนด</li>
+        </ul>
+        
+        <button onclick="toggleRules(false)" class="mt-6 w-full bg-slate-200 hover:bg-slate-300 py-2 rounded-lg text-sm transition">ปิดหน้าต่าง</button>
+    </div>
+</div>
+
+<div class="max-w-7xl mx-auto px-4 py-9">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+
+        <div class="lg:col-span-5">
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 hover:shadow-md transition duration-300">
+                <h2 class="text-lg font-semibold text-[#0D2535] border-b border-slate-100 pb-4 mb-4 flex items-center gap-2">
+                    <div class="w-12 h-7 bg-gradient-to-r from-[#5388D8]/30 to-[#F8DD9C]/30 rounded-lg flex items-center justify-center text-[#0D2535]">
+                    <i class="fa-solid fa-pen-to-square text-sm"></i></div> กรอกรายละเอียดการจอง
+                </h2>
+                
+                <form id="bookingForm" class="space-y-4">
+                    <div>
+                        <label class="flex items-center gap-2 text-sm font-semibold text-slate-600 uppercase tracking-wider mb-1.5">
+                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <g clip-path="url(#clip0_1222_11532)">
+                        <path d="M0 1.5C0 0.671573 0.671573 0 1.5 0H9.5C10.3284 0 11 0.671573 11 1.5V9.5C11 10.3284 10.3284 11 9.5 11H1.5C0.671573 11 0 10.3284 0 9.5V1.5Z" fill="#F8DD9C" fill-opacity="0.6"/>
+                        <path d="M3 4.5C3 3.67157 3.67157 3 4.5 3H12.5C13.3284 3 14 3.67157 14 4.5V12.5C14 13.3284 13.3284 14 12.5 14H4.5C3.67157 14 3 13.3284 3 12.5V4.5Z" fill="#5388D8" fill-opacity="0.6"/>
+                        </g>
+                        <defs>
+                        <clipPath id="clip0_1222_11532">
+                        <rect width="14" height="14" fill="white"/>
+                        </clipPath>
+                        </defs>
+                        </svg>
+                        เลือกอาคารที่ต้องการใช้งาน
+                        </label>
+                        <select class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-[#5388D8]/30 focus:ring-2 focus:ring-blue-500/10 transition" id="building" required onchange="updateRoomsAndTimes()">
                             <option value="">-- กรุณาเลือกอาคาร --</option>
-                            <option value="Saint Louis">อาคาร Saint Louis (ฝั่งโรงพยาบาล) [10.00-19.00 น.]</option>
-                            <option value="Saint Benedict">อาคาร Saint Benedict (ฝั่งอาคารเรียน) [08.00-17.00 น.]</option>
+                            <option value="Saint Louis">อาคาร Saint Louis (ฝั่งโรงพยาบาล)</option>
+                            <option value="Saint Benedict">อาคาร Saint Benedict (ฝั่งอาคารเรียน) </option>
                         </select>
                     </div>
 
-                    <div class="mb-3">
-                        <label class="form-label">🚪 เลือกห้องประชุม</label>
-                        <select class="form-select" id="room" required disabled>
+                    <div>
+                        <label class="flex items-center gap-2 text-sm font-semibold text-slate-600 uppercase tracking-wider mb-1.5"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <g clip-path="url(#clip0_1222_8068)">
+                        <path fill-rule="evenodd" clip-rule="evenodd" d="M7.03352 1.98246C6.08239 2.87431 6.38792 4.73142 7.95005 5.00319C8.43539 5.08763 8.82141 5.4573 8.92676 5.93854L8.94474 6.02068C9.1188 6.81582 9.70528 7.27084 10.3504 7.38418C10.1732 8.92861 9.33772 10.4378 8.41615 11.5828C7.89131 12.2349 7.32135 12.7907 6.7925 13.1884C6.52826 13.3871 6.2663 13.5523 6.01846 13.6698C5.77785 13.7838 5.51532 13.8698 5.25984 13.8698C5.00436 13.8698 4.74183 13.7838 4.50121 13.6698C4.25337 13.5523 3.99141 13.3871 3.72717 13.1884C3.19833 12.7907 2.62837 12.2349 2.10352 11.5828C1.06444 10.2918 0.134766 8.53778 0.134766 6.79231C0.134766 3.96181 2.42934 1.66724 5.25984 1.66724C5.88334 1.66724 6.48083 1.77858 7.03352 1.98246Z" fill="#5388D8" fill-opacity="0.6"/>
+                        <path d="M5.26 8.49998C6.2033 8.49998 6.968 7.73529 6.968 6.79198C6.968 5.84868 6.2033 5.08398 5.26 5.08398C4.3167 5.08398 3.552 5.84868 3.552 6.79198C3.552 7.73529 4.3167 8.49998 5.26 8.49998Z" fill="#F8DD9C"/>
+                        <path fill-rule="evenodd" clip-rule="evenodd" d="M11.437 0.726816C11.2511 -0.0882007 10.0884 -0.0831177 9.90961 0.733492L9.90283 0.76456L9.88961 0.824757C9.6956 1.69351 8.99697 2.36017 8.11937 2.51284C7.26864 2.66085 7.26864 3.88211 8.11937 4.03011C9.00003 4.18332 9.70048 4.8541 9.89163 5.72732L9.90961 5.80946C10.0884 6.62607 11.2511 6.63116 11.437 5.81614L11.4588 5.72041C11.6573 4.85031 12.3587 4.18443 13.238 4.03147C14.0902 3.8832 14.0902 2.65975 13.238 2.51149C12.3634 2.35934 11.6647 1.69968 11.462 0.836387C11.4564 0.812235 11.4511 0.789149 11.4455 0.764005L11.437 0.726816Z" fill="#F8DD9C"/>
+                        </g>
+                        <defs>
+                        <clipPath id="clip0_1222_8068">
+                        <rect width="14" height="14" fill="white"/>
+                        </clipPath>
+                        </defs>
+                        </svg>
+                        เลือกห้องประชุม</label>
+                        <select class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-[#5388D8]/30 focus:ring-2 focus:ring-blue-500/10 transition disabled:opacity-60" id="room" required disabled>
                             <option value="">-- กรุณาเลือกอาคารก่อน --</option>
                         </select>
                     </div>
 
-                    <div class="mb-3">
-                        <label class="form-label">📅 วันที่ต้องการจอง</label>
-                        <input type="text" class="form-control" id="bookingDate" placeholder="คลิกเลือกวันที่..." required>
+                    <div>
+                        <label class="flex items-center gap-2 text-sm font-semibold text-slate-600 uppercase tracking-wider mb-1.5"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <g clip-path="url(#clip0_1222_11705)">
+                        <path fill-rule="evenodd" clip-rule="evenodd" d="M3.5 0C4.05228 0 4.5 0.447715 4.5 1V2H9.50009V1C9.50009 0.447715 9.94781 0 10.5001 0C11.0524 0 11.5001 0.447715 11.5001 1V2H12.5C13.3284 2 14 2.67157 14 3.5V4.5H0V3.5C0 2.67157 0.671573 2 1.5 2H2.5V1C2.5 0.447715 2.94772 0 3.5 0Z" fill="#5388D8" fill-opacity="0.7"/>
+                        <path d="M0 4.5H14V12.5C14 13.3284 13.3284 14 12.5 14H1.5C0.671573 14 0 13.3284 0 12.5V4.5Z" fill="#F8DD9C" fill-opacity="0.6"/>
+                        <path fill-rule="evenodd" clip-rule="evenodd" d="M8.56274 5.82322C8.51583 5.77631 8.45218 5.74996 8.38583 5.75C8.31948 5.75004 8.25587 5.77644 8.209 5.82341L4.0862 9.95499C4.04793 9.99334 4.02316 10.0431 4.0156 10.0967L3.75245 11.9651C3.74152 12.0427 3.76757 12.1209 3.82282 12.1764C3.87807 12.2319 3.95613 12.2583 4.03373 12.2477L5.90215 11.9933C5.95631 11.986 6.00655 11.961 6.0452 11.9224L10.1768 7.79081C10.2744 7.69318 10.2744 7.53489 10.1768 7.43726L8.56274 5.82322Z" fill="#5388D8" fill-opacity="0.7"/>
+                        </g>
+                        <defs>
+                        <clipPath id="clip0_1222_11705">
+                        <rect width="14" height="14" fill="white"/>
+                        </clipPath>
+                        </defs>
+                        </svg>
+                        วันที่ต้องการจอง</label>
+                        <input type="text" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-[#5388D8]/30 focus:ring-2 focus:ring-blue-500/10 transition" id="bookingDate" placeholder="คลิกเลือกวันที่..." required>
                     </div>
 
-                    <div class="row">
-                        <div class="col-6 mb-3">
-                            <label class="form-label">⏰ เวลาเริ่มต้น</label>
-                            <select class="form-select" id="startTime" required disabled onchange="validateTimeSlot()"></select>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="flex items-center gap-2 text-sm font-semibold text-slate-600 uppercase tracking-wider mb-1.5"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <g clip-path="url(#clip0_1222_11525)">
+                            <path d="M7 14C10.3137 14 13 11.3137 13 8C13 4.68629 10.3137 2 7 2C3.68629 2 1 4.68629 1 8C1 11.3137 3.68629 14 7 14Z" fill="#F8DD9C" fill-opacity="0.7"/>
+                            <path fill-rule="evenodd" clip-rule="evenodd" d="M3.91195 0.397528C4.10669 0.763105 3.96821 1.21734 3.60263 1.41209C2.73461 1.87449 1.96006 2.49413 1.3184 3.23947C1.04815 3.55338 0.574601 3.58878 0.26069 3.31854C-0.0532214 3.04829 -0.0886191 2.57474 0.181627 2.26083C0.944513 1.37468 1.86539 0.637972 2.89739 0.0882131C3.26297 -0.106534 3.7172 0.0319508 3.91195 0.397528ZM10.0881 0.397528C10.2828 0.0319508 10.737 -0.106534 11.1026 0.0882131C12.1346 0.637972 13.0555 1.37468 13.8184 2.26083C14.0886 2.57474 14.0532 3.04829 13.7393 3.31854C13.4254 3.58878 12.9519 3.55338 12.6816 3.23947C12.0399 2.49413 11.2654 1.87449 10.3974 1.41209C10.0318 1.21734 9.89333 0.763105 10.0881 0.397528ZM7.62501 5.00015C7.62501 4.65497 7.34519 4.37515 7.00001 4.37515C6.65483 4.37515 6.37501 4.65497 6.37501 5.00015V8.00015C6.37501 8.34533 6.65483 8.62515 7.00001 8.62515H9.50001C9.84519 8.62515 10.125 8.34533 10.125 8.00015C10.125 7.65497 9.84519 7.37515 9.50001 7.37515H7.62501V5.00015Z" fill="#5388D8" fill-opacity="0.6"/>
+                            </g>
+                            <defs>
+                            <clipPath id="clip0_1222_11525">
+                            <rect width="14" height="14" fill="white"/>
+                            </clipPath>
+                            </defs>
+                            </svg>
+                            เวลาเริ่มต้น</label>
+                            <select class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-[#5388D8]/30 focus:ring-2 focus:ring-blue-500/10 transition disabled:opacity-60" id="startTime" required disabled onchange="validateTimeSlot()"></select>
                         </div>
-                        <div class="col-6 mb-3">
-                            <label class="form-label">⏰ เวลาสิ้นสุด</label>
-                            <select class="form-select" id="endTime" required disabled onchange="validateTimeSlot()"></select>
+                        <div>
+                            <label class="flex items-center gap-2 text-sm font-semibold text-slate-600 uppercase tracking-wider mb-1.5"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <g clip-path="url(#clip0_1222_11525)">
+                            <path d="M7 14C10.3137 14 13 11.3137 13 8C13 4.68629 10.3137 2 7 2C3.68629 2 1 4.68629 1 8C1 11.3137 3.68629 14 7 14Z" fill="#8FBFFA"/>
+                            <path fill-rule="evenodd" clip-rule="evenodd" d="M3.91195 0.397528C4.10669 0.763105 3.96821 1.21734 3.60263 1.41209C2.73461 1.87449 1.96006 2.49413 1.3184 3.23947C1.04815 3.55338 0.574601 3.58878 0.26069 3.31854C-0.0532214 3.04829 -0.0886191 2.57474 0.181627 2.26083C0.944513 1.37468 1.86539 0.637972 2.89739 0.0882131C3.26297 -0.106534 3.7172 0.0319508 3.91195 0.397528ZM10.0881 0.397528C10.2828 0.0319508 10.737 -0.106534 11.1026 0.0882131C12.1346 0.637972 13.0555 1.37468 13.8184 2.26083C14.0886 2.57474 14.0532 3.04829 13.7393 3.31854C13.4254 3.58878 12.9519 3.55338 12.6816 3.23947C12.0399 2.49413 11.2654 1.87449 10.3974 1.41209C10.0318 1.21734 9.89333 0.763105 10.0881 0.397528ZM7.62501 5.00015C7.62501 4.65497 7.34519 4.37515 7.00001 4.37515C6.65483 4.37515 6.37501 4.65497 6.37501 5.00015V8.00015C6.37501 8.34533 6.65483 8.62515 7.00001 8.62515H9.50001C9.84519 8.62515 10.125 8.34533 10.125 8.00015C10.125 7.65497 9.84519 7.37515 9.50001 7.37515H7.62501V5.00015Z" fill="#5388D8" fill-opacity="0.6"/>
+                            </g>
+                            <defs>
+                            <clipPath id="clip0_1222_11525">
+                            <rect width="14" height="14" fill="white"/>
+                            </clipPath>
+                            </defs>
+                            </svg>
+                            เวลาสิ้นสุด</label>
+                            <select class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-[#5388D8]/30 focus:ring-2 focus:ring-blue-500/10 transition disabled:opacity-60" id="endTime" required disabled onchange="validateTimeSlot()"></select>
                         </div>
                     </div>
 
-                    <div class="mb-3">
-                        <label class="form-label">👤 ชื่อผู้จอง / รหัสประจำตัว</label>
-                        <input type="text" class="form-control" id="requester" placeholder="ตัวอย่าง: นายโซล่าร์ 100xxx" required>
+                    <div>
+                        <label class="flex items-center gap-2 text-sm font-semibold text-slate-600 uppercase tracking-wider mb-1.5"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M5 7.5C6.65685 7.5 8 6.15685 8 4.5C8 2.84315 6.65685 1.5 5 1.5C3.34315 1.5 2 2.84315 2 4.5C2 6.15685 3.34315 7.5 5 7.5Z" fill="#8FBFFA"/>
+                        <path d="M0 13.5C0 10.7386 2.23858 8.5 5 8.5C7.76142 8.5 10 10.7386 10 13.5C10 13.7761 9.77614 14 9.5 14H0.5C0.223858 14 0 13.7761 0 13.5Z" fill="#8FBFFA"/>
+                        <path fill-rule="evenodd" clip-rule="evenodd" d="M11.1775 14H13.5C13.7761 14 14 13.7761 14 13.5C14 10.7386 11.7614 8.49997 9 8.49997C8.91895 8.49997 8.83835 8.5019 8.75824 8.50571C10.2716 9.64634 11.25 11.4589 11.25 13.5C11.25 13.6737 11.2247 13.8416 11.1775 14ZM8.13225 7.37258C8.40695 7.45545 8.69827 7.5 9 7.5C10.6569 7.5 12 6.15685 12 4.5C12 2.84315 10.6569 1.5 9 1.5C8.69827 1.5 8.40695 1.54454 8.13225 1.62741C8.82634 2.38385 9.25 3.39245 9.25 4.5C9.25 5.60755 8.82634 6.61615 8.13225 7.37258Z" fill="#2859C5"/>
+                        </svg>
+                        ชื่อผู้จอง / รหัสประจำตัว</label>
+                        <input type="text" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-[#5388D8]/30 focus:ring-2 focus:ring-blue-500/10 transition" id="requester" placeholder="ตัวอย่าง: นายโซล่าร์ 100xxx" required>
                     </div>
 
-                    <div class="mb-3">
-                        <label class="form-label">🎓 Status ผู้ใช้งาน</label>
-                        <select class="form-select" id="userStatus" required onchange="updateDepartmentOptions()">
+                    <div>
+                        <label class="flex items-center gap-2 text-sm font-semibold text-slate-600 uppercase tracking-wider mb-1.5"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <g clip-path="url(#clip0_1222_15758)">
+                        <path d="M2.95068 7.00025L2.95569 9.5169C2.95592 9.62534 2.9914 9.73077 3.05678 9.81729L3.45565 9.51588C3.05678 9.81729 3.05678 9.81729 3.05678 9.81729L3.05748 9.81822L3.05829 9.81928L3.06021 9.82179L3.0653 9.82835L3.08051 9.84736C3.09288 9.86257 3.10977 9.88275 3.13126 9.90717C3.17422 9.95599 3.23569 10.0219 3.3164 10.0991C3.47771 10.2534 3.71674 10.4535 4.03914 10.6518C4.68718 11.0505 5.66293 11.436 6.99973 11.436C8.33649 11.436 9.31348 11.0505 9.9627 10.6521C10.2857 10.4539 10.5254 10.2539 10.6872 10.0998C10.7681 10.0226 10.8298 9.95678 10.8729 9.90802C10.8945 9.88363 10.9114 9.86348 10.9238 9.8483L10.9391 9.82933L10.9442 9.82279L10.9461 9.82029L10.9469 9.81923C10.9469 9.81923 10.9476 9.81831 10.5495 9.51585L10.9476 9.81831C11.0137 9.7313 11.0495 9.62502 11.0495 9.51575L11.049 7L7.69527 8.45308C7.25139 8.6454 6.74769 8.6454 6.3038 8.45308L2.95068 7.00025Z" fill="#8FBFFA"/>
+                        <path fill-rule="evenodd" clip-rule="evenodd" d="M1.69531 4.06885C1.97145 4.06885 2.19531 4.34867 2.19531 4.69385V11.5845C2.19531 11.9297 1.97145 12.2095 1.69531 12.2095C1.41917 12.2095 1.19531 11.9297 1.19531 11.5845V4.69385C1.19531 4.34867 1.41917 4.06885 1.69531 4.06885Z" fill="#2859C5"/>
+                        <path fill-rule="evenodd" clip-rule="evenodd" d="M1.69595 10.9976C1.01145 10.9976 0.456543 11.5525 0.456543 12.237C0.456543 12.9215 1.01145 13.4764 1.69595 13.4764C2.38046 13.4764 2.93536 12.9215 2.93536 12.237C2.93536 11.5525 2.38046 10.9976 1.69595 10.9976Z" fill="#8FBFFA"/>
+                        <path fill-rule="evenodd" clip-rule="evenodd" d="M7.19878 0.891798C7.07196 0.836848 6.92804 0.836848 6.80122 0.891798L0.301219 3.70808C0.118352 3.78731 0 3.96758 0 4.16687C0 4.36616 0.118352 4.54643 0.301219 4.62566L6.80122 7.44194C6.92804 7.49689 7.07196 7.49689 7.19878 7.44194L13.6988 4.62566C13.8816 4.54643 14 4.36616 14 4.16687C14 3.96758 13.8816 3.78731 13.6988 3.70808L7.19878 0.891798Z" fill="#8FBFFA"/>
+                        <path fill-rule="evenodd" clip-rule="evenodd" d="M2.95068 5.77363L6.80122 7.44197C6.92804 7.49692 7.07196 7.49692 7.19878 7.44197L11.0495 5.77356V9.21954L11.049 7L7.69527 8.45307C7.25139 8.6454 6.74769 8.6454 6.3038 8.45307L2.95068 7.00025V5.77363ZM2.95068 7.00025L2.9551 9.21954H2.95068V7.00025Z" fill="#2859C5"/>
+                        </g>
+                        <defs>
+                        <clipPath id="clip0_1222_15758">
+                        <rect width="14" height="14" fill="white"/>
+                        </clipPath>
+                        </defs>
+                        </svg>
+                        Status ผู้ใช้งาน</label>
+                        <select class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-[#5388D8]/30 focus:ring-2 focus:ring-blue-500/10 transition" id="userStatus" required onchange="updateDepartmentOptions()">
                             <option value="">-- กรุณาเลือกสถานะ --</option>
                             <option value="นักศึกษา">นักศึกษา</option>
                             <option value="อาจารย์">อาจารย์</option>
@@ -258,84 +216,95 @@
                         </select>
                     </div>
 
-                    <div class="mb-3" id="departmentWrapper" style="display: none;">
-                        <label class="form-label" id="departmentLabel">📋 คณะ / หน่วยงาน</label>
-                        <select class="form-select" id="departmentSelect" style="display: none;">
+                    <div id="departmentWrapper" style="display: none;">
+                        <label class="flex items-center gap-2 text-sm font-semibold text-slate-600 uppercase tracking-wider mb-1.5" id="departmentLabel">📋 คณะ / หน่วยงาน</label>
+                        <select class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-[#5388D8]/30 focus:ring-2 focus:ring-blue-500/10 transition" id="departmentSelect" style="display: none;">
                             <option value="">-- กรุณาเลือกคณะ --</option>
                         </select>
-                        <input type="text" class="form-control" id="departmentInput" placeholder="ระบุชื่อแผนก/ฝ่าย เช่น ฝ่ายการเงิน, สำนักอธิการบดี" style="display: none;">
+                        <input type="text" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-[#5388D8]/30 focus:ring-2 focus:ring-blue-500/10 transition" id="departmentInput" placeholder="ระบุชื่อแผนก/ฝ่าย เช่น ฝ่ายการเงิน" style="display: none;">
                     </div>
 
-                    <div class="mb-4">
-                        <label class="form-label">👥 จำนวนผู้เข้าใช้งาน (คน)</label>
-                        <input type="number" class="form-control" id="attendees" min="1" max="50" placeholder="ระบุจำนวนคน" required>
+                    <div>
+                        <label class="flex items-center gap-2 text-sm font-semibold text-slate-600 uppercase tracking-wider mb-1.5"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path fill-rule="evenodd" clip-rule="evenodd" d="M2.21823 0C1.54542 0 1 0.545422 1 1.21823V5.78891C1 6.46172 1.54542 7.00714 2.21823 7.00714H11.7818C12.4546 7.00714 13 6.46172 13 5.78891V1.21823C13 0.545421 12.4546 0 11.7818 0H2.21823Z" fill="#F8DD9C"/>
+                        <path fill-rule="evenodd" clip-rule="evenodd" d="M7.00009 3.70789C7.74593 3.70789 8.35056 3.10326 8.35056 2.35742C8.35056 1.61158 7.74593 1.00696 7.00009 1.00696C6.25425 1.00696 5.64963 1.61158 5.64963 2.35742C5.64963 3.10326 6.25425 3.70789 7.00009 3.70789ZM4.62575 6.60766C4.81607 5.4683 5.80664 4.59991 7.00004 4.59991C8.19343 4.59991 9.184 5.4683 9.37432 6.60766C9.41083 6.82622 9.22769 7.00719 9.00611 7.00719H4.99397C4.77238 7.00719 4.58925 6.82621 4.62575 6.60766Z" fill="#5388D8"/>
+                        <path fill-rule="evenodd" clip-rule="evenodd" d="M3.47958 10.8865C4.27559 10.8865 4.92088 10.2412 4.92088 9.44521C4.92088 8.6492 4.27559 8.00391 3.47958 8.00391C2.68356 8.00391 2.03827 8.6492 2.03827 9.44521C2.03827 10.2412 2.68356 10.8865 3.47958 10.8865ZM10.5254 10.8865C11.3214 10.8865 11.9667 10.2412 11.9667 9.44521C11.9667 8.6492 11.3214 8.00391 10.5254 8.00391C9.72939 8.00391 9.08409 8.6492 9.08409 9.44521C9.08409 10.2412 9.72939 10.8865 10.5254 10.8865ZM3.47949 11.6649C2.32188 11.6649 1.36101 12.5072 1.1764 13.6124C1.14098 13.8244 1.31863 14 1.53357 14H5.42542C5.64036 14 5.818 13.8244 5.78259 13.6124C5.59798 12.5072 4.63711 11.6649 3.47949 11.6649ZM8.22229 13.6124C8.40691 12.5072 9.36778 11.6649 10.5254 11.6649C11.683 11.6649 12.6439 12.5072 12.8285 13.6124C12.8639 13.8244 12.6863 14 12.4713 14H8.57947C8.36453 14 8.18688 13.8244 8.22229 13.6124Z" fill="#5388D8"/>
+                        </svg>
+                        จำนวนผู้เข้าใช้งาน (คน)</label>
+                        <input type="number" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-[#5388D8]/30 focus:ring-2 focus:ring-blue-500/10 transition" id="attendees" min="1" max="50" placeholder="ระบุจำนวนคน" required>
                     </div>
-                    
-                    <div class="mb-4">
-                        <label class="form-label">📝 วัตถุประสงค์การใช้งาน</label>
-                        <textarea class="form-control" id="purpose" rows="2" placeholder="ระบุหัวข้อประชุม/กิจกรรมสัมมนา"></textarea>
+              
+                    <div>
+                        <label class="flex items-center gap-2 text-sm font-semibold text-slate-600 uppercase tracking-wider mb-1.5"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <g clip-path="url(#clip0_1222_15774)">
+                        <path fill-rule="evenodd" clip-rule="evenodd" d="M0.5 0.125244C0.223858 0.125244 0 0.349102 0 0.625244V10.6252C0 10.9014 0.223858 11.1252 0.5 11.1252H5.25606C5.09023 10.6561 5 10.1512 5 9.62524C5 8.35387 5.52724 7.20564 6.375 6.38728V1.42771C6.09192 0.667083 5.35924 0.125244 4.5 0.125244H0.5ZM7.625 1.4277V5.53328C8.19579 5.2713 8.83084 5.12524 9.5 5.12524C11.8136 5.12524 13.7194 6.87122 13.9717 9.11743H14V0.625244C14 0.349102 13.7761 0.125244 13.5 0.125244H9.5C8.64077 0.125244 7.90808 0.667068 7.625 1.4277Z" fill="#8FBFFA"/>
+                        <path fill-rule="evenodd" clip-rule="evenodd" d="M7.75 9.62524C7.75 8.65875 8.5335 7.87524 9.5 7.87524C10.4665 7.87524 11.25 8.65875 11.25 9.62524C11.25 10.5917 10.4665 11.3752 9.5 11.3752C8.5335 11.3752 7.75 10.5917 7.75 9.62524ZM9.5 6.37524C7.70507 6.37524 6.25 7.83032 6.25 9.62524C6.25 11.4202 7.70507 12.8752 9.5 12.8752C10.1257 12.8752 10.7102 12.6984 11.2061 12.392L12.4692 13.6551C12.7621 13.948 13.237 13.948 13.5299 13.6551C13.8228 13.3622 13.8228 12.8873 13.5299 12.5944L12.2667 11.3313C12.5732 10.8354 12.75 10.251 12.75 9.62524C12.75 7.83032 11.2949 6.37524 9.5 6.37524Z" fill="#2859C5"/>
+                        </g>
+                        <defs>
+                        <clipPath id="clip0_1222_15774">
+                        <rect width="14" height="14" fill="white"/>
+                        </clipPath>
+                        </defs>
+                        </svg>
+                        วัตถุประสงค์การใช้งาน</label>
+                        <textarea class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-[#5388D8]/30 focus:ring-2 focus:ring-blue-500/10 transition" id="purpose" rows="2" placeholder="ระบุหัวข้อประชุม/กิจกรรมสัมมนา"></textarea>
                     </div>
 
-                    <button type="submit" class="btn btn-modern w-100" id="submitBtn">
-                        <i class="fa-solid fa-paper-plane me-2"></i>ส่งข้อมูลการจอง
+                    <button type="submit" class="w-full bg-gradient-to-r from-[#5388D8]/50 to-[#5388D8]/70 text-white font-medium text-sm rounded-xl py-3 shadow-lg shadow-blue-500/10 hover:shadow-xl hover:shadow-blue-500/20 active:scale-[0.98] transition disabled:bg-slate-300 disabled:shadow-none disabled:scale-100 mt-2" id="submitBtn">
+                        <span class="[text-shadow:_0_2px_4px_rgba(0,0,0,0.5)]"><i class="fa-solid fa-paper-plane me-2"></i>ส่งข้อมูลการจอง </span>
                     </button>
                 </form>
             </div>
         </div>
 
-        <div class="col-md-7">
-            <div class="card p-4">
-                <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
-                    <div class="card-title-custom mb-0 border-0 pb-0">
-                        <i class="fa-solid fa-calendar-check text-success"></i> ตรวจสอบตารางการจอง
-                    </div>
-                </div>
+        <div class="lg:col-span-7">
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 hover:shadow-md transition duration-300">
+                <h2 class="text-lg font-semibold text-[#0D2535] border-b border-slate-100 pb-4 mb-4 flex items-center gap-2">
+                    <div class="w-12 h-7 bg-gradient-to-r from-[#5388D8]/30 to-[#F8DD9C]/30 rounded-lg flex items-center justify-center text-[#0D2535]">
+                    <i class="fa-solid fa-calendar-check text-[#0D2535]"></i></div> ตรวจสอบตารางการจอง
+                </h2>
                 
-                <div class="filter-wrapper">
-                    <div class="row g-2 align-items-center">
-                        <div class="col-12 col-md-auto mb-1 mb-md-0">
-                            <span class="text-muted small fw-bold text-nowrap">
-                                <i class="fa-solid fa-filter me-1"></i> ตัวกรองข้อมูล:
-                            </span>
+                <div class="bg-slate-50 border border-slate-100 rounded-xl p-4 mb-6">
+                    <div class="flex flex-wrap items-center gap-4">
+                        <div class="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                            <i class="fa-solid fa-filter me-1"></i> ตัวกรอง:
                         </div>
-                        <div class="col-12 col-sm-6 col-md-auto">
-                            <div class="d-flex align-items-center gap-2">
-                                <label for="filterDate" class="text-muted small fw-bold text-nowrap">วันที่:</label>
-                                <input type="text" class="form-control form-control-sm bg-white w-100" id="filterDate" placeholder="วว/ดด/ปปปป">
-                            </div>
+                        <div class="flex items-center gap-1 flex-1 min-w-[140px]">
+                            <label for="filterDate" class="text-xs font-semibold text-slate-600 whitespace-nowrap">วันที่:</label>
+                            <input type="text" class="w-full bg-white border border-slate-200 rounded-lg px-2 py-1.5 text-xs focus:outline-none focus:border-[#5388D8]/30" id="filterDate" placeholder="วว/ดด/ปปปป">
                         </div>
-                        <div class="col-12 col-sm-6 col-md-auto">
-                            <div class="d-flex align-items-center gap-2">
-                                <label for="filterBuilding" class="text-muted small fw-bold text-nowrap">อาคาร:</label>
-                                <select class="form-select form-select-sm w-100" id="filterBuilding" onchange="updateFilterRooms()" style="padding-right: 30px;">
-                                    <option value="">-- ทั้งหมด --</option>
-                                    <option value="Saint Louis">Saint Louis</option>
-                                    <option value="Saint Benedict">Saint Benedict</option>
-                                </select>
-                            </div>
+                        <div class="flex items-center gap-2 flex-1 min-w-[140px]">
+                            <label for="filterBuilding" class="text-xs font-semibold text-slate-600">อาคาร:</label>
+                            <select class="w-full bg-white border border-slate-200 rounded-lg px-2 py-1.5 text-xs focus:outline-none focus:border-[#5388D8]/30" id="filterBuilding" onchange="updateFilterRooms()">
+                                <option value="">-- ทั้งหมด --</option>
+                                <option value="Saint Louis">Saint Louis</option>
+                                <option value="Saint Benedict">Saint Benedict</option>
+                            </select>
                         </div>
-                        <div class="col-12 col-md-auto d-none" id="filterRoomWrapper">
-                            <div class="d-flex align-items-center gap-2">
-                                <label for="filterRoom" class="text-muted small fw-bold text-nowrap">ห้อง:</label>
-                                <select class="form-select form-select-sm w-100" id="filterRoom" onchange="filterBookings()" style="padding-right: 30px;">
-                                    <option value="">-- ทั้งหมด --</option>
-                                </select>
-                            </div>
+                        <div class="flex items-center gap-2 flex-1 min-w-[140px] hidden" id="filterRoomWrapper">
+                            <label for="filterRoom" class="text-xs font-semibold text-slate-600">ห้อง:</label>
+                            <select class="w-full bg-white border border-slate-200 rounded-lg px-2 py-1.5 text-xs focus:outline-none focus:border-[#5388D8]/30" id="filterRoom" onchange="filterBookings()">
+                                <option value="">-- ทั้งหมด --</option>
+                            </select>
                         </div>
                     </div>
                 </div>
 
-                <div class="table-responsive">
-                    <table class="table table-modern table-hover">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
                         <thead>
-                            <tr>
-                                <th>อาคาร / ห้องประชุม</th>
-                                <th style="width: 135px;">ช่วงเวลา</th>
-                                <th>ผู้รับสิทธิ์จอง</th>
+                            <tr class="border-b border-slate-100 text-xs font-bold text-slate-400 uppercase tracking-wider bg-slate-50/50">
+                                <th class="p-4 w-[160px]">อาคาร / ห้องประชุม</th>
+                                <th class="p-4 w-[140px]">ช่วงเวลา</th>
+                                <th class="p-4 w-[140px]">ผู้รับสิทธิ์จอง</th>
                             </tr>
                         </thead>
-                        <tbody id="bookingTableBody">
-                            <tr><td colspan="3" class="text-center text-muted py-4"><i class="fa-solid fa-spinner fa-spin me-2"></i>กำลังโหลดข้อมูล...</td></tr>
+                        <tbody id="bookingTableBody" class="divide-y divide-slate-50 text-sm">
+                            <tr>
+                                <td colspan="3" class="text-center text-slate-400 py-8">
+                                    <i class="fa-solid fa-spinner fa-spin me-2 text-[#5388D8]/30"></i>กำลังโหลดข้อมูล...
+                                </td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
@@ -346,12 +315,10 @@
 
 <script>
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzDSTAZ097LZcya3VfwHOigdPEzboHnYYVOMGkpAz-X66UQEfg7BpdkRTWuIf5Wxc9MYw/exec";
-
     const rooms = {
         "Saint Louis": ["Conference Room 1", "Conference Room 2", "Conference Room 3", "Mini Theater Room", "Research Room"],
         "Saint Benedict": ["Conference Room 1", "Conference Room 2", "Multiple Purpose Room"]
     };
-
     let allBookings = []; 
     let fpBookingInstance, fpFilterInstance; 
 
@@ -363,6 +330,15 @@
             if (h !== endHour) options.push(`${hourStr}:30`);
         }
         return options;
+    }
+
+    function toggleRules(show) {
+        const popup = document.getElementById('rulesPopup');
+        if (show) {
+            popup.classList.remove('hidden');
+        } else {
+            popup.classList.add('hidden');
+        }
     }
 
     function updateRoomsAndTimes() {
@@ -383,15 +359,12 @@
         roomSelect.disabled = false;
 
         let timeOpts = building === "Saint Louis" ? generateTimeOptions(10, 19) : generateTimeOptions(8, 17);
-        
         startSelect.innerHTML = '<option value="">-- เริ่ม --</option>';
         endSelect.innerHTML = '<option value="">-- สิ้นสุด --</option>';
-        
         timeOpts.forEach(t => {
             startSelect.innerHTML += `<option value="${t}">${t}</option>`;
             endSelect.innerHTML += `<option value="${t}">${t}</option>`;
         });
-        
         startSelect.disabled = endSelect.disabled = false;
     }
 
@@ -411,8 +384,7 @@
         
         if (!status) return;
 
-        wrapper.style.display = "block"; 
-
+        wrapper.style.display = "block";
         if (status === "นักศึกษา") {
             label.innerHTML = "📋 คณะที่สังกัด";
             selectField.innerHTML = `
@@ -451,12 +423,11 @@
             let [sH, sM] = start.split(':').map(Number);
             let [eH, eM] = end.split(':').map(Number);
             let diff = (eH * 60 + eM) - (sH * 60 + sM);
-
             if (diff <= 0) {
-                Swal.fire({ title: 'ข้อผิดพลาดเกี่ยวกับเวลา', text: 'เวลาสิ้นสุดต้องอยู่หลังเวลาเริ่มต้นครับ', icon: 'warning', confirmButtonColor: '#2a5298' });
+                Swal.fire({ title: 'ข้อผิดพลาดเกี่ยวกับเวลา', text: 'เวลาสิ้นสุดต้องอยู่หลังเวลาเริ่มต้นครับ', icon: 'warning', confirmButtonColor: '#1e3c72' });
                 submitBtn.disabled = true;
             } else if (diff > 120) {
-                Swal.fire({ title: 'เงื่อนไขการใช้ห้อง', text: '⚠️ ขอใช้งานห้องประชุมได้ครั้งละไม่เกิน 2 ชั่วโมงต่อคน', icon: 'info', confirmButtonColor: '#2a5298' });
+                Swal.fire({ title: 'เงื่อนไขการใช้ห้อง', text: '⚠️ ขอใช้งานห้องประชุมได้ครั้งละไม่เกิน 2 ชั่วโมงต่อคน', icon: 'info', confirmButtonColor: '#1e3c72' });
                 submitBtn.disabled = true;
             } else {
                 submitBtn.disabled = false;
@@ -475,7 +446,6 @@
         const selectedDate = fpFilterInstance && fpFilterInstance.selectedDates.length > 0 
             ? filterDateInput.value 
             : new Date().toLocaleDateString('sv-SE');
-        
         if(fpFilterInstance && fpFilterInstance.selectedDates.length === 0) {
             fpFilterInstance.setDate(selectedDate);
         }
@@ -484,17 +454,15 @@
         const selectedRoom = document.getElementById("filterRoom") ? document.getElementById("filterRoom").value : "";
         const tbody = document.getElementById("bookingTableBody");
         
-        tbody.innerHTML = `<tr><td colspan="3" class="text-center text-muted py-4"><i class="fa-solid fa-spinner fa-spin me-2"></i>กำลังโหลดข้อมูล...</td></tr>`;
-
+        tbody.innerHTML = `<tr><td colspan="3" class="text-center text-slate-400 py-8"><i class="fa-solid fa-spinner fa-spin me-2 text-blue-500"></i>กำลังโหลดข้อมูล...</td></tr>`;
         fetch(SCRIPT_URL)
         .then(res => res.json())
         .then(data => {
             allBookings = data; 
 
-            // นำ Logic การกรองข้อมูลมารวมไว้ตรงนี้
             const filteredData = allBookings.filter(b => {
                 if (!b.date) return false;
-                const bDateStr = b.date.split('T')[0]; // ดึงเฉพาะรูปแบบ YYYY-MM-DD ตรงๆ
+                const bDateStr = b.date.split('T')[0]; 
                 const matchDate = bDateStr === selectedDate;
                 const matchBuilding = selectedBuilding === "" || b.building === selectedBuilding;
                 const matchRoom = selectedRoom === "" || b.room === selectedRoom;
@@ -502,17 +470,15 @@
                 return matchDate && matchBuilding && matchRoom;
             });
 
-            // เรียงลำดับเวลาจากเช้าไปเย็น
             filteredData.sort((a, b) => timeToMinutes(a.startTime) - timeToMinutes(b.startTime));
-
             tbody.innerHTML = "";
 
             if (filteredData.length === 0) {
                 tbody.innerHTML = `
                     <tr>
-                        <td colspan="3" class="text-center text-muted py-5">
-                            <i class="fa-regular fa-folder-open d-block mb-2 opacity-50" style="font-size: 2.2rem; color: #94a3b8;"></i>
-                            ไม่พบข้อมูลการจองตามเงื่อนไขที่เลือกในวันนี้ครับ
+                        <td colspan="3" class="text-center text-slate-400 py-12">
+                            <i class="fa-regular fa-folder-open d-block mb-3 opacity-40 text-4xl text-slate-300"></i>
+                            <div class="text-sm">ไม่พบข้อมูลการจองตามเงื่อนไขที่เลือกในวันนี้ครับ</div>
                         </td>
                     </tr>`;
                 return;
@@ -520,42 +486,39 @@
 
             filteredData.forEach(b => {
                 const isSL = b.building === "Saint Louis";
-                const tagClass = isSL ? "tag-sl" : "tag-sb";
-                const displayName = isSL ? "Saint Louis" : "Saint Benedict";
-
                 const customTagStyle = isSL 
-                ? "background: linear-gradient(135deg, #56CCF2, #2F80ED) !important; color: #ffffff !important; border: none;" 
-                : "background: linear-gradient(135deg, #11998e, #38ef7d) !important; color: #ffffff !important; border: none;";
+                ? "background: linear-gradient(135deg, rgba(248, 221, 156, 0.3), rgba(248, 221, 156, 0.7)); color: #0D2535;"
+                : "background: linear-gradient(135deg, rgba(83, 136, 216, 0.3), rgba(83, 136, 216, 0.7)); color: #0D2535;"
 
-                // จัดการเรื่องเครื่องหมาย ' ป้องกันไม่ให้ JavaScript Syntax พังตอนกดลบ
+                const displayName = isSL ? "Saint Louis" : "Saint Benedict";
                 const safeRequester = b.requester.replace(/'/g, "\\'");
                 const safeRoom = b.room.replace(/'/g, "\\'");
 
-                // ✅ ปรับปรุงโครงสร้างคอลัมน์ภายใน <td> ใหม่ทั้งหมด โดยบังคับความกว้างด้วยสไตล์พิกเซล/เปอร์เซ็นต์ที่แน่นอน
                 tbody.innerHTML += `
-                    <tr class="hover-bg-light" style="vertical-align: middle;">
-                        <td style="padding: 14px 16px; width: 40%; min-width: 160px;">
-                            <span class="building-tag ${tagClass} mb-1" style="${customTagStyle}">${displayName}</span>
-                            <div class="fw-bold text-dark" style="font-size:0.95rem; line-height: 1.3;">${b.room}</div>
+                    <tr class="hover:bg-slate-50/80 transition duration-150">
+                        <td class="p-4 max-w-[240px]">
+                            <span class="inline-block text-[10px] font-bold px-2 py-0.5 rounded-md shadow-sm mb-1" style="${customTagStyle}">${displayName}</span>
+                            <div class="font-bold text-[#0D2535] truncate" title="${b.room}">${b.room}</div>
                         </td>
-                        <td style="padding: 14px 16px; width: 25%; min-width: 120px;">
-                            <span class="time-pill" style="white-space: nowrap;"><i class="fa-regular fa-clock me-1"></i>${b.startTime} - ${b.endTime}</span>
+                        <td class="p-4 whitespace-nowrap">
+                            <span class="inline-flex items-center gap-1 font-semibold text-[#0D2535] bg-blue-50 border border-blue-100/50 px-2.5 py-1 rounded-lg text-xs">
+                                <i class="fa-regular fa-clock opacity-70"></i>${b.startTime} - ${b.endTime}
+                            </span>
                         </td>
-                        <td style="padding: 14px 16px; width: 35%; min-width: 180px;">
-                            <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px;">
-                                <div style="min-width: 0; flex: 1; line-height: 1.4;">
-                                    <div class="fw-semibold text-dark text-truncate" style="font-size:0.92rem;" title="${b.requester}">${b.requester}</div>
-                                    <small class="text-muted d-block" style="font-size:0.8rem; margin-top: 2px;">
-                                        <span class="badge bg-secondary bg-opacity-10 text-secondary px-1.5 py-0.5 rounded" style="font-size: 0.72rem; font-weight: 500;">
+                        <td class="p-4">
+                            <div class="flex justify-between items-center gap-2">
+                                <div class="min-w-0 flex-1">
+                                    <div class="font-semibold text-slate-800 truncate text-[13px]" title="${b.requester}">${b.requester}</div>
+                                    <div class="mt-0.5">
+                                        <span class="inline-block bg-slate-100 text-slate-600 text-[10px] font-medium px-1.5 py-0.5 rounded">
                                             ${b.userStatus || '-'}
                                         </span>
-                                    </small>
+                                    </div>
                                 </div>
-                                <button class="btn btn-sm btn-outline-danger border-0 rounded-circle flex-shrink-0 d-flex align-items-center justify-content-center" 
-                                    style="width: 28px; height: 28px; padding: 0;"
+                                <button class="w-8 h-8 rounded-full text-slate-400 hover:text-rose-600 hover:bg-rose-50 flex items-center justify-center transition flex-shrink-0" 
                                     onclick="deleteBooking('${safeRequester}', '${b.date}', '${b.startTime}', '${safeRoom}')" 
                                     title="ยกเลิกการจองนี้ (เฉพาะแอดมิน)">
-                                    <i class="fa-solid fa-trash-can" style="font-size: 0.85rem;"></i>
+                                    <i class="fa-solid fa-trash-can text-xs"></i>
                                 </button>
                             </div>
                         </td>
@@ -564,7 +527,7 @@
             });
         }).catch(err => {
             console.error(err);
-            tbody.innerHTML = "<tr><td colspan='3' class='text-center text-danger py-4'><i class='fa-solid fa-triangle-exclamation me-2'></i>โหลดข้อมูลระบบล้มเหลว</td></tr>";
+            tbody.innerHTML = "<tr><td colspan='3' class='text-center text-rose-500 py-6 font-medium'><i class='fa-solid fa-triangle-exclamation me-2'></i>โหลดข้อมูลระบบล้มเหลว</td></tr>";
         });
     }
 
@@ -576,8 +539,8 @@
         if (!building) {
             roomSelect.innerHTML = '<option value="">-- ทั้งหมด --</option>';
             roomSelect.value = "";
-            roomWrapper.classList.add("d-none");
-            loadBookings(); // เรียกโหลดใหม่แบบ real-time
+            roomWrapper.classList.add("hidden");
+            loadBookings();
             return;
         }
         
@@ -587,8 +550,8 @@
                 roomSelect.innerHTML += `<option value="${r}">${r}</option>`;
             });
         }
-        roomWrapper.classList.remove("d-none");
-        loadBookings(); // เรียกโหลดใหม่แบบ real-time
+        roomWrapper.classList.remove("hidden");
+        loadBookings();
     }
         
     document.getElementById("bookingForm").addEventListener("submit", function(e) {
@@ -618,7 +581,6 @@
             department: deptValue,
             attendees: document.getElementById("attendees").value
         };
-
         fetch(SCRIPT_URL, {
             method: "POST",
             headers: { "Content-Type": "text/plain;charset=utf-8" },
@@ -631,7 +593,7 @@
                     title: 'ไม่สามารถจองได้',
                     html: result.message,
                     icon: 'warning',
-                    confirmButtonColor: '#2a5298'
+                    confirmButtonColor: '#1d4ed8'
                 });
             } else {
                 Swal.fire({
@@ -639,7 +601,7 @@
                     text: 'โปรดติดต่อเจ้าหน้าที่ห้องสมุด SLC ก่อนเข้าใช้งาน',
                     icon: 'success',
                     confirmButtonText: 'ตกลง',
-                    confirmButtonColor: '#2a5298'
+                    confirmButtonColor: '#1d4ed8'
                 });
                 
                 if (fpFilterInstance) {
@@ -656,7 +618,6 @@
                 document.getElementById("departmentWrapper").style.display = "none";
                 document.getElementById("departmentSelect").style.display = "none";
                 document.getElementById("departmentInput").style.display = "none";
-
                 loadBookings();
             }
         })
@@ -667,7 +628,7 @@
                 text: 'ไม่สามารถติดต่อเซิร์ฟเวอร์ได้ กรุณาลองใหม่อีกครั้ง',
                 icon: 'error',
                 confirmButtonText: 'รับทราบ',
-                confirmButtonColor: '#d33'
+                confirmButtonColor: '#e11d48'
             });
         })
         .finally(() => {
@@ -685,7 +646,6 @@
             minDate: "today",        
             allowInput: false
         });
-
         fpFilterInstance = flatpickr("#filterDate", {
             dateFormat: "Y-m-d", 
             altInput: true,
@@ -696,10 +656,9 @@
                 filterBookings(); 
             }
         });
-
         loadBookings();
     };
-
+    
     function deleteBooking(requester, date, startTime, room) {
         Swal.fire({
             title: '🔒 ยืนยันการลบรายการ',
@@ -712,7 +671,7 @@
             showCancelButton: true,
             confirmButtonText: 'ยืนยันการลบ',
             cancelButtonText: 'ยกเลิก',
-            confirmButtonColor: '#d33',
+            confirmButtonColor: '#e11d48',
             cancelButtonColor: '#64748b',
             showLoaderOnConfirm: true,
             preConfirm: (password) => {
@@ -720,7 +679,6 @@
                     Swal.showValidationMessage('กรุณากรอกรหัสผ่านครับ');
                     return false;
                 }
-                
                 return fetch(`${SCRIPT_URL}?action=delete&password=${encodeURIComponent(password)}&requester=${encodeURIComponent(requester)}&date=${encodeURIComponent(date)}&startTime=${encodeURIComponent(startTime)}&room=${encodeURIComponent(room)}`, {
                     method: 'GET'
                 })
@@ -742,22 +700,21 @@
                         title: 'ลบรายการสำเร็จ!',
                         text: 'ลบข้อมูลการจองเรียบร้อยแล้ว',
                         icon: 'success',
-                        confirmButtonColor: '#2a5298'
+                        confirmButtonColor: '#1d4ed8'
                     });
-                    loadBookings(); // โหลดตารางใหม่หลังจากลบสำเร็จ
+                    loadBookings(); 
                 } else {
                     Swal.fire({
                         title: 'ไม่สามารถลบได้!',
                         text: result.value.message || 'รหัสผ่านไม่ถูกต้อง หรือไม่พบข้อมูล',
                         icon: 'error',
-                        confirmButtonColor: '#2a5298'
+                        confirmButtonColor: '#1d4ed8'
                     });
                 }
             }
         });
     }
 
-    // เพิ่มฟังก์ชัน filterBookings เผื่อไว้เนื่องจากในโค้ดมีการเรียกใช้ตอนเปลี่ยนตัวกรอง
     function filterBookings() {
         loadBookings();
     }
