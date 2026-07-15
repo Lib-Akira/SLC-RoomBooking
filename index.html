@@ -1178,10 +1178,10 @@
         const curYear = now.getFullYear();
         const curMonth = now.getMonth() + 1; // 1-12
 
-        // ปีการศึกษาไทย: เริ่ม 1 มิ.ย. ของปีนี้ ถึง 31 พ.ค. ของปีถัดไป
-        const acadStartYear = curMonth >= 6 ? curYear : curYear - 1;
-        const acadStart = new Date(acadStartYear, 5, 1);
-        const acadEnd = new Date(acadStartYear + 1, 4, 31, 23, 59, 59);
+        // ปีการศึกษาไทย: เริ่ม 1 ส.ค. ของปีนี้ ถึง 31 ก.ค. ของปีถัดไป
+        const acadStartYear = curMonth >= 8 ? curYear : curYear - 1;
+        const acadStart = new Date(acadStartYear, 7, 1);
+        const acadEnd = new Date(acadStartYear + 1, 6, 31, 23, 59, 59);
 
         let countToday = 0, countMonth = 0, countYear = 0;
 
