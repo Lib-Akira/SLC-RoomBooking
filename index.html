@@ -11,31 +11,98 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/th.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
     
     <style>
         body { 
             font-family: 'Sarabun', sans-serif;
             background-image: radial-gradient(#3b82f60a 1px, transparent 0);
             background-size: 20px 20px;
+            background-color: #f0f4fc;
+        }
+        .active-menu { background-color: #5388D8 !important; color: white !important; }
+        .hidden { display: none; }
+
+        /* --- Sidebar แบบย่อ/ขยายได้ --- */
+        #sidebar.collapsed { width: 5rem; /* w-20 */ }
+        #sidebar.collapsed .sidebar-label { display: none; }
+        #sidebar.collapsed #sidebarToggleIcon { transform: rotate(180deg); }
+
+        /* tooltip ที่โผล่ตอนเมาส์ชี้ไอคอน (แสดงเฉพาะตอน sidebar ย่ออยู่) */
+        .sidebar-tooltip {
+            position: absolute;
+            left: calc(100% + 10px);
+            top: 50%;
+            transform: translateY(-50%);
+            background-color: #334155;
+            color: #fff;
+            font-weight: 600;
+            font-size: 0.8rem;
+            padding: 6px 14px;
+            border-radius: 8px;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.15s ease;
+            z-index: 50;
+        }
+        #sidebar.collapsed .group:hover .sidebar-tooltip {
+            opacity: 1;
         }
 
-        @keyframes gradient {
-        0% { background-position: 0% 50%; }
-        50% { background-position: 100% 50%; }
-        100% { background-position: 0% 50%; }
-    }
-    .animate-gradient { animation: gradient 10s ease infinite; 
-    }
-    @keyframes float {
-        0%, 100% { transform: translateY(0px); }
-        50% { transform: translateY(-5px); }
-    }
-    .animate-float { animation: float 4s ease-in-out infinite; }
+        /* --- ปุ่มตัวกรองใน Dashboard --- */
+        .dash-toggle-btn, .dash-period-btn {
+            color: #64748b;
+        }
+        .dash-toggle-btn.active, .dash-period-btn.active {
+            background-color: #0D2535;
+            color: #fff;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.15);
+        }
+        #timelineTable th, #timelineTable td { box-sizing: border-box; }
     </style>
 </head>
-<body class="bg-[#f0f4fc] text-slate-800 antialiased min-h-screen">
+<body class="flex min-h-screen">
 
-<div class="max-w-7xl mx-auto px-4 mt-8 flex flex-col lg:flex-row gap-6">
+    <!-- แถบเมนูด้านซ้าย: กดปุ่มลูกศรเพื่อ ย่อ/ขยาย เอง (ไม่ใช่ hover)
+         ตอนย่อ (มี class "collapsed") จะเหลือแค่ไอคอน เอาเมาส์ไปชี้จะมี tooltip โผล่บอกชื่อเมนู -->
+    <aside id="sidebar" class="hidden lg:flex flex-col relative z-40 bg-white shadow-lg shrink-0 w-52 p-4 transition-all duration-300 ease-in-out collapsed sticky top-0 h-screen">
+        <button id="sidebarToggleBtn" onclick="toggleSidebar()"
+            class="absolute -right-3 top-8 w-6 h-6 bg-white border border-slate-200 rounded-full shadow flex items-center justify-center text-slate-500 hover:text-[#5388D8] hover:border-[#5388D8] transition z-10">
+            <i id="sidebarToggleIcon" class="fa-solid fa-chevron-left text-[10px] transition-transform duration-300"></i>
+        </button>
+
+        <div class="flex items-center gap-3 mb-8 px-1 overflow-hidden">
+          <div class="w-9 flex justify-center">
+            <img src="https://raw.githubusercontent.com/Lib-Akira/SLC-RoomBooking/main/SLC-Logo-Color.png" 
+            alt="SLC Library Logo" class="w-9 h-9 rounded-full object-contain shrink-0 bg-white ml-1"></div>
+            <span class="sidebar-label font-bold whitespace-nowrap">
+            <span style="color: #FFBA44;">S</span><span style="color: #6CBAFB;">L</span><span style="color: #FC8AB8;">C</span><span class="text-[#0D2535]"> Library</span>
+            </span>
+        </div>
+
+        <nav class="space-y-2">
+            <div class="relative group">
+                <button onclick="switchView('booking')" id="btn-booking" class="active-menu w-full flex items-center gap-3 px-3 py-3 rounded-xl font-medium transition whitespace-nowrap overflow-hidden">
+                    <i class="fa-solid fa-calendar-plus w-5 text-center shrink-0"></i>
+                    <span class="sidebar-label">จองห้องประชุม</span>
+                </button>
+                <span class="sidebar-tooltip">จองห้องประชุม</span>
+            </div>
+            <div class="relative group">
+                <button onclick="switchView('dashboard')" id="btn-dashboard" class="w-full flex items-center gap-3 px-3 py-3 rounded-xl font-medium text-slate-600 hover:bg-slate-100 transition whitespace-nowrap overflow-hidden">
+                    <i class="fa-solid fa-chart-pie w-5 text-center shrink-0"></i>
+                    <span class="sidebar-label">Dashboard</span>
+                </button>
+                <span class="sidebar-tooltip">Dashboard</span>
+            </div>
+        </nav>
+    </aside>
+
+    <main class="flex-1 p-8">
+        
+        <div id="view-booking">
+            <div class="max-w-7xl mx-auto px-4 mt-8 flex flex-col lg:flex-row gap-6">
 
     <div class="flex-[2] relative overflow-hidden bg-white/10 backdrop-blur-lg border border-white/20 text-[#0D2535] p-8 md:p-10 rounded-2xl shadow-[0_8px_32px_0_rgba(0,0,0,0.1)]">
 
@@ -193,12 +260,12 @@
                         </div>
                         <div>
                             <label class="flex items-center gap-2 text-sm font-semibold text-slate-600 uppercase tracking-wider mb-1.5"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <g clip-path="url(#clip0_1222_11525)">
+                            <g clip-path="url(#clip0_1222_11525_end)">
                             <path d="M7 14C10.3137 14 13 11.3137 13 8C13 4.68629 10.3137 2 7 2C3.68629 2 1 4.68629 1 8C1 11.3137 3.68629 14 7 14Z" fill="#8FBFFA"/>
                             <path fill-rule="evenodd" clip-rule="evenodd" d="M3.91195 0.397528C4.10669 0.763105 3.96821 1.21734 3.60263 1.41209C2.73461 1.87449 1.96006 2.49413 1.3184 3.23947C1.04815 3.55338 0.574601 3.58878 0.26069 3.31854C-0.0532214 3.04829 -0.0886191 2.57474 0.181627 2.26083C0.944513 1.37468 1.86539 0.637972 2.89739 0.0882131C3.26297 -0.106534 3.7172 0.0319508 3.91195 0.397528ZM10.0881 0.397528C10.2828 0.0319508 10.737 -0.106534 11.1026 0.0882131C12.1346 0.637972 13.0555 1.37468 13.8184 2.26083C14.0886 2.57474 14.0532 3.04829 13.7393 3.31854C13.4254 3.58878 12.9519 3.55338 12.6816 3.23947C12.0399 2.49413 11.2654 1.87449 10.3974 1.41209C10.0318 1.21734 9.89333 0.763105 10.0881 0.397528ZM7.62501 5.00015C7.62501 4.65497 7.34519 4.37515 7.00001 4.37515C6.65483 4.37515 6.37501 4.65497 6.37501 5.00015V8.00015C6.37501 8.34533 6.65483 8.62515 7.00001 8.62515H9.50001C9.84519 8.62515 10.125 8.34533 10.125 8.00015C10.125 7.65497 9.84519 7.37515 9.50001 7.37515H7.62501V5.00015Z" fill="#5388D8" fill-opacity="0.6"/>
                             </g>
                             <defs>
-                            <clipPath id="clip0_1222_11525">
+                            <clipPath id="clip0_1222_11525_end">
                             <rect width="14" height="14" fill="white"/>
                             </clipPath>
                             </defs>
@@ -338,9 +405,167 @@
         </div>
     </div>
 </div>
+        </div>
 
-<script>
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzDSTAZ097LZcya3VfwHOigdPEzboHnYYVOMGkpAz-X66UQEfg7BpdkRTWuIf5Wxc9MYw/exec";
+        <div id="view-dashboard" class="hidden">
+        <div class="max-w-7xl mx-auto px-4">
+
+            <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
+                <div>
+                    <h2 class="text-2xl font-bold text-[#0D2535] flex items-center gap-2">
+                        <i class="fa-solid fa-chart-pie text-[#5388D8]"></i> Dashboard สถิติการใช้งาน
+                    </h2>
+                    <p class="text-xs text-slate-400 mt-1" id="dashLastUpdated">กำลังโหลดข้อมูล...</p>
+                </div>
+                <div class="flex items-center gap-3">
+                    <span class="flex items-center gap-1.5 text-xs font-semibold text-emerald-600 bg-emerald-50 border border-emerald-100 px-3 py-1.5 rounded-full">
+                        <span class="relative flex h-2 w-2">
+                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                            <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                        </span>
+                        LIVE
+                    </span>
+                    <button onclick="refreshDashboardData()" class="text-xs font-semibold text-[#5388D8] hover:text-[#0D2535] bg-white border border-slate-200 hover:border-[#5388D8]/40 px-3 py-1.5 rounded-full transition flex items-center gap-1.5" id="dashRefreshBtn">
+                        <i class="fa-solid fa-rotate"></i> รีเฟรช
+                    </button>
+                </div>
+            </div>
+
+            <!-- Stat Cards -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-6">
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 flex items-center gap-4 hover:shadow-md transition duration-300">
+                    <div class="w-14 h-14 shrink-0 rounded-xl bg-gradient-to-br from-[#5388D8]/20 to-[#5388D8]/40 flex items-center justify-center text-[#0D2535] text-xl">
+                        <i class="fa-solid fa-calendar-day"></i>
+                    </div>
+                    <div>
+                        <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">ยอดการจองวันนี้</p>
+                        <p class="text-3xl font-bold text-[#0D2535] mt-0.5" id="statToday">0</p>
+                    </div>
+                </div>
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 flex items-center gap-4 hover:shadow-md transition duration-300">
+                    <div class="w-14 h-14 shrink-0 rounded-xl bg-gradient-to-br from-[#F8DD9C]/40 to-[#F8DD9C]/80 flex items-center justify-center text-[#0D2535] text-xl">
+                        <i class="fa-solid fa-calendar-days"></i>
+                    </div>
+                    <div>
+                        <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">ยอดการจองเดือนนี้</p>
+                        <p class="text-3xl font-bold text-[#0D2535] mt-0.5" id="statMonth">0</p>
+                    </div>
+                </div>
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 flex items-center gap-4 hover:shadow-md transition duration-300">
+                    <div class="w-14 h-14 shrink-0 rounded-xl bg-gradient-to-br from-[#0D2535]/10 to-[#0D2535]/30 flex items-center justify-center text-[#0D2535] text-xl">
+                        <i class="fa-solid fa-graduation-cap"></i>
+                    </div>
+                    <div>
+                        <p class="text-xs font-bold text-slate-400 uppercase tracking-wider" id="statYearLabel">ยอดการจองปีการศึกษานี้</p>
+                        <p class="text-3xl font-bold text-[#0D2535] mt-0.5" id="statYear">0</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Visual Timeline -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 mb-6">
+                <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-4 mb-4">
+                    <h3 class="text-lg font-semibold text-[#0D2535] flex items-center gap-2">
+                        <div class="w-12 h-7 bg-gradient-to-r from-[#5388D8]/30 to-[#F8DD9C]/30 rounded-lg flex items-center justify-center text-[#0D2535]">
+                            <i class="fa-solid fa-timeline text-sm"></i>
+                        </div>
+                        ตารางสถานะห้องแบบเรียลไทม์ (วันนี้)
+                    </h3>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <div class="flex bg-slate-100 rounded-lg p-1" id="dashBuildingToggle">
+                            <button type="button" data-building="Saint Louis" onclick="setDashboardBuilding('Saint Louis')" class="dash-toggle-btn px-3 py-1.5 rounded-md text-xs font-semibold transition">Saint Louis</button>
+                            <button type="button" data-building="Saint Benedict" onclick="setDashboardBuilding('Saint Benedict')" class="dash-toggle-btn px-3 py-1.5 rounded-md text-xs font-semibold transition">Saint Benedict</button>
+                        </div>
+                        <div class="flex bg-slate-100 rounded-lg p-1" id="dashPeriodToggle">
+                            <button type="button" data-period="all" onclick="setDashboardPeriod('all')" class="dash-period-btn px-3 py-1.5 rounded-md text-xs font-semibold transition">ทั้งวัน</button>
+                            <button type="button" data-period="morning" onclick="setDashboardPeriod('morning')" class="dash-period-btn px-3 py-1.5 rounded-md text-xs font-semibold transition">ช่วงเช้า</button>
+                            <button type="button" data-period="afternoon" onclick="setDashboardPeriod('afternoon')" class="dash-period-btn px-3 py-1.5 rounded-md text-xs font-semibold transition">ช่วงบ่าย</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex flex-wrap items-center gap-4 mb-4 text-xs font-medium text-slate-500">
+                    <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-sm bg-emerald-400 inline-block"></span> ว่าง (Available)</span>
+                    <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-sm bg-rose-400 inline-block"></span> กำลังใช้งาน (In Use)</span>
+                    <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-sm inline-block" style="background-image: repeating-linear-gradient(45deg,#cbd5e1,#cbd5e1 3px,#f1f5f9 3px,#f1f5f9 6px);"></span> ปิดซ่อมบำรุง (Maintenance)</span>
+                </div>
+
+                <div class="overflow-x-auto pb-2" id="timelineWrapper">
+                    <table class="border-separate" style="border-spacing: 3px;" id="timelineTable">
+                        <thead><tr><th class="text-xs text-slate-400 sticky left-0 bg-white z-10 pr-3 text-left">ห้อง</th></tr></thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Pie Charts -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-10">
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
+                    <h3 class="text-lg font-semibold text-[#0D2535] border-b border-slate-100 pb-4 mb-4 flex items-center gap-2">
+                        <div class="w-12 h-7 bg-gradient-to-r from-[#5388D8]/30 to-[#F8DD9C]/30 rounded-lg flex items-center justify-center text-[#0D2535]">
+                            <i class="fa-solid fa-users text-sm"></i>
+                        </div>
+                        การจองแบ่งตามสถานะผู้ใช้
+                    </h3>
+                    <div class="relative h-64">
+                        <canvas id="chartUserStatus"></canvas>
+                    </div>
+                    <div id="legendUserStatus" class="flex flex-wrap justify-center gap-3 mt-4 text-xs"></div>
+                </div>
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
+                    <h3 class="text-lg font-semibold text-[#0D2535] border-b border-slate-100 pb-4 mb-4 flex items-center gap-2">
+                        <div class="w-12 h-7 bg-gradient-to-r from-[#5388D8]/30 to-[#F8DD9C]/30 rounded-lg flex items-center justify-center text-[#0D2535]">
+                            <i class="fa-solid fa-user-graduate text-sm"></i>
+                        </div>
+                        การจองของนักศึกษา แบ่งตามคณะ
+                    </h3>
+                    <div class="relative h-64">
+                        <canvas id="chartFaculty"></canvas>
+                    </div>
+                    <div id="legendFaculty" class="flex flex-wrap justify-center gap-3 mt-4 text-xs"></div>
+                </div>
+            </div>
+
+        </div>
+        </div>
+<div class="fixed bottom-8 right-8 z-[100] flex items-center justify-center">
+    
+    <a id="fab-fb" href="https://www.facebook.com/SLCLib/" target="_blank"
+       class="absolute bottom-0 right-0 w-12 h-12 bg-[#5388D8] rounded-full shadow-lg flex items-center justify-center text-white transition-all duration-300 transform opacity-0 scale-0">
+        <i class="fa-brands fa-facebook-f text-2xl"></i>
+    </a>
+
+    <a id="fab-line" href="https://line.me/ti/g2/rJDHa3r305wqq488K1rnMf-5g6U2tdpdYNF4TA?utm_source=invitation&utm_medium=link_copy&utm_campaign=default" target="_blank"
+       class="absolute bottom-0 right-0 w-12 h-12 bg-green-500 rounded-full shadow-lg flex items-center justify-center text-white transition-all duration-300 transform opacity-0 scale-0">
+        <i class="fa-brands fa-line text-2xl"></i>
+    </a>
+
+    <button id="fab-main" class="w-12 h-12 bg-[#0D2535] rounded-full shadow-2xl flex items-center justify-center text-white hover:scale-105 transition-transform z-10">
+        <i id="fab-icon" class="fa-solid fa-headset text-3xl"></i>
+    </button>
+</div>
+    </main>
+
+    <script>
+        // ระบบสลับหน้า
+        function switchView(view) {
+            document.getElementById('view-booking').classList.toggle('hidden', view !== 'booking');
+            document.getElementById('view-dashboard').classList.toggle('hidden', view !== 'dashboard');
+            document.getElementById('btn-booking').classList.toggle('active-menu', view === 'booking');
+            document.getElementById('btn-dashboard').classList.toggle('active-menu', view === 'dashboard');
+            if (view === 'dashboard') {
+                initDashboard();
+            } else {
+                stopDashboard();
+            }
+        }
+
+        // ย่อ/ขยายแถบเมนูซ้าย
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('collapsed');
+        }
+
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzDSTAZ097LZcya3VfwHOigdPEzboHnYYVOMGkpAz-X66UQEfg7BpdkRTWuIf5Wxc9MYw/exec";
     const rooms = {
         "Saint Louis": ["Conference Room 1", "Conference Room 2", "Conference Room 3", "Mini Theater Room", "Research Room"],
         "Saint Benedict": ["Conference Room 1", "Conference Room 2", "Multiple Purpose Room"]
@@ -461,6 +686,18 @@
         }
     }
 
+    // ป้องกัน XSS: แปลงตัวอักษรพิเศษของ HTML ให้เป็นข้อความธรรมดา
+    // ก่อนเอาไปแสดงผลด้วย innerHTML เสมอ ไม่ว่าค่านั้นจะมาจากไหนก็ตาม
+    function escapeHtml(str) {
+        if (str === null || str === undefined) return "";
+        return String(str)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#39;");
+    }
+
     function timeToMinutes(timeStr) {
         if (!timeStr) return 0;
         var parts = timeStr.split(':');
@@ -517,32 +754,39 @@
                 : "background: linear-gradient(135deg, rgba(83, 136, 216, 0.3), rgba(83, 136, 216, 0.5)); color: #0D2535;"
 
                 const displayName = isSL ? "Saint Louis" : "Saint Benedict";
-                const safeRequester = b.requester.replace(/'/g, "\\'");
-                const safeRoom = b.room.replace(/'/g, "\\'");
+
+                // escape ไว้สำหรับแสดงผล (กัน XSS)
+                const safeRoomHtml = escapeHtml(b.room);
+                const safeRequesterHtml = escapeHtml(b.requester);
+                const safeStatusHtml = escapeHtml(b.userStatus || '-');
+
+                // escape ไว้สำหรับใส่ใน onclick="..." (กัน quote หลุดออกจาก string)
+                const jsRequester = String(b.requester).replace(/'/g, "\\'");
+                const jsRoom = String(b.room).replace(/'/g, "\\'");
 
                 tbody.innerHTML += `
                     <tr class="hover:bg-slate-50/80 transition duration-150">
                         <td class="p-4 max-w-[240px]">
                             <span class="inline-block text-[10px] font-bold px-2 py-0.5 rounded-md shadow-sm mb-1" style="${customTagStyle}">${displayName}</span>
-                            <div class="font-bold text-[#0D2535] truncate" title="${b.room}">${b.room}</div>
+                            <div class="font-bold text-[#0D2535] truncate" title="${safeRoomHtml}">${safeRoomHtml}</div>
                         </td>
                         <td class="p-4 whitespace-nowrap">
                             <span class="inline-flex items-center gap-1 font-semibold text-[#0D2535] bg-blue-50 border border-blue-100/50 px-2.5 py-1 rounded-lg text-xs">
-                                <i class="fa-regular fa-clock opacity-70"></i>${b.startTime} - ${b.endTime}
+                                <i class="fa-regular fa-clock opacity-70"></i>${escapeHtml(b.startTime)} - ${escapeHtml(b.endTime)}
                             </span>
                         </td>
                         <td class="p-4">
                             <div class="flex justify-between items-center gap-2">
                                 <div class="min-w-0 flex-1">
-                                    <div class="font-semibold text-slate-800 truncate text-[13px]" title="${b.requester}">${b.requester}</div>
+                                    <div class="font-semibold text-slate-800 truncate text-[13px]" title="${safeRequesterHtml}">${safeRequesterHtml}</div>
                                     <div class="mt-0.5">
                                         <span class="inline-block bg-slate-100 text-slate-600 text-[10px] font-medium px-1.5 py-0.5 rounded">
-                                            ${b.userStatus || '-'}
+                                            ${safeStatusHtml}
                                         </span>
                                     </div>
                                 </div>
                                 <button class="w-8 h-8 rounded-full text-slate-400 hover:text-rose-600 hover:bg-rose-50 flex items-center justify-center transition flex-shrink-0" 
-                                    onclick="deleteBooking('${safeRequester}', '${b.date}', '${b.startTime}', '${safeRoom}')" 
+                                    onclick="deleteBooking('${jsRequester}', '${b.date}', '${b.startTime}', '${jsRoom}')" 
                                     title="ยกเลิกการจองนี้ (เฉพาะแอดมิน)">
                                     <i class="fa-solid fa-trash-can text-xs"></i>
                                 </button>
@@ -580,13 +824,44 @@
         loadBookings();
     }
         
+    // เช็คว่าห้อง/วัน/เวลาที่เลือก ชนกับรายการที่จองไว้แล้วหรือไม่
+    // (เช็คแบบคร่าวๆ ฝั่ง frontend เพื่อเตือนผู้ใช้ก่อน ตัวเช็คจริงยังต้องอยู่ที่ backend เสมอ)
+    function hasTimeConflict(building, room, date, startTime, endTime) {
+        const newStart = timeToMinutes(startTime);
+        const newEnd = timeToMinutes(endTime);
+        return allBookings.some(b => {
+            if (b.building !== building || b.room !== room) return false;
+            const bDateStr = (b.date || "").split('T')[0];
+            if (bDateStr !== date) return false;
+            const existStart = timeToMinutes(b.startTime);
+            const existEnd = timeToMinutes(b.endTime);
+            // ชนกันถ้าช่วงเวลาทับซ้อนกัน (ไม่ใช่แค่เวลาเริ่มตรงกันเป๊ะ)
+            return newStart < existEnd && existStart < newEnd;
+        });
+    }
+
     document.getElementById("bookingForm").addEventListener("submit", function(e) {
         e.preventDefault();
-        document.getElementById("submitBtn").disabled = true;
-        document.getElementById("submitBtn").innerHTML = "<i class='fa-solid fa-spinner fa-spin me-2'></i>กำลังบันทึกข้อมูล...";
 
         const bookingDateValue = fpBookingInstance ? fpBookingInstance.input.value : "";
         const statusValue = document.getElementById("userStatus").value;
+        const buildingValue = document.getElementById("building").value;
+        const roomValue = document.getElementById("room").value;
+        const startTimeValue = document.getElementById("startTime").value;
+        const endTimeValue = document.getElementById("endTime").value;
+
+        if (hasTimeConflict(buildingValue, roomValue, bookingDateValue, startTimeValue, endTimeValue)) {
+            Swal.fire({
+                title: 'ช่วงเวลานี้ถูกจองแล้ว',
+                text: 'มีคนจองห้องนี้ในช่วงเวลาที่คุณเลือกไปแล้วครับ กรุณาเลือกเวลาอื่น',
+                icon: 'warning',
+                confirmButtonColor: '#1e3c72'
+            });
+            return;
+        }
+
+        document.getElementById("submitBtn").disabled = true;
+        document.getElementById("submitBtn").innerHTML = "<i class='fa-solid fa-spinner fa-spin me-2'></i>กำลังบันทึกข้อมูล...";
 
         let deptValue = "";
         if (statusValue === "บุคลากร") {
@@ -596,11 +871,11 @@
         }
 
         const payload = {
-            building: document.getElementById("building").value,
-            room: document.getElementById("room").value,
+            building: buildingValue,
+            room: roomValue,
             date: bookingDateValue, 
-            startTime: document.getElementById("startTime").value,
-            endTime: document.getElementById("endTime").value,
+            startTime: startTimeValue,
+            endTime: endTimeValue,
             requester: document.getElementById("requester").value,
             purpose: document.getElementById("purpose").value,
             userStatus: statusValue,
@@ -705,8 +980,19 @@
                     Swal.showValidationMessage('กรุณากรอกรหัสผ่านครับ');
                     return false;
                 }
-                return fetch(`${SCRIPT_URL}?action=delete&password=${encodeURIComponent(password)}&requester=${encodeURIComponent(requester)}&date=${encodeURIComponent(date)}&startTime=${encodeURIComponent(startTime)}&room=${encodeURIComponent(room)}`, {
-                    method: 'GET'
+                // สำคัญ: ใช้ POST และใส่ password ไว้ใน body แทนการแปะบน URL
+                // เพราะ URL แบบ GET จะไปโผล่ใน browser history / server log ทำให้รหัสผ่านรั่วได้
+                return fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    headers: { "Content-Type": "text/plain;charset=utf-8" },
+                    body: JSON.stringify({
+                        action: 'delete',
+                        password: password,
+                        requester: requester,
+                        date: date,
+                        startTime: startTime,
+                        room: room
+                    })
                 })
                 .then(response => {
                     if (!response.ok) {
@@ -744,27 +1030,8 @@
     function filterBookings() {
         loadBookings();
     }
-</script>
 
-<div class="fixed bottom-8 right-8 z-[100] flex items-center justify-center">
-    
-    <a id="fab-fb" href="https://www.facebook.com/SLCLib/" target="_blank"
-       class="absolute bottom-0 right-0 w-12 h-12 bg-[#5388D8] rounded-full shadow-lg flex items-center justify-center text-white transition-all duration-300 transform opacity-0 scale-0">
-        <i class="fa-brands fa-facebook-f text-2xl"></i>
-    </a>
-
-    <a id="fab-line" href="https://line.me/ti/g2/rJDHa3r305wqq488K1rnMf-5g6U2tdpdYNF4TA?utm_source=invitation&utm_medium=link_copy&utm_campaign=default" target="_blank"
-       class="absolute bottom-0 right-0 w-12 h-12 bg-green-500 rounded-full shadow-lg flex items-center justify-center text-white transition-all duration-300 transform opacity-0 scale-0">
-        <i class="fa-brands fa-line text-2xl"></i>
-    </a>
-
-    <button id="fab-main" class="w-12 h-12 bg-[#0D2535] rounded-full shadow-2xl flex items-center justify-center text-white hover:scale-105 transition-transform z-10">
-        <i id="fab-icon" class="fa-solid fa-headset text-3xl"></i>
-    </button>
-</div>
-
-<script>
-    const mainBtn = document.getElementById('fab-main');
+     const mainBtn = document.getElementById('fab-main');
     const fbBtn = document.getElementById('fab-fb');
     const lineBtn = document.getElementById('fab-line');
     const icon = document.getElementById('fab-icon');
@@ -796,7 +1063,272 @@
             icon.classList.replace('fa-xmark', 'fa-headset');
         }
     });
-</script>
-</div>
+
+    /* ===========================================================
+       DASHBOARD (Real-time)
+    =========================================================== */
+    let dashboardInterval = null;
+    let dashboardBuilding = "Saint Louis";
+    let dashboardPeriod = "all";
+    let chartUserStatusInstance = null;
+    let chartFacultyInstance = null;
+
+    // ข้อมูลปิดซ่อมบำรุง ดึงจาก Google Sheet แท็บ "Maintenance" ผ่าน SCRIPT_URL?type=maintenance
+    // (โหลดจริงใน fetchMaintenanceData() ด้านล่าง — ค่าตั้งต้นเป็น array ว่างระหว่างรอโหลด)
+    let maintenanceSlots = [];
+
+    const roomOperatingHours = {
+        "Saint Louis": { start: 10, end: 19 },
+        "Saint Benedict": { start: 8, end: 17 }
+    };
+
+    function generateHalfHourSlots(startHour, endHour) {
+        const slots = [];
+        for (let h = startHour; h < endHour; h++) {
+            slots.push(`${h.toString().padStart(2, '0')}:00`);
+            slots.push(`${h.toString().padStart(2, '0')}:30`);
+        }
+        return slots;
+    }
+
+    function setDashboardBuilding(b) {
+        dashboardBuilding = b;
+        document.querySelectorAll('.dash-toggle-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.building === b);
+        });
+        renderTimeline();
+    }
+
+    function setDashboardPeriod(p) {
+        dashboardPeriod = p;
+        document.querySelectorAll('.dash-period-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.period === p);
+        });
+        renderTimeline();
+    }
+
+    function initDashboard() {
+        document.querySelectorAll('.dash-toggle-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.building === dashboardBuilding);
+        });
+        document.querySelectorAll('.dash-period-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.period === dashboardPeriod);
+        });
+        refreshDashboardData();
+        if (!dashboardInterval) {
+            dashboardInterval = setInterval(refreshDashboardData, 30000); // อัปเดตอัตโนมัติทุก 30 วินาที
+        }
+    }
+
+    function stopDashboard() {
+        if (dashboardInterval) {
+            clearInterval(dashboardInterval);
+            dashboardInterval = null;
+        }
+    }
+
+    function fetchMaintenanceData() {
+        return fetch(`${SCRIPT_URL}?type=maintenance`)
+            .then(res => res.json())
+            .then(data => {
+                maintenanceSlots = Array.isArray(data) ? data : [];
+            })
+            .catch(err => {
+                // ถ้าฝั่ง Apps Script ยังไม่รองรับ type=maintenance จะเข้ามาที่นี่
+                // ไม่ทำให้ dashboard ส่วนอื่นพัง แค่ถือว่าไม่มีรายการปิดซ่อมบำรุง
+                console.warn('โหลดข้อมูลปิดซ่อมบำรุงไม่สำเร็จ (อาจยังไม่ได้ตั้งค่าฝั่ง Apps Script):', err);
+                maintenanceSlots = [];
+            });
+    }
+
+    function refreshDashboardData() {
+        const btnIcon = document.querySelector('#dashRefreshBtn i');
+        if (btnIcon) btnIcon.classList.add('fa-spin');
+
+        Promise.all([
+            fetch(SCRIPT_URL).then(res => res.json()),
+            fetchMaintenanceData()
+        ])
+            .then(([bookingData]) => {
+                allBookings = bookingData;
+                renderDashboard();
+                const now = new Date();
+                document.getElementById('dashLastUpdated').innerHTML =
+                    `<i class="fa-regular fa-clock me-1"></i>อัปเดตล่าสุด ${now.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', second: '2-digit' })} น.`;
+            })
+            .catch(err => {
+                console.error(err);
+                document.getElementById('dashLastUpdated').innerHTML =
+                    `<span class="text-rose-500"><i class="fa-solid fa-triangle-exclamation me-1"></i>โหลดข้อมูลล้มเหลว กำลังลองใหม่รอบถัดไป</span>`;
+            })
+            .finally(() => {
+                if (btnIcon) btnIcon.classList.remove('fa-spin');
+            });
+    }
+
+    function renderDashboard() {
+        renderStatCards();
+        renderTimeline();
+        renderPieCharts();
+    }
+
+    function renderStatCards() {
+        const todayStr = new Date().toLocaleDateString('sv-SE');
+        const now = new Date();
+        const curYear = now.getFullYear();
+        const curMonth = now.getMonth() + 1; // 1-12
+
+        // ปีการศึกษาไทย: เริ่ม 1 มิ.ย. ของปีนี้ ถึง 31 พ.ค. ของปีถัดไป
+        const acadStartYear = curMonth >= 6 ? curYear : curYear - 1;
+        const acadStart = new Date(acadStartYear, 5, 1);
+        const acadEnd = new Date(acadStartYear + 1, 4, 31, 23, 59, 59);
+
+        let countToday = 0, countMonth = 0, countYear = 0;
+
+        allBookings.forEach(b => {
+            if (!b.date) return;
+            const dStr = b.date.split('T')[0];
+            const d = new Date(dStr + 'T00:00:00');
+            if (isNaN(d)) return;
+            if (dStr === todayStr) countToday++;
+            if (d.getFullYear() === curYear && (d.getMonth() + 1) === curMonth) countMonth++;
+            if (d >= acadStart && d <= acadEnd) countYear++;
+        });
+
+        document.getElementById('statToday').textContent = countToday;
+        document.getElementById('statMonth').textContent = countMonth;
+        document.getElementById('statYear').textContent = countYear;
+        document.getElementById('statYearLabel').textContent = `ยอดการจองปีการศึกษา ${acadStartYear + 543}`;
+    }
+
+    function renderTimeline() {
+        const todayStr = new Date().toLocaleDateString('sv-SE');
+        const hours = roomOperatingHours[dashboardBuilding];
+        let slots = generateHalfHourSlots(hours.start, hours.end);
+        if (dashboardPeriod === 'morning') slots = slots.filter(s => parseInt(s.split(':')[0]) < 12);
+        if (dashboardPeriod === 'afternoon') slots = slots.filter(s => parseInt(s.split(':')[0]) >= 12);
+
+        const roomList = rooms[dashboardBuilding] || [];
+        const table = document.getElementById('timelineTable');
+        const thead = table.querySelector('thead tr');
+        const tbody = table.querySelector('tbody');
+
+        thead.innerHTML = `<th class="text-xs text-slate-400 sticky left-0 bg-white z-10 pr-3 text-left font-bold">ห้อง</th>`;
+        slots.forEach(s => {
+            const [hh, mm] = s.split(':');
+            const label = mm === '00' ? hh + ':00' : '';
+            thead.innerHTML += `<th class="text-[10px] font-semibold text-slate-400 text-center align-bottom pb-1" style="min-width:26px;">${label}</th>`;
+        });
+
+        tbody.innerHTML = '';
+        if (roomList.length === 0) {
+            tbody.innerHTML = `<tr><td class="text-center text-slate-400 py-6 text-sm">ไม่มีข้อมูลห้อง</td></tr>`;
+            return;
+        }
+
+        roomList.forEach(room => {
+            let row = `<tr><td class="text-xs font-semibold text-[#0D2535] sticky left-0 bg-white z-10 pr-3 py-1 whitespace-nowrap">${escapeHtml(room)}</td>`;
+            slots.forEach(s => {
+                const slotStart = timeToMinutes(s);
+                const slotEnd = slotStart + 30;
+
+                const inMaint = maintenanceSlots.some(m =>
+                    m.building === dashboardBuilding && m.room === room && m.date === todayStr &&
+                    slotStart < timeToMinutes(m.end) && timeToMinutes(m.start) < slotEnd
+                );
+
+                const booking = !inMaint && allBookings.find(b => {
+                    if (b.building !== dashboardBuilding || b.room !== room) return false;
+                    const bDateStr = (b.date || '').split('T')[0];
+                    if (bDateStr !== todayStr) return false;
+                    const bStart = timeToMinutes(b.startTime);
+                    const bEnd = timeToMinutes(b.endTime);
+                    return slotStart < bEnd && bStart < slotEnd;
+                });
+
+                let cellClass = 'bg-emerald-400';
+                let title = `${room} • ${s} • ว่าง`;
+                let style = '';
+                if (inMaint) {
+                    cellClass = '';
+                    style = 'style="background-image: repeating-linear-gradient(45deg,#cbd5e1,#cbd5e1 3px,#f1f5f9 3px,#f1f5f9 6px);"';
+                    title = `${room} • ${s} • ปิดซ่อมบำรุง`;
+                } else if (booking) {
+                    cellClass = 'bg-rose-400';
+                    title = `${room} • ${s} • ${escapeHtml(booking.requester || 'มีการจอง')}`;
+                }
+
+                row += `<td class="rounded-sm h-6 ${cellClass}" ${style} title="${title}"></td>`;
+            });
+            row += '</tr>';
+            tbody.innerHTML += row;
+        });
+    }
+
+    function renderPieCharts() {
+        // --- กราฟ 1: แบ่งตามสถานะผู้ใช้ ---
+        const statusCounts = { 'นักศึกษา': 0, 'อาจารย์': 0, 'บุคลากร': 0 };
+        allBookings.forEach(b => {
+            const s = b.userStatus;
+            if (s && statusCounts.hasOwnProperty(s)) statusCounts[s]++;
+            else statusCounts['อื่นๆ'] = (statusCounts['อื่นๆ'] || 0) + 1;
+        });
+        const statusColors = { 'นักศึกษา': '#5388D8', 'อาจารย์': '#FFBA44', 'บุคลากร': '#0D2535', 'อื่นๆ': '#94a3b8' };
+        const statusLabels = Object.keys(statusCounts).filter(k => statusCounts[k] > 0);
+        const statusData = statusLabels.map(k => statusCounts[k]);
+
+        const ctx1 = document.getElementById('chartUserStatus').getContext('2d');
+        if (chartUserStatusInstance) chartUserStatusInstance.destroy();
+        if (statusData.length === 0) {
+            document.getElementById('legendUserStatus').innerHTML = '<span class="text-slate-400">ยังไม่มีข้อมูลการจอง</span>';
+        } else {
+            chartUserStatusInstance = new Chart(ctx1, {
+                type: 'doughnut',
+                data: {
+                    labels: statusLabels,
+                    datasets: [{ data: statusData, backgroundColor: statusLabels.map(l => statusColors[l] || '#94a3b8'), borderWidth: 2, borderColor: '#fff' }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+            });
+            renderChartLegend('legendUserStatus', statusLabels, statusData, statusLabels.map(l => statusColors[l] || '#94a3b8'));
+        }
+
+        // --- กราฟ 2: การจองของนักศึกษา แบ่งตามคณะ ---
+        const facultyCounts = {};
+        allBookings.forEach(b => {
+            if (b.userStatus !== 'นักศึกษา') return;
+            const dep = (b.department && b.department.trim()) ? b.department : 'ไม่ระบุ';
+            facultyCounts[dep] = (facultyCounts[dep] || 0) + 1;
+        });
+        const facultyLabels = Object.keys(facultyCounts);
+        const facultyData = facultyLabels.map(k => facultyCounts[k]);
+        const facultyPalette = ['#5388D8', '#FFBA44', '#6CBAFB', '#FC8AB8', '#94a3b8', '#0D2535'];
+
+        const ctx2 = document.getElementById('chartFaculty').getContext('2d');
+        if (chartFacultyInstance) chartFacultyInstance.destroy();
+        if (facultyLabels.length === 0) {
+            document.getElementById('legendFaculty').innerHTML = '<span class="text-slate-400">ยังไม่มีข้อมูลการจองของนักศึกษา</span>';
+        } else {
+            chartFacultyInstance = new Chart(ctx2, {
+                type: 'doughnut',
+                data: {
+                    labels: facultyLabels,
+                    datasets: [{ data: facultyData, backgroundColor: facultyLabels.map((_, i) => facultyPalette[i % facultyPalette.length]), borderWidth: 2, borderColor: '#fff' }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+            });
+            renderChartLegend('legendFaculty', facultyLabels, facultyData, facultyLabels.map((_, i) => facultyPalette[i % facultyPalette.length]));
+        }
+    }
+
+    function renderChartLegend(containerId, labels, data, colors) {
+        const total = data.reduce((a, b) => a + b, 0) || 1;
+        const container = document.getElementById(containerId);
+        container.innerHTML = labels.map((l, i) => {
+            const pct = Math.round((data[i] / total) * 100);
+            return `<span class="flex items-center gap-1.5 text-slate-600"><span class="w-2.5 h-2.5 rounded-full inline-block" style="background:${colors[i]}"></span>${escapeHtml(l)} (${data[i]} · ${pct}%)</span>`;
+        }).join('');
+    }
+    </script>
 </body>
 </html>
