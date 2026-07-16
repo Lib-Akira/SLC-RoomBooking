@@ -572,7 +572,7 @@
                         </div>
                         การจองแบ่งตามสถานะผู้ใช้
                     </h3>
-                    <div class="relative h-64">
+                    <div class="relative h-60">
                         <canvas id="chartUserStatus"></canvas>
                     </div>
                     <div id="legendUserStatus" class="flex flex-wrap justify-center gap-3 mt-4 text-xs"></div>
@@ -584,7 +584,7 @@
                         </div>
                         การจองของนักศึกษา แบ่งตามคณะ
                     </h3>
-                    <div class="relative h-64">
+                    <div class="relative h-60">
                         <canvas id="chartFaculty"></canvas>
                     </div>
                     <div id="legendFaculty" class="flex flex-wrap justify-center gap-3 mt-4 text-xs"></div>
@@ -1455,7 +1455,7 @@
             if (s && statusCounts.hasOwnProperty(s)) statusCounts[s]++;
             else statusCounts['อื่นๆ'] = (statusCounts['อื่นๆ'] || 0) + 1;
         });
-        const statusColors = { 'นักศึกษา': '#5388D8', 'อาจารย์': '#FFBA44', 'บุคลากร': '#0D2535', 'อื่นๆ': '#94a3b8' };
+        const statusColors = { 'นักศึกษา': '#D4E1F5', 'อาจารย์': '#FAEBC4', 'บุคลากร': '#0D2535', 'อื่นๆ': '#FF9F40' };
         const statusLabels = Object.keys(statusCounts).filter(k => statusCounts[k] > 0);
         const statusData = statusLabels.map(k => statusCounts[k]);
 
@@ -1470,7 +1470,7 @@
                     labels: statusLabels,
                     datasets: [{ data: statusData, backgroundColor: statusLabels.map(l => statusColors[l] || '#94a3b8'), borderWidth: 2, borderColor: '#fff' }]
                 },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+                options: { responsive: true, maintainAspectRatio: false, cutout: '60%', plugins: { legend: { display: false } } }
             });
             renderChartLegend('legendUserStatus', statusLabels, statusData, statusLabels.map(l => statusColors[l] || '#94a3b8'));
         }
@@ -1487,11 +1487,11 @@
 
         // สีประจำคณะ: ผูกกับชื่อคณะตรงๆ แทนการไล่สีตามลำดับ เพื่อให้สีคงที่เสมอไม่ว่าคณะไหนจะมีข้อมูลก่อน-หลัง
         const facultyColorMap = {
-            'คณะพยาบาลศาสตร์': '#FFBA44',
-            'คณะจิตวิทยา': '#6CBAFB',
-            'คณะกายภาพบำบัด': '#FC8AB8'
+            'คณะพยาบาลศาสตร์': '#FBEBC3',
+            'คณะจิตวิทยา': '#D2DFF4',
+            'คณะกายภาพบำบัด': '#FFACCD'
         };
-        const facultyFallbackPalette = ['#5388D8', '#0D2535', '#94a3b8']; // เผื่อมีคณะ/ค่าอื่นที่ไม่อยู่ในลิสต์ข้างบน
+        const facultyFallbackPalette = ['#0D2535', '#FF9F40', '#94a3b8']; // เผื่อมีคณะ/ค่าอื่นที่ไม่อยู่ในลิสต์ข้างบน
         let fallbackIdx = 0;
         const facultyColors = facultyLabels.map(l => {
             if (facultyColorMap[l]) return facultyColorMap[l];
@@ -1511,7 +1511,7 @@
                     labels: facultyLabels,
                     datasets: [{ data: facultyData, backgroundColor: facultyColors, borderWidth: 2, borderColor: '#fff' }]
                 },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+                options: { responsive: true, maintainAspectRatio: false, cutout: '60%', plugins: { legend: { display: false } } }
             });
             renderChartLegend('legendFaculty', facultyLabels, facultyData, facultyColors);
         }
