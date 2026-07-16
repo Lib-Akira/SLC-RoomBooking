@@ -23,6 +23,68 @@
         .active-menu { background-color: #5388D8 !important; color: white !important; }
         .hidden { display: none; }
 
+        /* เส้นบอกเวลาปัจจุบันบนตารางสถานะห้อง */
+        .current-time-line {
+            position: absolute;
+            top: 32px;   /* เว้นที่ด้านบนไว้ให้ป้ายเวลาลอยอยู่ ไม่ทับ legend ด้านบนตาราง */
+            bottom: 0;
+            width: 2px;
+            background: linear-gradient(to bottom, #ef4444, rgba(239,68,68,0.15));
+            box-shadow: 0 0 6px rgba(239,68,68,0.35);
+            z-index: 20;
+            pointer-events: none;
+            transition: left 0.4s ease;
+        }
+        .current-time-line .ctl-dot {
+            position: absolute;
+            top: -5px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 10px;
+            height: 10px;
+        }
+        .current-time-line .ctl-dot-ping {
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            background: #ef4444;
+            opacity: 0.6;
+            animation: ctl-ping 1.8s cubic-bezier(0,0,0.2,1) infinite;
+        }
+        .current-time-line .ctl-dot-core {
+            position: absolute;
+            inset: 2px;
+            border-radius: 50%;
+            background: #ef4444;
+            box-shadow: 0 0 0 2px #fff;
+        }
+        @keyframes ctl-ping {
+            75%, 100% { transform: scale(2.4); opacity: 0; }
+        }
+        .current-time-line .ctl-label {
+            position: absolute;
+            top: -32px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #0D2535;
+            color: #fff;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 3px 9px;
+            border-radius: 8px;
+            white-space: nowrap;
+            box-shadow: 0 3px 8px rgba(13,37,53,0.25);
+        }
+        .current-time-line .ctl-label::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 4px solid transparent;
+            border-top-color: #0D2535;
+        }
+
         /* --- Sidebar แบบย่อ/ขยายได้ --- */
         #sidebar.collapsed { width: 5rem; /* w-20 */ }
         #sidebar.collapsed .sidebar-label { display: none; }
@@ -440,6 +502,7 @@
                     <div>
                         <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">ยอดการจองวันนี้</p>
                         <p class="text-3xl font-bold text-[#0D2535] mt-0.5" id="statToday">0</p>
+                        <p class="text-xs font-semibold mt-1" id="statTodayDelta">&nbsp;</p>
                     </div>
                 </div>
                 <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 flex items-center gap-4 hover:shadow-md transition duration-300">
@@ -449,6 +512,7 @@
                     <div>
                         <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">ยอดการจองเดือนนี้</p>
                         <p class="text-3xl font-bold text-[#0D2535] mt-0.5" id="statMonth">0</p>
+                        <p class="text-xs font-semibold mt-1" id="statMonthDelta">&nbsp;</p>
                     </div>
                 </div>
                 <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 flex items-center gap-4 hover:shadow-md transition duration-300">
@@ -458,6 +522,7 @@
                     <div>
                         <p class="text-xs font-bold text-slate-400 uppercase tracking-wider" id="statYearLabel">ยอดการจองปีการศึกษานี้</p>
                         <p class="text-3xl font-bold text-[#0D2535] mt-0.5" id="statYear">0</p>
+                        <p class="text-xs font-semibold mt-1" id="statYearDelta">&nbsp;</p>
                     </div>
                 </div>
             </div>
@@ -490,7 +555,7 @@
                     <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-sm inline-block" style="background-image: repeating-linear-gradient(45deg,#cbd5e1,#cbd5e1 3px,#f1f5f9 3px,#f1f5f9 6px);"></span> ปิดซ่อมบำรุง (Maintenance)</span>
                 </div>
 
-                <div class="overflow-x-auto pb-2" id="timelineWrapper">
+                <div class="overflow-x-auto pb-2 pt-8 relative" id="timelineWrapper">
                     <table class="border-separate" style="border-spacing: 3px;" id="timelineTable">
                         <thead><tr><th class="text-xs text-slate-400 sticky left-0 bg-white z-10 pr-3 text-left">ห้อง</th></tr></thead>
                         <tbody></tbody>
@@ -1068,6 +1133,7 @@
        DASHBOARD (Real-time)
     =========================================================== */
     let dashboardInterval = null;
+    let timeIndicatorInterval = null;
     let dashboardBuilding = "Saint Louis";
     let dashboardPeriod = "all";
     let chartUserStatusInstance = null;
@@ -1118,6 +1184,11 @@
         if (!dashboardInterval) {
             dashboardInterval = setInterval(refreshDashboardData, 30000); // อัปเดตอัตโนมัติทุก 30 วินาที
         }
+        // เส้นเวลาปัจจุบันขยับเองทุก 30 วินาที โดยไม่ต้องรอโหลดข้อมูลใหม่ทั้งหมด
+        if (!timeIndicatorInterval) {
+            timeIndicatorInterval = setInterval(updateCurrentTimeIndicator, 30000);
+        }
+        window.addEventListener('resize', updateCurrentTimeIndicator);
     }
 
     function stopDashboard() {
@@ -1125,6 +1196,11 @@
             clearInterval(dashboardInterval);
             dashboardInterval = null;
         }
+        if (timeIndicatorInterval) {
+            clearInterval(timeIndicatorInterval);
+            timeIndicatorInterval = null;
+        }
+        window.removeEventListener('resize', updateCurrentTimeIndicator);
     }
 
     function fetchMaintenanceData() {
@@ -1178,12 +1254,23 @@
         const curYear = now.getFullYear();
         const curMonth = now.getMonth() + 1; // 1-12
 
-        // ปีการศึกษาไทย: เริ่ม 1 ส.ค. ของปีนี้ ถึง 31 ก.ค. ของปีถัดไป
+        // ปีการศึกษาไทย (ของโรงเรียนนี้): เริ่ม 1 ส.ค. ของปีนี้ ถึง 31 ก.ค. ของปีถัดไป
         const acadStartYear = curMonth >= 8 ? curYear : curYear - 1;
         const acadStart = new Date(acadStartYear, 7, 1);
         const acadEnd = new Date(acadStartYear + 1, 6, 31, 23, 59, 59);
 
+        // ช่วงเปรียบเทียบ: เมื่อวาน / เดือนที่แล้ว / ปีการศึกษาที่แล้ว
+        const yesterday = new Date(now); yesterday.setDate(yesterday.getDate() - 1);
+        const yesterdayStr = yesterday.toLocaleDateString('sv-SE');
+
+        const lastMonthYear = curMonth === 1 ? curYear - 1 : curYear;
+        const lastMonth = curMonth === 1 ? 12 : curMonth - 1;
+
+        const prevAcadStart = new Date(acadStartYear - 1, 7, 1);
+        const prevAcadEnd = new Date(acadStartYear, 6, 31, 23, 59, 59);
+
         let countToday = 0, countMonth = 0, countYear = 0;
+        let countYesterday = 0, countLastMonth = 0, countLastYear = 0;
 
         allBookings.forEach(b => {
             if (!b.date) return;
@@ -1191,14 +1278,46 @@
             const d = new Date(dStr + 'T00:00:00');
             if (isNaN(d)) return;
             if (dStr === todayStr) countToday++;
+            if (dStr === yesterdayStr) countYesterday++;
             if (d.getFullYear() === curYear && (d.getMonth() + 1) === curMonth) countMonth++;
+            if (d.getFullYear() === lastMonthYear && (d.getMonth() + 1) === lastMonth) countLastMonth++;
             if (d >= acadStart && d <= acadEnd) countYear++;
+            if (d >= prevAcadStart && d <= prevAcadEnd) countLastYear++;
         });
 
         document.getElementById('statToday').textContent = countToday;
         document.getElementById('statMonth').textContent = countMonth;
         document.getElementById('statYear').textContent = countYear;
         document.getElementById('statYearLabel').textContent = `ยอดการจองปีการศึกษา ${acadStartYear + 543}`;
+
+        renderDeltaBadge('statTodayDelta', countToday, countYesterday, 'จากวันที่แล้ว');
+        renderDeltaBadge('statMonthDelta', countMonth, countLastMonth, 'จากเดือนที่แล้ว');
+        renderDeltaBadge('statYearDelta', countYear, countLastYear, 'จากปีการศึกษาที่แล้ว');
+    }
+
+    // แสดงป้ายเทียบการเติบโต (+xx% / -xx%) ใต้ตัวเลขในกล่องสรุป โดยคำนวณจากข้อมูลจริง
+    // ไม่ใช้เลขตายตัว เพราะจะไม่ตรงกับข้อมูลจริงเมื่อเวลาผ่านไป
+    function renderDeltaBadge(elId, current, previous, label) {
+        const el = document.getElementById(elId);
+        if (!el) return;
+
+        if (previous === 0) {
+            if (current === 0) {
+                el.innerHTML = `<span class="text-slate-400">ยังไม่มีข้อมูลเปรียบเทียบ</span>`;
+            } else {
+                el.innerHTML = `<span class="text-emerald-500"><i class="fa-solid fa-arrow-up"></i> ข้อมูลใหม่</span> <span class="text-slate-400">${label}</span>`;
+            }
+            return;
+        }
+
+        const pct = Math.round(((current - previous) / previous) * 100);
+        if (pct > 0) {
+            el.innerHTML = `<span class="text-emerald-500"><i class="fa-solid fa-arrow-up"></i> +${pct}%</span> <span class="text-slate-400">${label}</span>`;
+        } else if (pct < 0) {
+            el.innerHTML = `<span class="text-rose-500"><i class="fa-solid fa-arrow-down"></i> ${pct}%</span> <span class="text-slate-400">${label}</span>`;
+        } else {
+            el.innerHTML = `<span class="text-slate-400"><i class="fa-solid fa-minus"></i> 0% ${label}</span>`;
+        }
     }
 
     function renderTimeline() {
@@ -1217,7 +1336,7 @@
         slots.forEach(s => {
             const [hh, mm] = s.split(':');
             const label = mm === '00' ? hh + ':00' : '';
-            thead.innerHTML += `<th class="text-[10px] font-semibold text-slate-400 text-center align-bottom pb-1" style="min-width:26px;">${label}</th>`;
+            thead.innerHTML += `<th class="text-[10px] font-semibold text-slate-400 text-center align-bottom pb-1" data-start="${timeToMinutes(s)}" style="min-width:26px;">${label}</th>`;
         });
 
         tbody.innerHTML = '';
@@ -1263,6 +1382,69 @@
             row += '</tr>';
             tbody.innerHTML += row;
         });
+
+        updateCurrentTimeIndicator();
+    }
+
+    // วาด/ขยับเส้นสีแดงบอก "ตอนนี้เวลาเท่าไหร่" บนตารางสถานะห้อง
+    // หาตำแหน่งจริงจากคอลัมน์เวลาบนตาราง (data-start) แล้วคำนวณเทียบสัดส่วนภายในช่อง 30 นาทีนั้น
+    function updateCurrentTimeIndicator() {
+        const wrapper = document.getElementById('timelineWrapper');
+        const table = document.getElementById('timelineTable');
+        if (!wrapper || !table) return;
+
+        let line = document.getElementById('currentTimeLine');
+        if (!line) {
+            line = document.createElement('div');
+            line.id = 'currentTimeLine';
+            line.className = 'current-time-line';
+            line.innerHTML = `<div class="ctl-label" id="ctlLabel"></div><div class="ctl-dot"><div class="ctl-dot-ping"></div><div class="ctl-dot-core"></div></div>`;
+            wrapper.appendChild(line);
+        }
+
+        const now = new Date();
+        const todayStr = now.toLocaleDateString('sv-SE');
+        const nowMinutes = now.getHours() * 60 + now.getMinutes();
+
+        // ตารางนี้แสดงเฉพาะ "วันนี้" เสมอ ถ้าเผลอเปิดค้างข้ามวันเที่ยงคืนก็ให้ซ่อนเส้นไปก่อน (จะโผล่มาใหม่ตอน renderTimeline รอบถัดไป)
+        if (window.__timelineRenderedFor && window.__timelineRenderedFor !== todayStr) {
+            line.style.display = 'none';
+            return;
+        }
+        window.__timelineRenderedFor = todayStr;
+
+        const slotThs = Array.from(table.querySelectorAll('thead th[data-start]'));
+        if (slotThs.length === 0) { line.style.display = 'none'; return; }
+
+        const firstStart = parseInt(slotThs[0].dataset.start, 10);
+        const lastStart = parseInt(slotThs[slotThs.length - 1].dataset.start, 10);
+
+        // นอกช่วงเวลาทำการที่กำลังแสดงอยู่ (เช่น ยังไม่เปิด หรือปิดไปแล้ว) ก็ไม่ต้องโชว์เส้น
+        if (nowMinutes < firstStart || nowMinutes > lastStart + 30) {
+            line.style.display = 'none';
+            return;
+        }
+
+        // หาคอลัมน์ (th) ที่เวลาปัจจุบันตกอยู่ในช่วงนั้น
+        let targetTh = slotThs[slotThs.length - 1];
+        for (const th of slotThs) {
+            const s = parseInt(th.dataset.start, 10);
+            if (nowMinutes < s + 30) { targetTh = th; break; }
+        }
+        const slotStart = parseInt(targetTh.dataset.start, 10);
+        const frac = Math.min(1, Math.max(0, (nowMinutes - slotStart) / 30));
+
+        const wrapperRect = wrapper.getBoundingClientRect();
+        const thRect = targetTh.getBoundingClientRect();
+        const leftPx = (thRect.left - wrapperRect.left) + wrapper.scrollLeft + (thRect.width * frac);
+
+        line.style.left = leftPx + 'px';
+        line.style.display = 'block';
+
+        const hh = String(now.getHours()).padStart(2, '0');
+        const mm = String(now.getMinutes()).padStart(2, '0');
+        const labelEl = document.getElementById('ctlLabel');
+        if (labelEl) labelEl.textContent = `${hh}:${mm}`;
     }
 
     function renderPieCharts() {
@@ -1302,7 +1484,21 @@
         });
         const facultyLabels = Object.keys(facultyCounts);
         const facultyData = facultyLabels.map(k => facultyCounts[k]);
-        const facultyPalette = ['#5388D8', '#FFBA44', '#6CBAFB', '#FC8AB8', '#94a3b8', '#0D2535'];
+
+        // สีประจำคณะ: ผูกกับชื่อคณะตรงๆ แทนการไล่สีตามลำดับ เพื่อให้สีคงที่เสมอไม่ว่าคณะไหนจะมีข้อมูลก่อน-หลัง
+        const facultyColorMap = {
+            'คณะพยาบาลศาสตร์': '#FFBA44',
+            'คณะจิตวิทยา': '#6CBAFB',
+            'คณะกายภาพบำบัด': '#FC8AB8'
+        };
+        const facultyFallbackPalette = ['#5388D8', '#0D2535', '#94a3b8']; // เผื่อมีคณะ/ค่าอื่นที่ไม่อยู่ในลิสต์ข้างบน
+        let fallbackIdx = 0;
+        const facultyColors = facultyLabels.map(l => {
+            if (facultyColorMap[l]) return facultyColorMap[l];
+            const c = facultyFallbackPalette[fallbackIdx % facultyFallbackPalette.length];
+            fallbackIdx++;
+            return c;
+        });
 
         const ctx2 = document.getElementById('chartFaculty').getContext('2d');
         if (chartFacultyInstance) chartFacultyInstance.destroy();
@@ -1313,11 +1509,11 @@
                 type: 'doughnut',
                 data: {
                     labels: facultyLabels,
-                    datasets: [{ data: facultyData, backgroundColor: facultyLabels.map((_, i) => facultyPalette[i % facultyPalette.length]), borderWidth: 2, borderColor: '#fff' }]
+                    datasets: [{ data: facultyData, backgroundColor: facultyColors, borderWidth: 2, borderColor: '#fff' }]
                 },
                 options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
             });
-            renderChartLegend('legendFaculty', facultyLabels, facultyData, facultyLabels.map((_, i) => facultyPalette[i % facultyPalette.length]));
+            renderChartLegend('legendFaculty', facultyLabels, facultyData, facultyColors);
         }
     }
 
