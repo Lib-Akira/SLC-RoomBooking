@@ -905,6 +905,21 @@
         });
     }
 
+    // ✅ เพิ่มใหม่: เช็คว่าช่วงเวลาที่เลือกตรงกับช่วง "ปิดปรับปรุง/ปิดใช้งานชั่วคราว" หรือไม่
+    // (เดิมข้อมูล Maintenance ถูกใช้แค่โชว์บน Dashboard แต่ไม่เคยเช็คตอนจองจริงเลย)
+    function getMaintenanceConflict(building, room, date, startTime, endTime) {
+        const newStart = timeToMinutes(startTime);
+        const newEnd = timeToMinutes(endTime);
+        return maintenanceSlots.find(m => {
+            if (m.date !== date) return false;
+            if (m.building && m.building !== building) return false;
+            if (m.room && m.room !== room) return false;
+            const mStart = timeToMinutes(m.start);
+            const mEnd = timeToMinutes(m.end);
+            return newStart < mEnd && mStart < newEnd;
+        });
+    }
+
     document.getElementById("bookingForm").addEventListener("submit", function(e) {
         e.preventDefault();
 
@@ -914,6 +929,17 @@
         const roomValue = document.getElementById("room").value;
         const startTimeValue = document.getElementById("startTime").value;
         const endTimeValue = document.getElementById("endTime").value;
+
+        const maintConflict = getMaintenanceConflict(buildingValue, roomValue, bookingDateValue, startTimeValue, endTimeValue);
+        if (maintConflict) {
+            Swal.fire({
+                title: 'ช่วงเวลานี้ปิดใช้งานชั่วคราว',
+                text: maintConflict.reason || 'ห้องสมุดปิดใช้งานในช่วงเวลานี้ กรุณาเลือกวัน/เวลาอื่นครับ',
+                icon: 'info',
+                confirmButtonColor: '#01224D'
+            });
+            return;
+        }
 
         if (hasTimeConflict(buildingValue, roomValue, bookingDateValue, startTimeValue, endTimeValue)) {
             Swal.fire({
@@ -1023,7 +1049,79 @@
             }
         });
         loadBookings();
+        // ✅ เพิ่มใหม่: โหลดข้อมูล "ปิดปรับปรุง/ปิดใช้งานชั่วคราว" ตั้งแต่เปิดหน้าเว็บเลย
+        // (เดิมโหลดเฉพาะตอนกดเข้าแท็บ Dashboard เท่านั้น ทำให้คนที่ไม่เคยเปิด Dashboard
+        // เลย จะจองช่วงที่ปิดไปได้โดยระบบไม่รู้ว่ามีการปิดอยู่)
+        // โหลดเสร็จแล้วเช็คทันทีว่าวันนี้มีประกาศปิดไหม จะได้เด้งป็อปอัพแจ้ง/บล็อกทันทีที่เข้าเว็บ
+        fetchMaintenanceData().then(checkTodayClosurePopup);
     };
+
+    // ✅ เพิ่มใหม่: เช็คว่า "วันนี้" มีประกาศปิดไหม แบ่งเป็น 2 ระดับ
+    //   - ปิดทั้งวัน (เวลาที่ตั้งครอบคลุมเกือบทั้งวัน เช่น 00:00-23:59) -> บล็อกทั้งหน้า ปิดป็อปอัพไม่ได้
+    //   - ปิดบางช่วง (เช่นบ่ายวันนี้) -> แจ้งเตือนเฉยๆ กด "รับทราบ" ปิดได้ ไปจองช่วงอื่นได้ตามปกติ
+    function checkTodayClosurePopup() {
+        const todayStr = new Date().toLocaleDateString('sv-SE');
+        const todayClosures = maintenanceSlots.filter(m => m.date === todayStr);
+        if (todayClosures.length === 0) return;
+
+        // ถือว่า "ปิดทั้งวัน" ถ้าช่วงเวลาที่ตั้งไว้ครอบคลุมเกือบทั้งวัน (เริ่มใกล้ 00:00 ถึงใกล้ 23:59)
+        const isFullDayEntry = (m) => timeToMinutes(m.start) <= 1 && timeToMinutes(m.end) >= (23 * 60 + 58);
+        const fullDayClosure = todayClosures.find(isFullDayEntry);
+
+        if (fullDayClosure) {
+            showFullDayClosurePopup(fullDayClosure);
+        } else {
+            showPartialClosurePopup(todayClosures);
+        }
+    }
+
+    function showFullDayClosurePopup(closure) {
+        // ปิดปุ่มจองไว้ด้วยเป็นการป้องกันซ้อน เผื่อกรณีป็อปอัพโดน bypass ด้วยวิธีอื่น
+        const submitBtn = document.getElementById('submitBtn');
+        if (submitBtn) submitBtn.disabled = true;
+
+        const scopeLabel = closure.building
+            ? `อาคาร ${escapeHtml(closure.building)}`
+            : 'ทุกอาคาร';
+
+        Swal.fire({
+            icon: 'error',
+            title: 'วันนี้ห้องสมุดปิดทำการ',
+            html: `
+                <p style="margin-bottom:4px;">${escapeHtml(closure.reason || 'ปิดทำการชั่วคราว')}</p>
+                <p style="font-size:13px;color:#94a3b8;margin:0;">ขอบเขตการปิด: ${scopeLabel}</p>
+            `,
+            showConfirmButton: false,
+            showCloseButton: false,
+            showCancelButton: false,
+            allowOutsideClick: false,
+            allowEscapeKey: false,
+            allowEnterKey: false,
+            confirmButtonColor: '#01224D'
+        });
+    }
+
+    function showPartialClosurePopup(closures) {
+        const listHtml = closures.map(c => {
+            const scopeLabel = c.building
+                ? (c.room ? `${escapeHtml(c.building)} • ${escapeHtml(c.room)}` : `อาคาร ${escapeHtml(c.building)}`)
+                : 'ทุกอาคาร';
+            return `<li style="margin-bottom:8px;text-align:left;">
+                        <strong>${escapeHtml(c.start)} - ${escapeHtml(c.end)}</strong> (${scopeLabel})<br>
+                        <span style="color:#64748b;font-size:13px;">${escapeHtml(c.reason || 'ปิดใช้งานชั่วคราว')}</span>
+                    </li>`;
+        }).join('');
+
+        Swal.fire({
+            icon: 'info',
+            title: 'แจ้งปิดให้บริการชั่วคราววันนี้',
+            html: `<ul style="padding-left:18px;margin:0;">${listHtml}</ul>`,
+            confirmButtonText: 'รับทราบ',
+            confirmButtonColor: '#01224D',
+            allowOutsideClick: true,
+            allowEscapeKey: true
+        });
+    }
     
     function deleteBooking(requester, date, startTime, room) {
         Swal.fire({
@@ -1352,7 +1450,9 @@
                 const slotEnd = slotStart + 30;
 
                 const inMaint = maintenanceSlots.some(m =>
-                    m.building === dashboardBuilding && m.room === room && m.date === todayStr &&
+                    (!m.building || m.building === dashboardBuilding) &&
+                    (!m.room || m.room === room) &&
+                    m.date === todayStr &&
                     slotStart < timeToMinutes(m.end) && timeToMinutes(m.start) < slotEnd
                 );
 
