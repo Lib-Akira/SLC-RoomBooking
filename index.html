@@ -86,6 +86,68 @@
         }
 
         /* --- Sidebar แบบย่อ/ขยายได้ --- */
+        /* --- ป็อปอัพ (SweetAlert2) ธีม Modern โทนเดียวกับระบบจอง --- */
+        .brand-swal-popup {
+            border-radius: 22px !important;
+            box-shadow: 0 24px 60px -12px rgba(1, 34, 77, 0.35), 0 0 0 1px rgba(1,34,77,0.04) !important;
+            padding-bottom: 1.75rem !important;
+        }
+        .brand-swal-title {
+            font-weight: 700 !important;
+            color: #01224D !important;
+            font-size: 1.35rem !important;
+        }
+        .brand-swal-html {
+            color: #475569 !important;
+        }
+        .brand-swal-actions {
+            gap: 10px !important;
+            margin-top: 1.25rem !important;
+        }
+        .brand-swal-confirm {
+            background: linear-gradient(135deg, #01224D 0%, #5388D8 100%) !important;
+            color: #fff !important;
+            border: none !important;
+            border-radius: 999px !important;
+            padding: 11px 30px !important;
+            font-weight: 600 !important;
+            font-size: 14.5px !important;
+            box-shadow: 0 6px 16px rgba(1, 34, 77, 0.3) !important;
+            transition: transform .15s ease, box-shadow .15s ease !important;
+        }
+        .brand-swal-confirm:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 8px 20px rgba(1, 34, 77, 0.38) !important;
+        }
+        .brand-swal-confirm:focus {
+            box-shadow: 0 0 0 3px rgba(2, 61, 137, 0.35) !important;
+        }
+        .brand-swal-cancel {
+            background: #f1f5f9 !important;
+            color: #475569 !important;
+            border: none !important;
+            border-radius: 999px !important;
+            padding: 11px 26px !important;
+            font-weight: 600 !important;
+            font-size: 14.5px !important;
+            transition: background .15s ease !important;
+        }
+        .brand-swal-cancel:hover {
+            background: #e2e8f0 !important;
+        }
+        /* ปุ่มยืนยันสำหรับการกระทำที่ทำลายข้อมูล (เช่น ลบรายการจอง) ให้ยังเป็นสีแดงไว้ ไม่ใช่กรมท่าเหมือนปุ่มทั่วไป */
+        .brand-swal-confirm-danger {
+            background: linear-gradient(135deg, #e11d48 0%, #be123c 100%) !important;
+            box-shadow: 0 6px 16px rgba(225, 29, 72, 0.32) !important;
+        }
+        .brand-swal-confirm-danger:hover {
+            box-shadow: 0 8px 20px rgba(225, 29, 72, 0.4) !important;
+        }
+        /* วงกลมไอคอน warning/error/info/success ให้ดูเบาลง เข้ากับโทนพาสเทลของทั้งระบบ */
+        .brand-swal-popup .swal2-icon {
+            border-width: 2.5px !important;
+        }
+
         #sidebar.collapsed { width: 5rem; /* w-20 */ }
         #sidebar.collapsed .sidebar-label { display: none; }
         #sidebar.collapsed #sidebarToggleIcon { transform: rotate(180deg); }
@@ -613,6 +675,24 @@
     </main>
 
     <script>
+        // ✅ ธีมกลางของป็อปอัพ (SweetAlert2) ทั้งระบบ — แนว Modern โทนเดียวกับสีหลักของระบบจอง (#01224D)
+        // ทุกจุดที่เคยเรียก Swal.fire(...) ตรงๆ เปลี่ยนมาเรียก BrandSwal.fire(...) แทน
+        // จะได้มุมโค้งมน / เงานุ่ม / ปุ่มทรงแคปซูลไล่สี เหมือนกันหมดทั้งระบบ ไม่ต้องแก้ทีละจุด
+        const BrandSwal = Swal.mixin({
+            confirmButtonColor: '#01224D',
+            cancelButtonColor: '#94a3b8',
+            buttonsStyling: false, // ปิดปุ่ม default ของ Swal แล้วคุมรูปทรงเองผ่าน CSS ด้านล่างแทน
+            backdrop: 'rgba(1, 34, 77, 0.35)', // เบลอโทนกรมท่าจางๆ แทนดำทึบเดิม ให้ความรู้สึก modern/glass
+            customClass: {
+                popup: 'brand-swal-popup',
+                title: 'brand-swal-title',
+                htmlContainer: 'brand-swal-html',
+                confirmButton: 'brand-swal-confirm',
+                cancelButton: 'brand-swal-cancel',
+                actions: 'brand-swal-actions'
+            }
+        });
+
         // ระบบสลับหน้า
         function switchView(view) {
             document.getElementById('view-booking').classList.toggle('hidden', view !== 'booking');
@@ -741,10 +821,10 @@
             let [eH, eM] = end.split(':').map(Number);
             let diff = (eH * 60 + eM) - (sH * 60 + sM);
             if (diff <= 0) {
-                Swal.fire({ title: 'ข้อผิดพลาดเกี่ยวกับเวลา', text: 'เวลาสิ้นสุดต้องอยู่หลังเวลาเริ่มต้น', icon: 'warning', confirmButtonColor: '#1e3c72' });
+                BrandSwal.fire({ title: 'ข้อผิดพลาดเกี่ยวกับเวลา', text: 'เวลาสิ้นสุดต้องอยู่หลังเวลาเริ่มต้น', icon: 'warning', confirmButtonColor: '#1e3c72' });
                 submitBtn.disabled = true;
             } else if (diff > 120) {
-                Swal.fire({ title: 'เงื่อนไขการใช้ห้อง', text: '⚠️ ขอใช้งานห้องประชุมได้ครั้งละไม่เกิน 2 ชั่วโมงต่อคน', icon: 'info', confirmButtonColor: '#1e3c72' });
+                BrandSwal.fire({ title: 'เงื่อนไขการใช้ห้อง', text: '⚠️ ขอใช้งานห้องประชุมได้ครั้งละไม่เกิน 2 ชั่วโมงต่อคน', icon: 'info', confirmButtonColor: '#1e3c72' });
                 submitBtn.disabled = true;
             } else {
                 submitBtn.disabled = false;
@@ -933,7 +1013,7 @@
 
         const maintConflict = getMaintenanceConflict(buildingValue, roomValue, bookingDateValue, startTimeValue, endTimeValue);
         if (maintConflict) {
-            Swal.fire({
+            BrandSwal.fire({
                 title: 'ช่วงเวลานี้ปิดใช้งานชั่วคราว',
                 text: maintConflict.reason || 'ห้องสมุดปิดใช้งานในช่วงเวลานี้ กรุณาเลือกวัน/เวลาอื่น',
                 icon: 'info',
@@ -943,7 +1023,7 @@
         }
 
         if (hasTimeConflict(buildingValue, roomValue, bookingDateValue, startTimeValue, endTimeValue)) {
-            Swal.fire({
+            BrandSwal.fire({
                 title: 'ช่วงเวลานี้ถูกจองแล้ว',
                 text: 'มีคนจองห้องนี้ในช่วงเวลาที่คุณเลือกไปแล้ว กรุณาเลือกเวลาอื่น',
                 icon: 'warning',
@@ -982,14 +1062,14 @@
         .then(res => res.json())
         .then(result => {
             if (result.status === "error") {
-                Swal.fire({
+                BrandSwal.fire({
                     title: 'ไม่สามารถจองได้',
                     html: result.message,
                     icon: 'warning',
                     confirmButtonColor: '#1d4ed8'
                 });
             } else {
-                Swal.fire({
+                BrandSwal.fire({
                     title: 'จองสำเร็จ!',
                     text: 'โปรดติดต่อเจ้าหน้าที่ห้องสมุด SLC ก่อนเข้าใช้งาน',
                     icon: 'success',
@@ -1016,7 +1096,7 @@
         })
         .catch(err => {
             console.error(err);
-            Swal.fire({
+            BrandSwal.fire({
                 title: 'เกิดข้อผิดพลาด!',
                 text: 'ไม่สามารถติดต่อเซิร์ฟเวอร์ได้ กรุณาลองใหม่อีกครั้ง',
                 icon: 'error',
@@ -1128,32 +1208,40 @@
             return dt.toLocaleDateString('th-TH', { day: 'numeric', month: 'short' });
         };
 
-        const listHtml = closures.map(c => {
+        // แต่ละรายการปิด แสดงเป็นการ์ดกึ่งกลางเหมือนกันทั้งหมด (วันที่+เวลา เด่น, เหตุผลรอง)
+        // จัดกึ่งกลางให้สอดคล้องกับไอคอน/หัวข้อด้านบน ไม่สลับซ้าย-กลาง
+        const cardsHtml = closures.map(c => {
             const scopeLabel = c.building
                 ? (c.room ? `${escapeHtml(c.building)} • ${escapeHtml(c.room)}` : `อาคาร ${escapeHtml(c.building)}`)
                 : 'ทุกอาคาร';
             const isFullDay = timeToMinutes(c.start) <= 1 && timeToMinutes(c.end) >= (23 * 60 + 58);
             const timeLabel = isFullDay ? 'ปิดทั้งวัน' : `${escapeHtml(c.start)} - ${escapeHtml(c.end)}`;
-            return `<li style="margin-bottom:10px;text-align:left;">
-                        <strong>${formatDateLabel(c.date)}</strong> · ${timeLabel} (${scopeLabel})<br>
-                        <span style="color:#64748b;font-size:13px;">${escapeHtml(c.reason || 'ปิดใช้งานชั่วคราว')}</span>
-                    </li>`;
+            return `<div style="text-align:center;background:#eef4fc;border:1px solid #cfe0f5;border-radius:12px;padding:14px 16px;margin-bottom:8px;">
+                        <div style="font-weight:700;color:#01224D;font-size:14.5px;margin-bottom:2px;">
+                            ${formatDateLabel(c.date)} · ${timeLabel}
+                        </div>
+                        <div style="font-weight:500;color:#3568a8;font-size:12.5px;margin-bottom:6px;">
+                            (${scopeLabel})
+                        </div>
+                        <div style="color:#57534e;font-size:13.5px;line-height:1.5;">
+                            ${escapeHtml(c.reason || 'ปิดใช้งานชั่วคราว')}
+                        </div>
+                    </div>`;
         }).join('');
 
-        Swal.fire({
+        BrandSwal.fire({
             icon: 'warning',
             title: title,
-            html: `<ul style="padding-left:18px;margin:0 0 8px;">${listHtml}</ul>` +
+            html: cardsHtml +
                   (footNote ? `<p style="font-size:13px;color:#94a3b8;margin:0;">${escapeHtml(footNote)}</p>` : ''),
             confirmButtonText: 'รับทราบ',
-            confirmButtonColor: '#01224D',
             allowOutsideClick: true,
             allowEscapeKey: true
         });
     }
     
     function deleteBooking(requester, date, startTime, room) {
-        Swal.fire({
+        BrandSwal.fire({
             title: '🔒 ยืนยันการลบรายการ',
             html: 'ฟังก์ชันนี้เฉพาะเจ้าหน้าที่ห้องสมุดเท่านั้น<br>กรุณาใส่รหัสผ่านแอดมิน:',
             input: 'password', 
@@ -1164,9 +1252,15 @@
             showCancelButton: true,
             confirmButtonText: 'ยืนยันการลบ',
             cancelButtonText: 'ยกเลิก',
-            confirmButtonColor: '#e11d48',
-            cancelButtonColor: '#64748b',
             showLoaderOnConfirm: true,
+            customClass: {
+                popup: 'brand-swal-popup',
+                title: 'brand-swal-title',
+                htmlContainer: 'brand-swal-html',
+                confirmButton: 'brand-swal-confirm brand-swal-confirm-danger',
+                cancelButton: 'brand-swal-cancel',
+                actions: 'brand-swal-actions'
+            },
             preConfirm: (password) => {
                 if (!password) {
                     Swal.showValidationMessage('กรุณากรอกรหัสผ่าน');
@@ -1200,7 +1294,7 @@
         }).then((result) => {
             if (result.isConfirmed && result.value) {
                 if (result.value.status === "success") {
-                    Swal.fire({
+                    BrandSwal.fire({
                         title: 'ลบรายการสำเร็จ!',
                         text: 'ลบข้อมูลการจองเรียบร้อยแล้ว',
                         icon: 'success',
@@ -1208,7 +1302,7 @@
                     });
                     loadBookings(); 
                 } else {
-                    Swal.fire({
+                    BrandSwal.fire({
                         title: 'ไม่สามารถลบได้!',
                         text: result.value.message || 'รหัสผ่านไม่ถูกต้อง หรือไม่พบข้อมูล',
                         icon: 'error',
