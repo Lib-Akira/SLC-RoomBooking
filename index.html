@@ -302,6 +302,7 @@
                         </svg>
                         วันที่ต้องการจอง</label>
                         <input type="text" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-[#5388D8]/30 focus:ring-2 focus:ring-blue-500/10 transition" id="bookingDate" placeholder="คลิกเลือกวันที่..." required>
+                        <p id="dateClosureWarning" class="hidden mt-1.5 text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded-lg px-2.5 py-1.5"></p>
                     </div>
 
                     <div class="grid grid-cols-2 gap-4">
@@ -1036,7 +1037,12 @@
             altFormat: "d/m/Y",  
             locale: "th",            
             minDate: "today",        
-            allowInput: false
+            allowInput: false,
+            // ✅ เพิ่มใหม่: พอเลือกวันที่ปุ๊บ เช็คทันทีว่าวันนั้นมีประกาศปิดไหม
+            // ไม่ต้องรอให้กรอกฟอร์มจนจบแล้วไปเจอตอนกด submit
+            onChange: function(selectedDates, dateStr) {
+                checkSelectedDateWarning(dateStr);
+            }
         });
         fpFilterInstance = flatpickr("#filterDate", {
             dateFormat: "Y-m-d", 
@@ -1056,23 +1062,56 @@
         fetchMaintenanceData().then(checkTodayClosurePopup);
     };
 
-    // ✅ เพิ่มใหม่: เช็คว่า "วันนี้" มีประกาศปิดไหม แบ่งเป็น 2 ระดับ
-    //   - ปิดทั้งวัน (เวลาที่ตั้งครอบคลุมเกือบทั้งวัน เช่น 00:00-23:59) -> บล็อกทั้งหน้า ปิดป็อปอัพไม่ได้
-    //   - ปิดบางช่วง (เช่นบ่ายวันนี้) -> แจ้งเตือนเฉยๆ กด "รับทราบ" ปิดได้ ไปจองช่วงอื่นได้ตามปกติ
+    // ✅ เพิ่มใหม่: เช็คทั้งช่วง "วันนี้ถึง 14 วันข้างหน้า" ว่ามีประกาศปิดไหม
+    //   - ถ้า "วันนี้" ปิดทั้งวัน -> บล็อกทั้งหน้า ปิดป็อปอัพไม่ได้ (เพราะวันนี้ใช้งานไม่ได้จริงๆ)
+    //   - ถ้าไม่ใช่ แต่มีประกาศปิดในช่วง 14 วันข้างหน้า (ไม่ว่าจะเต็มวันหรือบางช่วง)
+    //     -> แจ้งเตือนแบบปิดได้ ให้เห็นล่วงหน้าก่อนเลือกวันที่ในฟอร์มด้วยซ้ำ
     function checkTodayClosurePopup() {
         const todayStr = new Date().toLocaleDateString('sv-SE');
-        const todayClosures = maintenanceSlots.filter(m => m.date === todayStr);
-        if (todayClosures.length === 0) return;
-
-        // ถือว่า "ปิดทั้งวัน" ถ้าช่วงเวลาที่ตั้งไว้ครอบคลุมเกือบทั้งวัน (เริ่มใกล้ 00:00 ถึงใกล้ 23:59)
         const isFullDayEntry = (m) => timeToMinutes(m.start) <= 1 && timeToMinutes(m.end) >= (23 * 60 + 58);
-        const fullDayClosure = todayClosures.find(isFullDayEntry);
 
-        if (fullDayClosure) {
-            showFullDayClosurePopup(fullDayClosure);
-        } else {
-            showPartialClosurePopup(todayClosures);
+        const todayClosures = maintenanceSlots.filter(m => m.date === todayStr);
+        const fullDayToday = todayClosures.find(isFullDayEntry);
+
+        if (fullDayToday) {
+            showFullDayClosurePopup(fullDayToday);
+            return;
         }
+
+        // สแกนล่วงหน้า 14 วัน (รวมวันนี้) เพื่อโชว์เป็นประกาศเตือนล่วงหน้า
+        const horizon = new Date();
+        horizon.setDate(horizon.getDate() + 14);
+        const horizonStr = horizon.toLocaleDateString('sv-SE');
+        const upcomingClosures = maintenanceSlots
+            .filter(m => m.date >= todayStr && m.date <= horizonStr)
+            .sort((a, b) => a.date.localeCompare(b.date));
+
+        if (upcomingClosures.length > 0) {
+            showPartialClosurePopup(upcomingClosures);
+        }
+    }
+
+    // ✅ เพิ่มใหม่: เช็คทันทีตอนเลือกวันที่ในฟอร์มจอง ว่าวันนั้นมีประกาศปิดไหม
+    // แสดงเป็นข้อความเตือนใต้ช่องวันที่เลย ไม่ต้องรอไปเจอตอนกด submit
+    function checkSelectedDateWarning(dateStr) {
+        const warningEl = document.getElementById('dateClosureWarning');
+        if (!warningEl) return;
+
+        const closuresOnDate = maintenanceSlots.filter(m => m.date === dateStr);
+        if (closuresOnDate.length === 0) {
+            warningEl.classList.add('hidden');
+            warningEl.textContent = '';
+            return;
+        }
+
+        const isFullDay = closuresOnDate.some(m => timeToMinutes(m.start) <= 1 && timeToMinutes(m.end) >= (23 * 60 + 58));
+        if (isFullDay) {
+            warningEl.textContent = `⚠️ วันที่เลือกปิดทำการทั้งวัน: ${closuresOnDate[0].reason || 'ปิดทำการชั่วคราว'}`;
+        } else {
+            const ranges = closuresOnDate.map(c => `${c.start}-${c.end} (${c.reason || 'ปิดใช้งานชั่วคราว'})`).join(', ');
+            warningEl.textContent = `⚠️ วันที่เลือกมีบางช่วงปิด: ${ranges}`;
+        }
+        warningEl.classList.remove('hidden');
     }
 
     function showFullDayClosurePopup(closure) {
@@ -1102,19 +1141,28 @@
     }
 
     function showPartialClosurePopup(closures) {
+        const todayStr = new Date().toLocaleDateString('sv-SE');
+        const formatDateLabel = (d) => {
+            if (d === todayStr) return 'วันนี้';
+            const dt = new Date(d + 'T00:00:00');
+            return dt.toLocaleDateString('th-TH', { day: 'numeric', month: 'short' });
+        };
+
         const listHtml = closures.map(c => {
             const scopeLabel = c.building
                 ? (c.room ? `${escapeHtml(c.building)} • ${escapeHtml(c.room)}` : `อาคาร ${escapeHtml(c.building)}`)
                 : 'ทุกอาคาร';
-            return `<li style="margin-bottom:8px;text-align:left;">
-                        <strong>${escapeHtml(c.start)} - ${escapeHtml(c.end)}</strong> (${scopeLabel})<br>
+            const isFullDay = timeToMinutes(c.start) <= 1 && timeToMinutes(c.end) >= (23 * 60 + 58);
+            const timeLabel = isFullDay ? 'ปิดทั้งวัน' : `${escapeHtml(c.start)} - ${escapeHtml(c.end)}`;
+            return `<li style="margin-bottom:10px;text-align:left;">
+                        <strong>${formatDateLabel(c.date)}</strong> · ${timeLabel} (${scopeLabel})<br>
                         <span style="color:#64748b;font-size:13px;">${escapeHtml(c.reason || 'ปิดใช้งานชั่วคราว')}</span>
                     </li>`;
         }).join('');
 
         Swal.fire({
             icon: 'info',
-            title: 'แจ้งปิดให้บริการชั่วคราววันนี้',
+            title: 'ประกาศปิดให้บริการ (14 วันข้างหน้า)',
             html: `<ul style="padding-left:18px;margin:0;">${listHtml}</ul>`,
             confirmButtonText: 'รับทราบ',
             confirmButtonColor: '#01224D',
