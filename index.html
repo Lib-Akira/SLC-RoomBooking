@@ -553,7 +553,7 @@
                 <div class="flex flex-wrap items-center gap-4 mb-4 text-xs font-medium text-slate-500">
                     <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-sm bg-emerald-400 inline-block"></span> ว่าง (Available)</span>
                     <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-sm bg-rose-400 inline-block"></span> กำลังใช้งาน (In Use)</span>
-                    <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-sm inline-block" style="background-image: repeating-linear-gradient(45deg,#cbd5e1,#cbd5e1 3px,#f1f5f9 3px,#f1f5f9 6px);"></span> ปิดทำการ (Maintenance)</span>
+                    <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-sm inline-block" style="background-image: repeating-linear-gradient(45deg,#cbd5e1,#cbd5e1 3px,#f1f5f9 3px,#f1f5f9 6px);"></span> ปิดซ่อมบำรุง (Maintenance)</span>
                 </div>
 
                 <div class="overflow-x-auto pb-2 pt-8 relative" id="timelineWrapper">
@@ -741,7 +741,7 @@
             let [eH, eM] = end.split(':').map(Number);
             let diff = (eH * 60 + eM) - (sH * 60 + sM);
             if (diff <= 0) {
-                Swal.fire({ title: 'ข้อผิดพลาดเกี่ยวกับเวลา', text: 'เวลาสิ้นสุดต้องอยู่หลังเวลาเริ่มต้นครับ', icon: 'warning', confirmButtonColor: '#1e3c72' });
+                Swal.fire({ title: 'ข้อผิดพลาดเกี่ยวกับเวลา', text: 'เวลาสิ้นสุดต้องอยู่หลังเวลาเริ่มต้น', icon: 'warning', confirmButtonColor: '#1e3c72' });
                 submitBtn.disabled = true;
             } else if (diff > 120) {
                 Swal.fire({ title: 'เงื่อนไขการใช้ห้อง', text: '⚠️ ขอใช้งานห้องประชุมได้ครั้งละไม่เกิน 2 ชั่วโมงต่อคน', icon: 'info', confirmButtonColor: '#1e3c72' });
@@ -807,7 +807,7 @@
                     <tr>
                         <td colspan="3" class="text-center text-slate-400 py-12">
                             <i class="fa-regular fa-folder-open d-block mb-3 opacity-40 text-4xl text-slate-300"></i>
-                            <div class="text-sm">ไม่พบข้อมูลการจองตามเงื่อนไขที่เลือกในวันนี้ครับ</div>
+                            <div class="text-sm">ไม่พบข้อมูลการจองตามเงื่อนไขที่เลือกในวันนี้</div>
                         </td>
                     </tr>`;
                 return;
@@ -935,7 +935,7 @@
         if (maintConflict) {
             Swal.fire({
                 title: 'ช่วงเวลานี้ปิดใช้งานชั่วคราว',
-                text: maintConflict.reason || 'ห้องสมุดปิดใช้งานในช่วงเวลานี้ กรุณาเลือกวัน/เวลาอื่นครับ',
+                text: maintConflict.reason || 'ห้องสมุดปิดใช้งานในช่วงเวลานี้ กรุณาเลือกวัน/เวลาอื่น',
                 icon: 'info',
                 confirmButtonColor: '#01224D'
             });
@@ -945,7 +945,7 @@
         if (hasTimeConflict(buildingValue, roomValue, bookingDateValue, startTimeValue, endTimeValue)) {
             Swal.fire({
                 title: 'ช่วงเวลานี้ถูกจองแล้ว',
-                text: 'มีคนจองห้องนี้ในช่วงเวลาที่คุณเลือกไปแล้วครับ กรุณาเลือกเวลาอื่น',
+                text: 'มีคนจองห้องนี้ในช่วงเวลาที่คุณเลือกไปแล้ว กรุณาเลือกเวลาอื่น',
                 icon: 'warning',
                 confirmButtonColor: '#1e3c72'
             });
@@ -1058,89 +1058,69 @@
         // ✅ เพิ่มใหม่: โหลดข้อมูล "ปิดปรับปรุง/ปิดใช้งานชั่วคราว" ตั้งแต่เปิดหน้าเว็บเลย
         // (เดิมโหลดเฉพาะตอนกดเข้าแท็บ Dashboard เท่านั้น ทำให้คนที่ไม่เคยเปิด Dashboard
         // เลย จะจองช่วงที่ปิดไปได้โดยระบบไม่รู้ว่ามีการปิดอยู่)
-        // โหลดเสร็จแล้วเช็คทันทีว่าวันนี้มีประกาศปิดไหม จะได้เด้งป็อปอัพแจ้ง/บล็อกทันทีที่เข้าเว็บ
-        fetchMaintenanceData().then(checkTodayClosurePopup);
+        // โหลดเสร็จแล้วเช็คทันทีว่ามีประกาศปิดในช่วง 14 วันข้างหน้าไหม จะได้แจ้งทันทีที่เข้าเว็บ
+        fetchMaintenanceData().then(showUpcomingClosuresPopup);
     };
 
-    // ✅ เพิ่มใหม่: เช็คทั้งช่วง "วันนี้ถึง 14 วันข้างหน้า" ว่ามีประกาศปิดไหม
-    //   - ถ้า "วันนี้" ปิดทั้งวัน -> บล็อกทั้งหน้า ปิดป็อปอัพไม่ได้ (เพราะวันนี้ใช้งานไม่ได้จริงๆ)
-    //   - ถ้าไม่ใช่ แต่มีประกาศปิดในช่วง 14 วันข้างหน้า (ไม่ว่าจะเต็มวันหรือบางช่วง)
-    //     -> แจ้งเตือนแบบปิดได้ ให้เห็นล่วงหน้าก่อนเลือกวันที่ในฟอร์มด้วยซ้ำ
-    function checkTodayClosurePopup() {
+    // ✅ เพิ่มใหม่: แจ้งเตือนล่วงหน้าตอนเปิดเว็บ ว่าใน 14 วันข้างหน้ามีวัน/ช่วงไหนปิดบ้าง
+    // เป็นแค่การ "แจ้งให้ทราบ" กด "รับทราบ" ปิดได้เสมอ ไม่ว่าจะปิดกี่วัน/ปิดทั้งวันหรือไม่ก็ตาม
+    // เพราะถึงวันนี้จะปิดทั้งวัน ก็ไม่ควรบล็อกคนที่ตั้งใจจะจองล่วงหน้าไปวันอื่น
+    function showUpcomingClosuresPopup() {
         const todayStr = new Date().toLocaleDateString('sv-SE');
-        const isFullDayEntry = (m) => timeToMinutes(m.start) <= 1 && timeToMinutes(m.end) >= (23 * 60 + 58);
-
-        const todayClosures = maintenanceSlots.filter(m => m.date === todayStr);
-        const fullDayToday = todayClosures.find(isFullDayEntry);
-
-        if (fullDayToday) {
-            showFullDayClosurePopup(fullDayToday);
-            return;
-        }
-
-        // สแกนล่วงหน้า 14 วัน (รวมวันนี้) เพื่อโชว์เป็นประกาศเตือนล่วงหน้า
         const horizon = new Date();
         horizon.setDate(horizon.getDate() + 14);
         const horizonStr = horizon.toLocaleDateString('sv-SE');
+
         const upcomingClosures = maintenanceSlots
             .filter(m => m.date >= todayStr && m.date <= horizonStr)
             .sort((a, b) => a.date.localeCompare(b.date));
 
         if (upcomingClosures.length > 0) {
-            showPartialClosurePopup(upcomingClosures);
+            showClosureListPopup('ประกาศปิดให้บริการ', upcomingClosures);
         }
     }
 
     // ✅ เพิ่มใหม่: เช็คทันทีตอนเลือกวันที่ในฟอร์มจอง ว่าวันนั้นมีประกาศปิดไหม
-    // แสดงเป็นข้อความเตือนใต้ช่องวันที่เลย ไม่ต้องรอไปเจอตอนกด submit
+    // - แสดงข้อความเตือนใต้ช่องวันที่ค้างไว้ตลอด (เห็นง่าย ไม่ต้องเปิดป็อปอัพซ้ำ)
+    // - เด้งป็อปอัพเตือนอีกรอบตอนเลือกวันนั้นพอดี (กด "รับทราบ" ปิดได้)
+    // - ถ้าวันนั้น "ปิดทั้งวัน" จะล็อกปุ่มจองไว้จนกว่าจะเปลี่ยนวัน (ปิดบางช่วงยังจองได้ตามปกติ
+    //   เพราะยังเลือกเวลานอกช่วงปิดได้ ระบบจะกันไม่ให้เลือกช่วงที่ปิดอีกทีตอนกด submit)
     function checkSelectedDateWarning(dateStr) {
         const warningEl = document.getElementById('dateClosureWarning');
+        const submitBtn = document.getElementById('submitBtn');
         if (!warningEl) return;
 
         const closuresOnDate = maintenanceSlots.filter(m => m.date === dateStr);
+
         if (closuresOnDate.length === 0) {
             warningEl.classList.add('hidden');
             warningEl.textContent = '';
+            if (submitBtn) submitBtn.disabled = false;
             return;
         }
 
         const isFullDay = closuresOnDate.some(m => timeToMinutes(m.start) <= 1 && timeToMinutes(m.end) >= (23 * 60 + 58));
+
         if (isFullDay) {
-            warningEl.textContent = `⚠️ วันที่เลือกปิดทำการทั้งวัน: ${closuresOnDate[0].reason || 'ปิดทำการชั่วคราว'}`;
+            warningEl.textContent = `⚠️ วันที่เลือกห้องสมุดปิดทำการ: ${closuresOnDate[0].reason || 'ปิดทำการชั่วคราว'} — กรุณาเลือกวันอื่น`;
         } else {
             const ranges = closuresOnDate.map(c => `${c.start}-${c.end} (${c.reason || 'ปิดใช้งานชั่วคราว'})`).join(', ');
             warningEl.textContent = `⚠️ วันที่เลือกมีบางช่วงปิด: ${ranges}`;
         }
         warningEl.classList.remove('hidden');
+
+        // ล็อกปุ่มจองเฉพาะกรณีปิดทั้งวันเท่านั้น — ปิดบางช่วงยังปล่อยให้จองได้ตามปกติ
+        if (submitBtn) submitBtn.disabled = isFullDay;
+
+        showClosureListPopup(
+            isFullDay ? 'วันที่เลือกห้องสมุดปิดทำการ' : 'วันที่เลือกมีบางช่วงปิดให้บริการ',
+            closuresOnDate,
+            isFullDay ? 'กรุณาเลือกวันอื่น' : 'ไม่สามารถจองได้ในช่วงเวลาที่ห้องสมุดปิดทำการ'
+        );
     }
 
-    function showFullDayClosurePopup(closure) {
-        // ปิดปุ่มจองไว้ด้วยเป็นการป้องกันซ้อน เผื่อกรณีป็อปอัพโดน bypass ด้วยวิธีอื่น
-        const submitBtn = document.getElementById('submitBtn');
-        if (submitBtn) submitBtn.disabled = true;
-
-        const scopeLabel = closure.building
-            ? `อาคาร ${escapeHtml(closure.building)}`
-            : 'ทุกอาคาร';
-
-        Swal.fire({
-            icon: 'error',
-            title: 'วันนี้ห้องสมุดปิดทำการ',
-            html: `
-                <p style="margin-bottom:4px;">${escapeHtml(closure.reason || 'ปิดทำการชั่วคราว')}</p>
-                <p style="font-size:13px;color:#94a3b8;margin:0;">ขอบเขตการปิด: ${scopeLabel}</p>
-            `,
-            showConfirmButton: false,
-            showCloseButton: false,
-            showCancelButton: false,
-            allowOutsideClick: false,
-            allowEscapeKey: false,
-            allowEnterKey: false,
-            confirmButtonColor: '#01224D'
-        });
-    }
-
-    function showPartialClosurePopup(closures) {
+    // ป็อปอัพแจ้งรายการปิด — ใช้ร่วมกันทั้งตอนเปิดเว็บและตอนเลือกวันที่ กด "รับทราบ" ปิดได้เสมอ
+    function showClosureListPopup(title, closures, footNote) {
         const todayStr = new Date().toLocaleDateString('sv-SE');
         const formatDateLabel = (d) => {
             if (d === todayStr) return 'วันนี้';
@@ -1161,9 +1141,10 @@
         }).join('');
 
         Swal.fire({
-            icon: 'info',
-            title: 'ประกาศปิดให้บริการ',
-            html: `<ul style="padding-left:18px;margin:0;">${listHtml}</ul>`,
+            icon: 'warning',
+            title: title,
+            html: `<ul style="padding-left:18px;margin:0 0 8px;">${listHtml}</ul>` +
+                  (footNote ? `<p style="font-size:13px;color:#94a3b8;margin:0;">${escapeHtml(footNote)}</p>` : ''),
             confirmButtonText: 'รับทราบ',
             confirmButtonColor: '#01224D',
             allowOutsideClick: true,
@@ -1188,7 +1169,7 @@
             showLoaderOnConfirm: true,
             preConfirm: (password) => {
                 if (!password) {
-                    Swal.showValidationMessage('กรุณากรอกรหัสผ่านครับ');
+                    Swal.showValidationMessage('กรุณากรอกรหัสผ่าน');
                     return false;
                 }
                 // สำคัญ: ใช้ POST และใส่ password ไว้ใน body แทนการแปะบน URL
