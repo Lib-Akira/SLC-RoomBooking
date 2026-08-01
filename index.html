@@ -992,7 +992,7 @@
         const newStart = timeToMinutes(startTime);
         const newEnd = timeToMinutes(endTime);
         return maintenanceSlots.find(m => {
-            if (m.date !== date) return false;
+            if (date < m.startDate || date > m.endDate) return false; // นอกช่วงวันที่ปิด
             if (m.building && m.building !== building) return false;
             if (m.room && m.room !== room) return false;
             const mStart = timeToMinutes(m.start);
@@ -1151,9 +1151,10 @@
         horizon.setDate(horizon.getDate() + 14);
         const horizonStr = horizon.toLocaleDateString('sv-SE');
 
+        // แสดงรายการที่ "ช่วงวันที่ปิด" คาบเกี่ยวกับช่วง 14 วันข้างหน้า (ไม่ใช่แค่วันเดียวแล้ว)
         const upcomingClosures = maintenanceSlots
-            .filter(m => m.date >= todayStr && m.date <= horizonStr)
-            .sort((a, b) => a.date.localeCompare(b.date));
+            .filter(m => m.startDate <= horizonStr && m.endDate >= todayStr)
+            .sort((a, b) => a.startDate.localeCompare(b.startDate));
 
         if (upcomingClosures.length > 0) {
             showClosureListPopup('ประกาศปิดให้บริการ', upcomingClosures);
@@ -1170,7 +1171,7 @@
         const submitBtn = document.getElementById('submitBtn');
         if (!warningEl) return;
 
-        const closuresOnDate = maintenanceSlots.filter(m => m.date === dateStr);
+        const closuresOnDate = maintenanceSlots.filter(m => dateStr >= m.startDate && dateStr <= m.endDate);
 
         if (closuresOnDate.length === 0) {
             warningEl.classList.add('hidden');
@@ -1208,7 +1209,7 @@
             return dt.toLocaleDateString('th-TH', { day: 'numeric', month: 'short' });
         };
 
-        // แต่ละรายการปิด แสดงเป็นการ์ดกึ่งกลางเหมือนกันทั้งหมด (วันที่+เวลา เด่น, เหตุผลรอง)
+        // แต่ละรายการปิด แสดงเป็นการ์ดกึ่งกลางเหมือนกันทั้งหมด (ช่วงวันที่+เวลา เด่น, เหตุผลรอง)
         // จัดกึ่งกลางให้สอดคล้องกับไอคอน/หัวข้อด้านบน ไม่สลับซ้าย-กลาง
         const cardsHtml = closures.map(c => {
             const scopeLabel = c.building
@@ -1216,9 +1217,13 @@
                 : 'ทุกอาคาร';
             const isFullDay = timeToMinutes(c.start) <= 1 && timeToMinutes(c.end) >= (23 * 60 + 58);
             const timeLabel = isFullDay ? 'ปิดทั้งวัน' : `${escapeHtml(c.start)} - ${escapeHtml(c.end)}`;
+            // ช่วงวันเดียว -> โชว์วันเดียว, หลายวัน -> โชว์เป็นช่วง "เริ่ม - สิ้นสุด" แถวเดียว ไม่ต้องแตกเป็นรายวัน
+            const dateLabel = c.startDate === c.endDate
+                ? formatDateLabel(c.startDate)
+                : `${formatDateLabel(c.startDate)} - ${formatDateLabel(c.endDate)}`;
             return `<div style="text-align:center;background:#eef4fc;border:1px solid #cfe0f5;border-radius:12px;padding:14px 16px;margin-bottom:8px;">
                         <div style="font-weight:700;color:#01224D;font-size:14.5px;margin-bottom:2px;">
-                            ${formatDateLabel(c.date)} · ${timeLabel}
+                            ${dateLabel} · ${timeLabel}
                         </div>
                         <div style="font-weight:500;color:#3568a8;font-size:12.5px;margin-bottom:6px;">
                             (${scopeLabel})
@@ -1575,7 +1580,7 @@
                 const inMaint = maintenanceSlots.some(m =>
                     (!m.building || m.building === dashboardBuilding) &&
                     (!m.room || m.room === room) &&
-                    m.date === todayStr &&
+                    todayStr >= m.startDate && todayStr <= m.endDate &&
                     slotStart < timeToMinutes(m.end) && timeToMinutes(m.start) < slotEnd
                 );
 
