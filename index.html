@@ -741,12 +741,11 @@
     function updateRoomsAndTimes() {
         const building = document.getElementById("building").value;
         const roomSelect = document.getElementById("room");
-        const startSelect = document.getElementById("startTime");
-        const endSelect = document.getElementById("endTime");
 
         roomSelect.innerHTML = '<option value="">-- เลือกห้อง --</option>';
         if (!building) {
-            roomSelect.disabled = startSelect.disabled = endSelect.disabled = true;
+            roomSelect.disabled = true;
+            updateTimeOptions(); // ปิดใช้งาน dropdown เวลาให้เองถ้ายังไม่เลือกอาคาร
             return;
         }
 
@@ -755,9 +754,29 @@
         });
         roomSelect.disabled = false;
 
-        let timeOpts = building === "Saint Louis" ? generateTimeOptions(10, 19) : generateTimeOptions(8, 17);
+        updateTimeOptions();
+    }
+
+    // ✅ เพิ่มใหม่: แยกออกมาจาก updateRoomsAndTimes เพื่อให้เรียกซ้ำได้ตอนเปลี่ยน "วันที่" อย่างเดียว
+    // โดยไม่ไปรีเซ็ตห้องที่เลือกไว้แล้ว — เปลี่ยนแค่ตัวเลือกเวลาให้ตรงกับเวลาเปิด-ปิดของวันนั้น
+    // (เผื่อวันที่เลือกตรงกับช่วงที่มีประกาศเปลี่ยนแปลงเวลาชั่วคราว เช่น ช่วงปิดเทอม)
+    function updateTimeOptions() {
+        const building = document.getElementById("building").value;
+        const startSelect = document.getElementById("startTime");
+        const endSelect = document.getElementById("endTime");
+
         startSelect.innerHTML = '<option value="">-- เริ่ม --</option>';
         endSelect.innerHTML = '<option value="">-- สิ้นสุด --</option>';
+
+        if (!building) {
+            startSelect.disabled = endSelect.disabled = true;
+            return;
+        }
+
+        // ✅ แก้ไข: ใช้เวลาเปิด-ปิดที่ "มีผลจริง" ของวันที่เลือกไว้ แทนที่จะ hardcode 10-19 / 8-17 ตรงๆ เหมือนเดิม
+        const selectedDateForHours = fpBookingInstance ? fpBookingInstance.input.value : "";
+        const effHours = getEffectiveOperatingHours(building, selectedDateForHours);
+        let timeOpts = generateTimeOptions(effHours.start, effHours.end);
         timeOpts.forEach(t => {
             startSelect.innerHTML += `<option value="${t}">${t}</option>`;
             endSelect.innerHTML += `<option value="${t}">${t}</option>`;
@@ -1122,6 +1141,9 @@
             // ไม่ต้องรอให้กรอกฟอร์มจนจบแล้วไปเจอตอนกด submit
             onChange: function(selectedDates, dateStr) {
                 checkSelectedDateWarning(dateStr);
+                // ✅ เพิ่มใหม่: พอเปลี่ยนวันที่ ให้รีเฟรชตัวเลือกเวลาเริ่ม/สิ้นสุดตามเวลาเปิด-ปิดของวันนั้นด้วย
+                // เผื่อวันที่เลือกตรงกับช่วงที่มีประกาศเปลี่ยนแปลงเวลาชั่วคราว (เช่น ช่วงปิดเทอม)
+                updateTimeOptions();
             }
         });
         fpFilterInstance = flatpickr("#filterDate", {
@@ -1140,6 +1162,9 @@
         // เลย จะจองช่วงที่ปิดไปได้โดยระบบไม่รู้ว่ามีการปิดอยู่)
         // โหลดเสร็จแล้วเช็คทันทีว่ามีประกาศปิดในช่วง 14 วันข้างหน้าไหม จะได้แจ้งทันทีที่เข้าเว็บ
         fetchMaintenanceData().then(showUpcomingClosuresPopup);
+        // ✅ เพิ่มใหม่: โหลดประกาศเปลี่ยนแปลงเวลาเปิด-ปิดชั่วคราวตั้งแต่เปิดหน้าเว็บเลย
+        // เพื่อให้ dropdown เวลาเริ่ม/สิ้นสุดในฟอร์มจองแสดงถูกต้องตั้งแต่แรก
+        fetchOperatingHours();
     };
 
     // ✅ เพิ่มใหม่: แจ้งเตือนล่วงหน้าตอนเปิดเว็บ ว่าใน 14 วันข้างหน้ามีวัน/ช่วงไหนปิดบ้าง
@@ -1374,6 +1399,27 @@
         "Saint Benedict": { start: 8, end: 17 }
     };
 
+    // ✅ เพิ่มใหม่: รายการ "ประกาศเปลี่ยนแปลงเวลาเปิด-ปิดชั่วคราว" ดึงจาก Google Sheet แท็บ "OperatingHours"
+    // (โหลดจริงใน fetchOperatingHours() ด้านล่าง — ค่าตั้งต้นเป็น array ว่างระหว่างรอโหลด)
+    let operatingHoursOverrides = [];
+
+    // ✅ เพิ่มใหม่: คืนค่าเวลาเปิด-ปิดที่ "มีผลจริง" ของอาคาร+วันที่ที่ระบุ เป็น { start, end } หน่วยชั่วโมง
+    // ถ้ามีประกาศใน OperatingHours ครอบคลุมวันนั้น ใช้ค่านั้นแทนเวลาเปิด-ปิดปกติของอาคาร
+    function getEffectiveOperatingHours(building, dateStr) {
+        if (dateStr) {
+            const override = operatingHoursOverrides.find(o =>
+                (!o.building || o.building === building) &&
+                dateStr >= o.startDate && dateStr <= o.endDate
+            );
+            if (override && override.openTime && override.closeTime) {
+                const openHour = timeToMinutes(override.openTime) / 60;
+                const closeHour = timeToMinutes(override.closeTime) / 60;
+                return { start: openHour, end: closeHour };
+            }
+        }
+        return roomOperatingHours[building] || { start: 8, end: 20 };
+    }
+
     function generateHalfHourSlots(startHour, endHour) {
         const slots = [];
         for (let h = startHour; h < endHour; h++) {
@@ -1440,6 +1486,23 @@
                 // ไม่ทำให้ dashboard ส่วนอื่นพัง แค่ถือว่าไม่มีรายการปิดซ่อมบำรุง
                 console.warn('โหลดข้อมูลปิดซ่อมบำรุงไม่สำเร็จ (อาจยังไม่ได้ตั้งค่าฝั่ง Apps Script):', err);
                 maintenanceSlots = [];
+            });
+    }
+
+    // ✅ เพิ่มใหม่: โหลดประกาศเปลี่ยนแปลงเวลาเปิด-ปิดชั่วคราว (เช่น ช่วงปิดเทอม)
+    function fetchOperatingHours() {
+        return fetch(`${SCRIPT_URL}?type=hours`)
+            .then(res => res.json())
+            .then(data => {
+                operatingHoursOverrides = Array.isArray(data) ? data : [];
+                // ถ้าตอนนี้ผู้ใช้เลือกอาคารไว้อยู่แล้ว ให้รีเฟรชตัวเลือกเวลาให้ตรงกับเวลาที่ประกาศใหม่ทันที
+                if (document.getElementById("building") && document.getElementById("building").value) {
+                    updateTimeOptions();
+                }
+            })
+            .catch(err => {
+                console.warn('โหลดข้อมูลเวลาเปิด-ปิดชั่วคราวไม่สำเร็จ (อาจยังไม่ได้ตั้งค่าฝั่ง Apps Script):', err);
+                operatingHoursOverrides = [];
             });
     }
 
