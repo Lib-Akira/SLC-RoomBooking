@@ -712,6 +712,14 @@
         }
 
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzDSTAZ097LZcya3VfwHOigdPEzboHnYYVOMGkpAz-X66UQEfg7BpdkRTWuIf5Wxc9MYw/exec";
+
+    // ✅ รวม 3 คำขอ (การจอง / ปิดซ่อมบำรุง / เวลาเปิด-ปิดชั่วคราว) ให้เหลือ request เดียว
+    // ใช้แทน fetch(SCRIPT_URL), fetchMaintenanceData(), fetchOperatingHours() เดิมที่เคยยิงแยกกัน 3 รอบ
+    // ฝั่ง Apps Script (?type=all) จะตอบกลับเป็น { bookings, maintenance, hours } ในรอบเดียว
+    function fetchAllData() {
+        return fetch(`${SCRIPT_URL}?type=all`).then(res => res.json());
+    }
+
     const rooms = {
         "Saint Louis": ["Conference Room 1", "Conference Room 2", "Conference Room 3", "Mini Theater Room", "Research Room"],
         "Saint Benedict": ["Conference Room 1", "Conference Room 2", "Multiple Purpose Room"]
@@ -883,10 +891,15 @@
         const tbody = document.getElementById("bookingTableBody");
         
         tbody.innerHTML = `<tr><td colspan="3" class="text-center text-slate-400 py-8"><i class="fa-solid fa-spinner fa-spin me-2 text-blue-500"></i>กำลังโหลดข้อมูล...</td></tr>`;
-        fetch(SCRIPT_URL)
-        .then(res => res.json())
+        return fetchAllData()
         .then(data => {
-            allBookings = data; 
+            allBookings = data.bookings;
+            maintenanceSlots = data.maintenance;
+            operatingHoursOverrides = data.hours;
+            // เดิม fetchOperatingHours() จะรีเฟรช dropdown เวลาให้เองถ้ามีการเลือกอาคารไว้แล้ว — คงพฤติกรรมเดิมไว้
+            if (document.getElementById("building") && document.getElementById("building").value) {
+                updateTimeOptions();
+            }
 
             const filteredData = allBookings.filter(b => {
                 if (!b.date) return false;
@@ -1156,15 +1169,12 @@
                 filterBookings(); 
             }
         });
-        loadBookings();
-        // ✅ เพิ่มใหม่: โหลดข้อมูล "ปิดปรับปรุง/ปิดใช้งานชั่วคราว" ตั้งแต่เปิดหน้าเว็บเลย
-        // (เดิมโหลดเฉพาะตอนกดเข้าแท็บ Dashboard เท่านั้น ทำให้คนที่ไม่เคยเปิด Dashboard
-        // เลย จะจองช่วงที่ปิดไปได้โดยระบบไม่รู้ว่ามีการปิดอยู่)
-        // โหลดเสร็จแล้วเช็คทันทีว่ามีประกาศปิดในช่วง 14 วันข้างหน้าไหม จะได้แจ้งทันทีที่เข้าเว็บ
-        fetchMaintenanceData().then(showUpcomingClosuresPopup);
-        // ✅ เพิ่มใหม่: โหลดประกาศเปลี่ยนแปลงเวลาเปิด-ปิดชั่วคราวตั้งแต่เปิดหน้าเว็บเลย
-        // เพื่อให้ dropdown เวลาเริ่ม/สิ้นสุดในฟอร์มจองแสดงถูกต้องตั้งแต่แรก
-        fetchOperatingHours();
+        // ✅ เดิมตรงนี้ยิง 3 request แยกกัน (loadBookings + fetchMaintenanceData + fetchOperatingHours)
+        // ตอนนี้ loadBookings() เรียก fetchAllData() ซึ่งได้ทั้งการจอง/ปิดซ่อมบำรุง/เวลาเปิด-ปิด มาในรอบเดียว
+        // โหลดเสร็จแล้วค่อยเช็คว่ามีประกาศปิดในช่วง 14 วันข้างหน้าไหม จะได้แจ้งทันทีที่เข้าเว็บ
+        // (เดิมโหลดปิดซ่อมบำรุงเฉพาะตอนกดเข้าแท็บ Dashboard เท่านั้น ทำให้คนที่ไม่เคยเปิด Dashboard
+        // เลย จะจองช่วงที่ปิดไปได้โดยระบบไม่รู้ว่ามีการปิดอยู่ — ตอนนี้โหลดตั้งแต่เปิดหน้าเว็บเสมอ)
+        loadBookings().then(showUpcomingClosuresPopup);
     };
 
     // ✅ เพิ่มใหม่: แจ้งเตือนล่วงหน้าตอนเปิดเว็บ ว่าใน 14 วันข้างหน้ามีวัน/ช่วงไหนปิดบ้าง
@@ -1390,8 +1400,8 @@
     let chartUserStatusInstance = null;
     let chartFacultyInstance = null;
 
-    // ข้อมูลปิดซ่อมบำรุง ดึงจาก Google Sheet แท็บ "Maintenance" ผ่าน SCRIPT_URL?type=maintenance
-    // (โหลดจริงใน fetchMaintenanceData() ด้านล่าง — ค่าตั้งต้นเป็น array ว่างระหว่างรอโหลด)
+    // ข้อมูลปิดซ่อมบำรุง ดึงจาก Google Sheet แท็บ "Maintenance" ผ่าน fetchAllData() (SCRIPT_URL?type=all)
+    // ค่าตั้งต้นเป็น array ว่างระหว่างรอโหลด
     let maintenanceSlots = [];
 
     const roomOperatingHours = {
@@ -1400,7 +1410,7 @@
     };
 
     // ✅ เพิ่มใหม่: รายการ "ประกาศเปลี่ยนแปลงเวลาเปิด-ปิดชั่วคราว" ดึงจาก Google Sheet แท็บ "OperatingHours"
-    // (โหลดจริงใน fetchOperatingHours() ด้านล่าง — ค่าตั้งต้นเป็น array ว่างระหว่างรอโหลด)
+    // ผ่าน fetchAllData() (SCRIPT_URL?type=all) — ค่าตั้งต้นเป็น array ว่างระหว่างรอโหลด
     let operatingHoursOverrides = [];
 
     // ✅ เพิ่มใหม่: คืนค่าเวลาเปิด-ปิดที่ "มีผลจริง" ของอาคาร+วันที่ที่ระบุ เป็น { start, end } หน่วยชั่วโมง
@@ -1475,47 +1485,17 @@
         window.removeEventListener('resize', updateCurrentTimeIndicator);
     }
 
-    function fetchMaintenanceData() {
-        return fetch(`${SCRIPT_URL}?type=maintenance`)
-            .then(res => res.json())
-            .then(data => {
-                maintenanceSlots = Array.isArray(data) ? data : [];
-            })
-            .catch(err => {
-                // ถ้าฝั่ง Apps Script ยังไม่รองรับ type=maintenance จะเข้ามาที่นี่
-                // ไม่ทำให้ dashboard ส่วนอื่นพัง แค่ถือว่าไม่มีรายการปิดซ่อมบำรุง
-                console.warn('โหลดข้อมูลปิดซ่อมบำรุงไม่สำเร็จ (อาจยังไม่ได้ตั้งค่าฝั่ง Apps Script):', err);
-                maintenanceSlots = [];
-            });
-    }
-
-    // ✅ เพิ่มใหม่: โหลดประกาศเปลี่ยนแปลงเวลาเปิด-ปิดชั่วคราว (เช่น ช่วงปิดเทอม)
-    function fetchOperatingHours() {
-        return fetch(`${SCRIPT_URL}?type=hours`)
-            .then(res => res.json())
-            .then(data => {
-                operatingHoursOverrides = Array.isArray(data) ? data : [];
-                // ถ้าตอนนี้ผู้ใช้เลือกอาคารไว้อยู่แล้ว ให้รีเฟรชตัวเลือกเวลาให้ตรงกับเวลาที่ประกาศใหม่ทันที
-                if (document.getElementById("building") && document.getElementById("building").value) {
-                    updateTimeOptions();
-                }
-            })
-            .catch(err => {
-                console.warn('โหลดข้อมูลเวลาเปิด-ปิดชั่วคราวไม่สำเร็จ (อาจยังไม่ได้ตั้งค่าฝั่ง Apps Script):', err);
-                operatingHoursOverrides = [];
-            });
-    }
+    // ✅ fetchMaintenanceData() และ fetchOperatingHours() เดิมถูกรวมเข้าไปใน fetchAllData()
+    // (ประกาศไว้ด้านบนใกล้ SCRIPT_URL) แล้ว — ไม่ต้องยิงแยกอีกต่อไป
 
     function refreshDashboardData() {
         const btnIcon = document.querySelector('#dashRefreshBtn i');
         if (btnIcon) btnIcon.classList.add('fa-spin');
 
-        Promise.all([
-            fetch(SCRIPT_URL).then(res => res.json()),
-            fetchMaintenanceData()
-        ])
-            .then(([bookingData]) => {
-                allBookings = bookingData;
+        fetchAllData()
+            .then(data => {
+                allBookings = data.bookings;
+                maintenanceSlots = Array.isArray(data.maintenance) ? data.maintenance : [];
                 renderDashboard();
                 const now = new Date();
                 document.getElementById('dashLastUpdated').innerHTML =
