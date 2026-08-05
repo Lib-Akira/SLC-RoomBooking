@@ -712,14 +712,6 @@
         }
 
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzDSTAZ097LZcya3VfwHOigdPEzboHnYYVOMGkpAz-X66UQEfg7BpdkRTWuIf5Wxc9MYw/exec";
-
-    // ✅ รวม 3 คำขอ (การจอง / ปิดซ่อมบำรุง / เวลาเปิด-ปิดชั่วคราว) ให้เหลือ request เดียว
-    // ใช้แทน fetch(SCRIPT_URL), fetchMaintenanceData(), fetchOperatingHours() เดิมที่เคยยิงแยกกัน 3 รอบ
-    // ฝั่ง Apps Script (?type=all) จะตอบกลับเป็น { bookings, maintenance, hours } ในรอบเดียว
-    function fetchAllData() {
-        return fetch(`${SCRIPT_URL}?type=all`).then(res => res.json());
-    }
-
     const rooms = {
         "Saint Louis": ["Conference Room 1", "Conference Room 2", "Conference Room 3", "Mini Theater Room", "Research Room"],
         "Saint Benedict": ["Conference Room 1", "Conference Room 2", "Multiple Purpose Room"]
@@ -877,7 +869,9 @@
         return parseInt(parts[0]) * 60 + parseInt(parts[1]);
     }
 
-    function loadBookings() {
+    // ✅ แยกส่วน "แสดงผลตาราง" ออกจากส่วน "ดึงข้อมูล" เพื่อให้ fetchAllData() (โหลดตอนเปิดเว็บ)
+    // เอา allBookings ที่โหลดมาแล้วมาเรียกฟังก์ชันนี้ต่อได้เลย ไม่ต้องยิง fetch ซ้ำอีกรอบ
+    function renderBookingTable() {
         const filterDateInput = document.getElementById("filterDate");
         const selectedDate = fpFilterInstance && fpFilterInstance.selectedDates.length > 0 
             ? filterDateInput.value 
@@ -889,90 +883,91 @@
         const selectedBuilding = document.getElementById("filterBuilding").value;
         const selectedRoom = document.getElementById("filterRoom") ? document.getElementById("filterRoom").value : "";
         const tbody = document.getElementById("bookingTableBody");
-        
-        tbody.innerHTML = `<tr><td colspan="3" class="text-center text-slate-400 py-8"><i class="fa-solid fa-spinner fa-spin me-2 text-blue-500"></i>กำลังโหลดข้อมูล...</td></tr>`;
-        return fetchAllData()
-        .then(data => {
-            allBookings = data.bookings;
-            maintenanceSlots = data.maintenance;
-            operatingHoursOverrides = data.hours;
-            // เดิม fetchOperatingHours() จะรีเฟรช dropdown เวลาให้เองถ้ามีการเลือกอาคารไว้แล้ว — คงพฤติกรรมเดิมไว้
-            if (document.getElementById("building") && document.getElementById("building").value) {
-                updateTimeOptions();
-            }
 
-            const filteredData = allBookings.filter(b => {
-                if (!b.date) return false;
-                const bDateStr = b.date.split('T')[0]; 
-                const matchDate = bDateStr === selectedDate;
-                const matchBuilding = selectedBuilding === "" || b.building === selectedBuilding;
-                const matchRoom = selectedRoom === "" || b.room === selectedRoom;
+        const filteredData = allBookings.filter(b => {
+            if (!b.date) return false;
+            const bDateStr = b.date.split('T')[0]; 
+            const matchDate = bDateStr === selectedDate;
+            const matchBuilding = selectedBuilding === "" || b.building === selectedBuilding;
+            const matchRoom = selectedRoom === "" || b.room === selectedRoom;
 
-                return matchDate && matchBuilding && matchRoom;
-            });
+            return matchDate && matchBuilding && matchRoom;
+        });
 
-            filteredData.sort((a, b) => timeToMinutes(a.startTime) - timeToMinutes(b.startTime));
-            tbody.innerHTML = "";
+        filteredData.sort((a, b) => timeToMinutes(a.startTime) - timeToMinutes(b.startTime));
+        tbody.innerHTML = "";
 
-            if (filteredData.length === 0) {
-                tbody.innerHTML = `
-                    <tr>
-                        <td colspan="3" class="text-center text-slate-400 py-12">
-                            <i class="fa-regular fa-folder-open d-block mb-3 opacity-40 text-4xl text-slate-300"></i>
-                            <div class="text-sm">ไม่พบข้อมูลการจองตามเงื่อนไขที่เลือกในวันนี้</div>
-                        </td>
-                    </tr>`;
-                return;
-            }
+        if (filteredData.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="3" class="text-center text-slate-400 py-12">
+                        <i class="fa-regular fa-folder-open d-block mb-3 opacity-40 text-4xl text-slate-300"></i>
+                        <div class="text-sm">ไม่พบข้อมูลการจองตามเงื่อนไขที่เลือกในวันนี้</div>
+                    </td>
+                </tr>`;
+            return;
+        }
 
-            filteredData.forEach(b => {
-                const isSL = b.building === "Saint Louis";
-                const customTagStyle = isSL 
-                ? "background: linear-gradient(135deg, rgba(248, 221, 156, 0.3), rgba(248, 221, 156, 0.7)); color: #0D2535;"
-                : "background: linear-gradient(135deg, rgba(83, 136, 216, 0.3), rgba(83, 136, 216, 0.5)); color: #0D2535;"
+        filteredData.forEach(b => {
+            const isSL = b.building === "Saint Louis";
+            const customTagStyle = isSL 
+            ? "background: linear-gradient(135deg, rgba(248, 221, 156, 0.3), rgba(248, 221, 156, 0.7)); color: #0D2535;"
+            : "background: linear-gradient(135deg, rgba(83, 136, 216, 0.3), rgba(83, 136, 216, 0.5)); color: #0D2535;"
 
-                const displayName = isSL ? "Saint Louis" : "Saint Benedict";
+            const displayName = isSL ? "Saint Louis" : "Saint Benedict";
 
-                // escape ไว้สำหรับแสดงผล (กัน XSS)
-                const safeRoomHtml = escapeHtml(b.room);
-                const safeRequesterHtml = escapeHtml(b.requester);
-                const safeStatusHtml = escapeHtml(b.userStatus || '-');
+            // escape ไว้สำหรับแสดงผล (กัน XSS)
+            const safeRoomHtml = escapeHtml(b.room);
+            const safeRequesterHtml = escapeHtml(b.requester);
+            const safeStatusHtml = escapeHtml(b.userStatus || '-');
 
-                // escape ไว้สำหรับใส่ใน onclick="..." (กัน quote หลุดออกจาก string)
-                const jsRequester = String(b.requester).replace(/'/g, "\\'");
-                const jsRoom = String(b.room).replace(/'/g, "\\'");
+            // escape ไว้สำหรับใส่ใน onclick="..." (กัน quote หลุดออกจาก string)
+            const jsRequester = String(b.requester).replace(/'/g, "\\'");
+            const jsRoom = String(b.room).replace(/'/g, "\\'");
 
-                tbody.innerHTML += `
-                    <tr class="hover:bg-slate-50/80 transition duration-150">
-                        <td class="p-4 max-w-[240px]">
-                            <span class="inline-block text-[10px] font-bold px-2 py-0.5 rounded-md shadow-sm mb-1" style="${customTagStyle}">${displayName}</span>
-                            <div class="font-bold text-[#0D2535] truncate" title="${safeRoomHtml}">${safeRoomHtml}</div>
-                        </td>
-                        <td class="p-4 whitespace-nowrap">
-                            <span class="inline-flex items-center gap-1 font-semibold text-[#0D2535] bg-blue-50 border border-blue-100/50 px-2.5 py-1 rounded-lg text-xs">
-                                <i class="fa-regular fa-clock opacity-70"></i>${escapeHtml(b.startTime)} - ${escapeHtml(b.endTime)}
-                            </span>
-                        </td>
-                        <td class="p-4">
-                            <div class="flex justify-between items-center gap-2">
-                                <div class="min-w-0 flex-1">
-                                    <div class="font-semibold text-slate-800 truncate text-[13px]" title="${safeRequesterHtml}">${safeRequesterHtml}</div>
-                                    <div class="mt-0.5">
-                                        <span class="inline-block bg-slate-100 text-slate-600 text-[10px] font-medium px-1.5 py-0.5 rounded">
-                                            ${safeStatusHtml}
-                                        </span>
-                                    </div>
+            tbody.innerHTML += `
+                <tr class="hover:bg-slate-50/80 transition duration-150">
+                    <td class="p-4 max-w-[240px]">
+                        <span class="inline-block text-[10px] font-bold px-2 py-0.5 rounded-md shadow-sm mb-1" style="${customTagStyle}">${displayName}</span>
+                        <div class="font-bold text-[#0D2535] truncate" title="${safeRoomHtml}">${safeRoomHtml}</div>
+                    </td>
+                    <td class="p-4 whitespace-nowrap">
+                        <span class="inline-flex items-center gap-1 font-semibold text-[#0D2535] bg-blue-50 border border-blue-100/50 px-2.5 py-1 rounded-lg text-xs">
+                            <i class="fa-regular fa-clock opacity-70"></i>${escapeHtml(b.startTime)} - ${escapeHtml(b.endTime)}
+                        </span>
+                    </td>
+                    <td class="p-4">
+                        <div class="flex justify-between items-center gap-2">
+                            <div class="min-w-0 flex-1">
+                                <div class="font-semibold text-slate-800 truncate text-[13px]" title="${safeRequesterHtml}">${safeRequesterHtml}</div>
+                                <div class="mt-0.5">
+                                    <span class="inline-block bg-slate-100 text-slate-600 text-[10px] font-medium px-1.5 py-0.5 rounded">
+                                        ${safeStatusHtml}
+                                    </span>
                                 </div>
-                                <button class="w-8 h-8 rounded-full text-slate-400 hover:text-rose-600 hover:bg-rose-50 flex items-center justify-center transition flex-shrink-0" 
-                                    onclick="deleteBooking('${jsRequester}', '${b.date}', '${b.startTime}', '${jsRoom}')" 
-                                    title="ยกเลิกการจองนี้ (เฉพาะแอดมิน)">
-                                    <i class="fa-solid fa-trash-can text-xs"></i>
-                                </button>
                             </div>
-                        </td>
-                    </tr>
-                `;
-            });
+                            <button class="w-8 h-8 rounded-full text-slate-400 hover:text-rose-600 hover:bg-rose-50 flex items-center justify-center transition flex-shrink-0" 
+                                onclick="deleteBooking('${jsRequester}', '${b.date}', '${b.startTime}', '${jsRoom}')" 
+                                title="ยกเลิกการจองนี้ (เฉพาะแอดมิน)">
+                                <i class="fa-solid fa-trash-can text-xs"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        });
+    }
+
+    // ใช้ตอน filter เปลี่ยน / หลังจองสำเร็จ / หลังลบ — ยิง fetch แค่ข้อมูลจองอย่างเดียว (เบา เร็ว)
+    // ไม่ต้องดึง maintenance/hours ซ้ำทุกครั้ง เพราะข้อมูลพวกนั้นไม่ได้เปลี่ยนบ่อยขนาดนั้น
+    function loadBookings() {
+        const tbody = document.getElementById("bookingTableBody");
+        tbody.innerHTML = `<tr><td colspan="3" class="text-center text-slate-400 py-8"><i class="fa-solid fa-spinner fa-spin me-2 text-blue-500"></i>กำลังโหลดข้อมูล...</td></tr>`;
+        fetch(SCRIPT_URL)
+        .then(res => res.json())
+        .then(data => {
+            allBookings = data; 
+            renderBookingTable();
         }).catch(err => {
             console.error(err);
             tbody.innerHTML = "<tr><td colspan='3' class='text-center text-rose-500 py-6 font-medium'><i class='fa-solid fa-triangle-exclamation me-2'></i>โหลดข้อมูลระบบล้มเหลว</td></tr>";
@@ -1169,13 +1164,45 @@
                 filterBookings(); 
             }
         });
-        // ✅ เดิมตรงนี้ยิง 3 request แยกกัน (loadBookings + fetchMaintenanceData + fetchOperatingHours)
-        // ตอนนี้ loadBookings() เรียก fetchAllData() ซึ่งได้ทั้งการจอง/ปิดซ่อมบำรุง/เวลาเปิด-ปิด มาในรอบเดียว
-        // โหลดเสร็จแล้วค่อยเช็คว่ามีประกาศปิดในช่วง 14 วันข้างหน้าไหม จะได้แจ้งทันทีที่เข้าเว็บ
-        // (เดิมโหลดปิดซ่อมบำรุงเฉพาะตอนกดเข้าแท็บ Dashboard เท่านั้น ทำให้คนที่ไม่เคยเปิด Dashboard
-        // เลย จะจองช่วงที่ปิดไปได้โดยระบบไม่รู้ว่ามีการปิดอยู่ — ตอนนี้โหลดตั้งแต่เปิดหน้าเว็บเสมอ)
-        loadBookings().then(showUpcomingClosuresPopup);
+        // ✅ แก้ปัญหาโหลดช้า/ล้มเหลวบางครั้ง: เดิมตรงนี้ยิง 3 คำขอแยกกัน (จอง/ปิดซ่อมบำรุง/เวลาเปิด-ปิด)
+        // ไปที่ Apps Script พร้อมกัน แต่ Apps Script Web App รันคำขอทีละตัว ไม่ขนานจริง
+        // พอชนกัน 3 คำขอพร้อมกันทุกครั้งที่เปิดเว็บ เลยช้าและหลุด timeout เป็นบางครั้ง
+        // รวมเป็นคำขอเดียว (?type=all) แทน ลดจำนวนรอบที่ต้องรอคิวจาก 3 เหลือ 1
+        fetchAllData();
     };
+
+    // ดึงข้อมูลจอง + ปิดซ่อมบำรุง + เวลาเปิด-ปิดชั่วคราว รวมในคำขอเดียว ใช้ตอนเปิดหน้าเว็บครั้งแรก
+    function fetchAllData() {
+        const tbody = document.getElementById("bookingTableBody");
+        if (tbody) {
+            tbody.innerHTML = `<tr><td colspan="3" class="text-center text-slate-400 py-8"><i class="fa-solid fa-spinner fa-spin me-2 text-blue-500"></i>กำลังโหลดข้อมูล...</td></tr>`;
+        }
+
+        return fetch(`${SCRIPT_URL}?type=all`)
+            .then(res => res.json())
+            .then(data => {
+                allBookings = Array.isArray(data.bookings) ? data.bookings : [];
+                maintenanceSlots = Array.isArray(data.maintenance) ? data.maintenance : [];
+                operatingHoursOverrides = Array.isArray(data.hours) ? data.hours : [];
+
+                renderBookingTable();
+                showUpcomingClosuresPopup();
+                // ถ้าตอนนี้ผู้ใช้เลือกอาคารไว้อยู่แล้ว (ไม่น่าเกิดตอนเพิ่งโหลดหน้า แต่กันเหนียวไว้)
+                // ให้รีเฟรชตัวเลือกเวลาให้ตรงกับเวลาที่ประกาศใหม่ทันที
+                if (document.getElementById("building") && document.getElementById("building").value) {
+                    updateTimeOptions();
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                if (tbody) {
+                    tbody.innerHTML = "<tr><td colspan='3' class='text-center text-rose-500 py-6 font-medium'><i class='fa-solid fa-triangle-exclamation me-2'></i>โหลดข้อมูลระบบล้มเหลว กรุณารีเฟรชหน้าเว็บอีกครั้ง</td></tr>";
+                }
+                // ยังตั้งเป็น array ว่างไว้ กัน error ต่อเนื่องจากโค้ดจุดอื่นที่คาดว่าตัวแปรพวกนี้เป็น array เสมอ
+                maintenanceSlots = maintenanceSlots || [];
+                operatingHoursOverrides = operatingHoursOverrides || [];
+            });
+    }
 
     // ✅ เพิ่มใหม่: แจ้งเตือนล่วงหน้าตอนเปิดเว็บ ว่าใน 14 วันข้างหน้ามีวัน/ช่วงไหนปิดบ้าง
     // เป็นแค่การ "แจ้งให้ทราบ" กด "รับทราบ" ปิดได้เสมอ ไม่ว่าจะปิดกี่วัน/ปิดทั้งวันหรือไม่ก็ตาม
@@ -1400,8 +1427,8 @@
     let chartUserStatusInstance = null;
     let chartFacultyInstance = null;
 
-    // ข้อมูลปิดซ่อมบำรุง ดึงจาก Google Sheet แท็บ "Maintenance" ผ่าน fetchAllData() (SCRIPT_URL?type=all)
-    // ค่าตั้งต้นเป็น array ว่างระหว่างรอโหลด
+    // ข้อมูลปิดซ่อมบำรุง ดึงจาก Google Sheet แท็บ "Maintenance" ผ่าน SCRIPT_URL?type=maintenance
+    // (โหลดจริงใน fetchAllData() ตอนเปิดหน้าเว็บ — ค่าตั้งต้นเป็น array ว่างระหว่างรอโหลด)
     let maintenanceSlots = [];
 
     const roomOperatingHours = {
@@ -1410,7 +1437,7 @@
     };
 
     // ✅ เพิ่มใหม่: รายการ "ประกาศเปลี่ยนแปลงเวลาเปิด-ปิดชั่วคราว" ดึงจาก Google Sheet แท็บ "OperatingHours"
-    // ผ่าน fetchAllData() (SCRIPT_URL?type=all) — ค่าตั้งต้นเป็น array ว่างระหว่างรอโหลด
+    // (โหลดจริงใน fetchAllData() ตอนเปิดหน้าเว็บ — ค่าตั้งต้นเป็น array ว่างระหว่างรอโหลด)
     let operatingHoursOverrides = [];
 
     // ✅ เพิ่มใหม่: คืนค่าเวลาเปิด-ปิดที่ "มีผลจริง" ของอาคาร+วันที่ที่ระบุ เป็น { start, end } หน่วยชั่วโมง
@@ -1485,16 +1512,21 @@
         window.removeEventListener('resize', updateCurrentTimeIndicator);
     }
 
-    // ✅ fetchMaintenanceData() และ fetchOperatingHours() เดิมถูกรวมเข้าไปใน fetchAllData()
-    // (ประกาศไว้ด้านบนใกล้ SCRIPT_URL) แล้ว — ไม่ต้องยิงแยกอีกต่อไป
+    // หมายเหตุ: fetchMaintenanceData() และ fetchOperatingHours() (แบบแยกคำขอ) ถูกลบออกแล้ว
+    // เพราะรวมไปอยู่ใน fetchAllData() (?type=all) เพื่อลดจำนวนคำขอที่ยิงไป Apps Script พร้อมกัน
+    // ถ้าฝั่ง Apps Script endpoint ?type=maintenance หรือ ?type=hours ยังใช้แยกได้อยู่ (เผื่อ debug)
+    // แต่หน้าเว็บหลักไม่เรียกใช้ตรงๆ อีกแล้ว
 
     function refreshDashboardData() {
         const btnIcon = document.querySelector('#dashRefreshBtn i');
         if (btnIcon) btnIcon.classList.add('fa-spin');
 
-        fetchAllData()
+        // ✅ แก้ปัญหาเดียวกับตอนเปิดเว็บ: เดิมยิง 2 คำขอ (จอง + ปิดซ่อมบำรุง) พร้อมกันทุก 30 วิ
+        // ที่ Dashboard เปิดอยู่ รวมเป็นคำขอเดียวลดโอกาสชนคิว/ timeout
+        fetch(`${SCRIPT_URL}?type=all`)
+            .then(res => res.json())
             .then(data => {
-                allBookings = data.bookings;
+                allBookings = Array.isArray(data.bookings) ? data.bookings : [];
                 maintenanceSlots = Array.isArray(data.maintenance) ? data.maintenance : [];
                 renderDashboard();
                 const now = new Date();
