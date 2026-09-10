@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ระบบจองห้องประชุม SLC Library</title>
+    <meta name="description" content="ระบบจองห้องประชุม SLC Library วิทยาลัยเซนต์หลุยส์ ตรวจสอบตารางการจองและสถิติแบบเรียลไทม์" />
+    <meta property="og:title" content="ระบบจองห้องประชุม SLC Library" />
+    <meta property="og:description" content="ระบบจองห้องประชุม SLC Library วิทยาลัยเซนต์หลุยส์ ตรวจสอบตารางการจองและสถิติแบบเรียลไทม์" />
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -26,7 +29,7 @@
         /* เส้นบอกเวลาปัจจุบันบนตารางสถานะห้อง */
         .current-time-line {
             position: absolute;
-            top: 32px;   /* เว้นที่ด้านบนไว้ให้ป้ายเวลาลอยอยู่ ไม่ทับ legend ด้านบนตาราง */
+            top: 32px;
             bottom: 0;
             width: 2px;
             background: linear-gradient(to bottom, #ef4444, rgba(239,68,68,0.15));
@@ -85,8 +88,7 @@
             border-top-color: #0D2535;
         }
 
-        /* --- Sidebar แบบย่อ/ขยายได้ --- */
-        /* --- ป็อปอัพ (SweetAlert2) ธีม Modern โทนเดียวกับระบบจอง --- */
+        /* --- ป็อปอัพ (SweetAlert2) ธีม Modern --- */
         .brand-swal-popup {
             border-radius: 22px !important;
             box-shadow: 0 24px 60px -12px rgba(1, 34, 77, 0.35), 0 0 0 1px rgba(1,34,77,0.04) !important;
@@ -135,7 +137,6 @@
         .brand-swal-cancel:hover {
             background: #e2e8f0 !important;
         }
-        /* ปุ่มยืนยันสำหรับการกระทำที่ทำลายข้อมูล (เช่น ลบรายการจอง) ให้ยังเป็นสีแดงไว้ ไม่ใช่กรมท่าเหมือนปุ่มทั่วไป */
         .brand-swal-confirm-danger {
             background: linear-gradient(135deg, #e11d48 0%, #be123c 100%) !important;
             box-shadow: 0 6px 16px rgba(225, 29, 72, 0.32) !important;
@@ -143,16 +144,14 @@
         .brand-swal-confirm-danger:hover {
             box-shadow: 0 8px 20px rgba(225, 29, 72, 0.4) !important;
         }
-        /* วงกลมไอคอน warning/error/info/success ให้ดูเบาลง เข้ากับโทนพาสเทลของทั้งระบบ */
         .brand-swal-popup .swal2-icon {
             border-width: 2.5px !important;
         }
 
-        #sidebar.collapsed { width: 5rem; /* w-20 */ }
+        #sidebar.collapsed { width: 5rem; }
         #sidebar.collapsed .sidebar-label { display: none; }
         #sidebar.collapsed #sidebarToggleIcon { transform: rotate(180deg); }
 
-        /* tooltip ที่โผล่ตอนเมาส์ชี้ไอคอน (แสดงเฉพาะตอน sidebar ย่ออยู่) */
         .sidebar-tooltip {
             position: absolute;
             left: calc(100% + 10px);
@@ -174,7 +173,6 @@
             opacity: 1;
         }
 
-        /* --- ปุ่มตัวกรองใน Dashboard --- */
         .dash-toggle-btn, .dash-period-btn {
             color: #64748b;
         }
@@ -188,8 +186,7 @@
 </head>
 <body class="flex min-h-screen">
 
-    <!-- แถบเมนูด้านซ้าย: กดปุ่มลูกศรเพื่อ ย่อ/ขยาย เอง (ไม่ใช่ hover)
-         ตอนย่อ (มี class "collapsed") จะเหลือแค่ไอคอน เอาเมาส์ไปชี้จะมี tooltip โผล่บอกชื่อเมนู -->
+    <!-- แถบเมนูด้านซ้าย -->
     <aside id="sidebar" class="hidden lg:flex flex-col relative z-40 bg-white shadow-lg shrink-0 w-52 p-4 transition-all duration-300 ease-in-out collapsed sticky top-0 h-screen">
         <button id="sidebarToggleBtn" onclick="toggleSidebar()" aria-label="ย่อ/ขยายแถบเมนู"
             class="absolute -right-3 top-8 w-6 h-6 bg-white border border-slate-200 rounded-full shadow flex items-center justify-center text-slate-500 hover:text-[#5388D8] hover:border-[#5388D8] transition z-10">
@@ -223,16 +220,15 @@
         </nav>
     </aside>
 
-    <main class="flex-1 p-8">
+    <main class="flex-1 p-4 md:p-8">
         
         <div id="view-booking">
-            <div class="max-w-7xl mx-auto px-4 mt-8 flex flex-col lg:flex-row gap-6">
+            <div class="max-w-7xl mx-auto px-2 md:px-4 mt-4 md:mt-8 flex flex-col lg:flex-row gap-6">
 
-    <div class="flex-[2] relative overflow-hidden bg-white/10 backdrop-blur-lg border border-white/20 text-[#0D2535] p-8 md:p-10 rounded-2xl shadow-[0_8px_32px_0_rgba(0,0,0,0.1)]">
-
+    <div class="flex-[2] relative overflow-hidden bg-white/10 backdrop-blur-lg border border-white/20 text-[#0D2535] p-6 md:p-10 rounded-2xl shadow-[0_8px_32px_0_rgba(0,0,0,0.1)]">
         <div class="absolute inset-0 bg-gradient-to-r from-[#5388D8]/30 to-[#F8DD9C]/30 -z-10 bg-[length:200%_200%] animate-gradient"></div>
         <div class="relative z-10 text-center">
-            <h1 class="text-2xl md:text-3xl font-bold mb-2 flex items-center justify-center gap-3 ">
+            <h1 class="text-2xl md:text-3xl font-bold mb-2 flex items-center justify-center gap-3">
                 <span class="[text-shadow:_0_2px_4px_rgba(0,0,0,0.3)] flex items-center gap-3">  
                 <svg width="35" height="35" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <g clip-path="url(#clip0_2770_70838)">
@@ -250,7 +246,7 @@
                 ระบบจองห้องประชุม SLC Library
                 </span>
             </h1>
-            <label class="flex items-center justify-center gap-2 text-sm md:text-base text-[#0D2535]/80 font-medium ">
+            <label class="flex items-center justify-center gap-2 text-sm md:text-base text-[#0D2535]/80 font-medium">
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
             <g clip-path="url(#clip0_1222_12243)">
             <path d="M1.49642 0.179297C4.12508 0.491169 6.43824 1.52628 7 2.08803C7.56176 1.52628 9.87492 0.491312 12.5036 0.179439C13.3262 0.0818364 14 0.759749 14 1.58818V9.58817C14 10.4166 13.323 11.0768 12.5079 11.2248C10.667 11.559 9.13594 12.4418 8.15919 13.1396C7.48512 13.6211 6.5142 13.6205 5.8401 13.139C4.86332 12.4413 3.33255 11.5588 1.49213 11.2246C0.677027 11.0766 0 10.4165 0 9.58803V1.58803C0 0.759606 0.673762 0.0816939 1.49642 0.179297Z" fill="#0D2535"/>
@@ -267,13 +263,13 @@
         <div class="absolute -top-12 -right-12 w-48 h-48 bg-white/20 rounded-full blur-2xl -z-10"></div>
     </div>
 
-    <div class="lg:col-span-1 bg-[#5388D8]/10 rounded-2xl shadow-sm border border-slate-100 p-6 flex flex-col justify-between h-full animate-float">
+    <div class="lg:col-span-1 bg-[#5388D8]/10 rounded-2xl shadow-sm border border-slate-100 p-6 flex flex-col justify-between animate-float">
         <div>
-            <h2 class="mt-5 text-lg font-semibold text-[#0D2535] border-b border-slate-100 pb-2 mb-3 flex items-center justify-center gap-2">
+            <h2 class="mt-2 text-lg font-semibold text-[#0D2535] border-b border-slate-100 pb-2 mb-3 flex items-center justify-center gap-2">
                 <i class="fa-solid fa-book-open"></i> ระเบียบการใช้ห้องประชุม
             </h2>
         </div>
-        <button onclick="toggleRules(true)" class=" bg-[#0D2535] text-white py-2 rounded-lg text-sm hover:opacity-90 transition">
+        <button onclick="toggleRules(true)" class="bg-[#0D2535] text-white py-2 px-4 rounded-lg text-sm hover:opacity-90 transition w-full">
             คลิกเพื่ออ่าน
         </button>
     </div>
@@ -281,23 +277,21 @@
 
 <div id="rulesPopup" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
     <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" onclick="toggleRules(false)"></div>
-    <div class="bg-white rounded-2xl p-8 max-w-2xl w-full shadow-2xl relative z-10 animate-in fade-in zoom-in duration-200">
+    <div class="bg-white rounded-2xl p-8 max-w-2xl w-full shadow-2xl relative z-10">
         <h2 class="text-xl font-bold mb-4 text-[#0D2535] border-b pb-2 flex items-center gap-2">
             <i class="fa-solid fa-book-open"></i> ระเบียบการใช้ห้องประชุม
         </h2>
-        
         <ul class="text-slate-600 text-sm space-y-3 list-disc list-outside ps-5 marker:text-[#5388D8]">
             <li>จำกัดเวลาเข้าใช้บริการสูงสุดไม่เกิน 2 ชั่วโมง/คน/วัน</li>
             <li>หากต้องการใช้งานเพิ่มเติม โปรดใช้สิทธิ์หรือรายชื่อของสมาชิกท่านอื่นในการจอง</li>
             <li>กรุณาแสดงตนต่อเจ้าหน้าที่ภายใน 15 นาทีแรก หากเกินเวลาที่กำหนดจะถือว่าสละสิทธิ์ให้ผู้ใช้อื่น</li>
             <li>หากต้องการยกเลิกการจอง กรุณาแจ้งเจ้าหน้าที่ล่วงหน้าก่อนถึงเวลาที่กำหนด</li>
         </ul>
-        
-        <button onclick="toggleRules(false)" class="mt-6 w-full bg-slate-200 hover:bg-slate-300 py-2 rounded-lg text-sm transition">ปิดหน้าต่าง</button>
+        <button onclick="toggleRules(false)" class="mt-6 w-full bg-slate-200 hover:bg-slate-300 py-2 rounded-lg text-sm transition font-medium">ปิดหน้าต่าง</button>
     </div>
 </div>
 
-<div class="max-w-7xl mx-auto px-4 py-9">
+<div class="max-w-7xl mx-auto px-2 md:px-4 py-6 md:py-9">
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
 
         <div class="lg:col-span-5">
@@ -310,123 +304,59 @@
                 <form id="bookingForm" class="space-y-4">
                     <div>
                         <label class="flex items-center gap-2 text-sm font-semibold text-slate-600 uppercase tracking-wider mb-1.5">
-                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <g clip-path="url(#clip0_1222_11532)">
-                        <path d="M0 1.5C0 0.671573 0.671573 0 1.5 0H9.5C10.3284 0 11 0.671573 11 1.5V9.5C11 10.3284 10.3284 11 9.5 11H1.5C0.671573 11 0 10.3284 0 9.5V1.5Z" fill="#F8DD9C" fill-opacity="0.6"/>
-                        <path d="M3 4.5C3 3.67157 3.67157 3 4.5 3H12.5C13.3284 3 14 3.67157 14 4.5V12.5C14 13.3284 13.3284 14 12.5 14H4.5C3.67157 14 3 13.3284 3 12.5V4.5Z" fill="#5388D8" fill-opacity="0.6"/>
-                        </g>
-                        <defs>
-                        <clipPath id="clip0_1222_11532">
-                        <rect width="14" height="14" fill="white"/>
-                        </clipPath>
-                        </defs>
-                        </svg>
-                        เลือกอาคารที่ต้องการใช้งาน
+                            เลือกอาคารที่ต้องการใช้งาน
                         </label>
-                        <select class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-[#5388D8]/30 focus:ring-2 focus:ring-blue-500/10 transition" id="building" required onchange="updateRoomsAndTimes()">
+                        <select class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-[#5388D8]/30 focus:ring-2 focus:ring-blue-500/10 transition" id="building" required onchange="updateRoomsAndTimes(); checkFormCompletion(); saveFormState();">
                             <option value="">-- กรุณาเลือกอาคาร --</option>
                             <option value="Saint Louis">อาคาร Saint Louis (ฝั่งโรงพยาบาล)</option>
-                            <option value="Saint Benedict">อาคาร Saint Benedict (ฝั่งอาคารเรียน) </option>
+                            <option value="Saint Benedict">อาคาร Saint Benedict (ฝั่งอาคารเรียน)</option>
                         </select>
                     </div>
 
                     <div>
-                        <label class="flex items-center gap-2 text-sm font-semibold text-slate-600 uppercase tracking-wider mb-1.5"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <g clip-path="url(#clip0_1222_8068)">
-                        <path fill-rule="evenodd" clip-rule="evenodd" d="M7.03352 1.98246C6.08239 2.87431 6.38792 4.73142 7.95005 5.00319C8.43539 5.08763 8.82141 5.4573 8.92676 5.93854L8.94474 6.02068C9.1188 6.81582 9.70528 7.27084 10.3504 7.38418C10.1732 8.92861 9.33772 10.4378 8.41615 11.5828C7.89131 12.2349 7.32135 12.7907 6.7925 13.1884C6.52826 13.3871 6.2663 13.5523 6.01846 13.6698C5.77785 13.7838 5.51532 13.8698 5.25984 13.8698C5.00436 13.8698 4.74183 13.7838 4.50121 13.6698C4.25337 13.5523 3.99141 13.3871 3.72717 13.1884C3.19833 12.7907 2.62837 12.2349 2.10352 11.5828C1.06444 10.2918 0.134766 8.53778 0.134766 6.79231C0.134766 3.96181 2.42934 1.66724 5.25984 1.66724C5.88334 1.66724 6.48083 1.77858 7.03352 1.98246Z" fill="#5388D8" fill-opacity="0.6"/>
-                        <path d="M5.26 8.49998C6.2033 8.49998 6.968 7.73529 6.968 6.79198C6.968 5.84868 6.2033 5.08398 5.26 5.08398C4.3167 5.08398 3.552 5.84868 3.552 6.79198C3.552 7.73529 4.3167 8.49998 5.26 8.49998Z" fill="#F8DD9C"/>
-                        <path fill-rule="evenodd" clip-rule="evenodd" d="M11.437 0.726816C11.2511 -0.0882007 10.0884 -0.0831177 9.90961 0.733492L9.90283 0.76456L9.88961 0.824757C9.6956 1.69351 8.99697 2.36017 8.11937 2.51284C7.26864 2.66085 7.26864 3.88211 8.11937 4.03011C9.00003 4.18332 9.70048 4.8541 9.89163 5.72732L9.90961 5.80946C10.0884 6.62607 11.2511 6.63116 11.437 5.81614L11.4588 5.72041C11.6573 4.85031 12.3587 4.18443 13.238 4.03147C14.0902 3.8832 14.0902 2.65975 13.238 2.51149C12.3634 2.35934 11.6647 1.69968 11.462 0.836387C11.4564 0.812235 11.4511 0.789149 11.4455 0.764005L11.437 0.726816Z" fill="#F8DD9C"/>
-                        </g>
-                        <defs>
-                        <clipPath id="clip0_1222_8068">
-                        <rect width="14" height="14" fill="white"/>
-                        </clipPath>
-                        </defs>
-                        </svg>
-                        เลือกห้องประชุม</label>
-                        <select class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-[#5388D8]/30 focus:ring-2 focus:ring-blue-500/10 transition disabled:opacity-60" id="room" required disabled>
+                        <label class="flex items-center gap-2 text-sm font-semibold text-slate-600 uppercase tracking-wider mb-1.5">
+                            เลือกห้องประชุม
+                        </label>
+                        <select class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-[#5388D8]/30 focus:ring-2 focus:ring-blue-500/10 transition disabled:opacity-60" id="room" required disabled onchange="checkFormCompletion(); saveFormState();">
                             <option value="">-- กรุณาเลือกอาคารก่อน --</option>
                         </select>
                     </div>
 
                     <div>
-                        <label class="flex items-center gap-2 text-sm font-semibold text-slate-600 uppercase tracking-wider mb-1.5"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <g clip-path="url(#clip0_1222_11705)">
-                        <path fill-rule="evenodd" clip-rule="evenodd" d="M3.5 0C4.05228 0 4.5 0.447715 4.5 1V2H9.50009V1C9.50009 0.447715 9.94781 0 10.5001 0C11.0524 0 11.5001 0.447715 11.5001 1V2H12.5C13.3284 2 14 2.67157 14 3.5V4.5H0V3.5C0 2.67157 0.671573 2 1.5 2H2.5V1C2.5 0.447715 2.94772 0 3.5 0Z" fill="#5388D8" fill-opacity="0.7"/>
-                        <path d="M0 4.5H14V12.5C14 13.3284 13.3284 14 12.5 14H1.5C0.671573 14 0 13.3284 0 12.5V4.5Z" fill="#F8DD9C" fill-opacity="0.6"/>
-                        <path fill-rule="evenodd" clip-rule="evenodd" d="M8.56274 5.82322C8.51583 5.77631 8.45218 5.74996 8.38583 5.75C8.31948 5.75004 8.25587 5.77644 8.209 5.82341L4.0862 9.95499C4.04793 9.99334 4.02316 10.0431 4.0156 10.0967L3.75245 11.9651C3.74152 12.0427 3.76757 12.1209 3.82282 12.1764C3.87807 12.2319 3.95613 12.2583 4.03373 12.2477L5.90215 11.9933C5.95631 11.986 6.00655 11.961 6.0452 11.9224L10.1768 7.79081C10.2744 7.69318 10.2744 7.53489 10.1768 7.43726L8.56274 5.82322Z" fill="#5388D8" fill-opacity="0.7"/>
-                        </g>
-                        <defs>
-                        <clipPath id="clip0_1222_11705">
-                        <rect width="14" height="14" fill="white"/>
-                        </clipPath>
-                        </defs>
-                        </svg>
-                        วันที่ต้องการจอง</label>
+                        <label class="flex items-center gap-2 text-sm font-semibold text-slate-600 uppercase tracking-wider mb-1.5">
+                            วันที่ต้องการจอง
+                        </label>
                         <input type="text" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-[#5388D8]/30 focus:ring-2 focus:ring-blue-500/10 transition" id="bookingDate" placeholder="คลิกเลือกวันที่..." required>
                         <p id="dateClosureWarning" class="hidden mt-1.5 text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded-lg px-2.5 py-1.5"></p>
                     </div>
 
                     <div class="grid grid-cols-2 gap-4">
                         <div>
-                            <label class="flex items-center gap-2 text-sm font-semibold text-slate-600 uppercase tracking-wider mb-1.5"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <g clip-path="url(#clip0_1222_11525)">
-                            <path d="M7 14C10.3137 14 13 11.3137 13 8C13 4.68629 10.3137 2 7 2C3.68629 2 1 4.68629 1 8C1 11.3137 3.68629 14 7 14Z" fill="#F8DD9C" fill-opacity="0.7"/>
-                            <path fill-rule="evenodd" clip-rule="evenodd" d="M3.91195 0.397528C4.10669 0.763105 3.96821 1.21734 3.60263 1.41209C2.73461 1.87449 1.96006 2.49413 1.3184 3.23947C1.04815 3.55338 0.574601 3.58878 0.26069 3.31854C-0.0532214 3.04829 -0.0886191 2.57474 0.181627 2.26083C0.944513 1.37468 1.86539 0.637972 2.89739 0.0882131C3.26297 -0.106534 3.7172 0.0319508 3.91195 0.397528ZM10.0881 0.397528C10.2828 0.0319508 10.737 -0.106534 11.1026 0.0882131C12.1346 0.637972 13.0555 1.37468 13.8184 2.26083C14.0886 2.57474 14.0532 3.04829 13.7393 3.31854C13.4254 3.58878 12.9519 3.55338 12.6816 3.23947C12.0399 2.49413 11.2654 1.87449 10.3974 1.41209C10.0318 1.21734 9.89333 0.763105 10.0881 0.397528ZM7.62501 5.00015C7.62501 4.65497 7.34519 4.37515 7.00001 4.37515C6.65483 4.37515 6.37501 4.65497 6.37501 5.00015V8.00015C6.37501 8.34533 6.65483 8.62515 7.00001 8.62515H9.50001C9.84519 8.62515 10.125 8.34533 10.125 8.00015C10.125 7.65497 9.84519 7.37515 9.50001 7.37515H7.62501V5.00015Z" fill="#5388D8" fill-opacity="0.6"/>
-                            </g>
-                            <defs>
-                            <clipPath id="clip0_1222_11525">
-                            <rect width="14" height="14" fill="white"/>
-                            </clipPath>
-                            </defs>
-                            </svg>
-                            เวลาเริ่มต้น</label>
+                            <label class="flex items-center gap-2 text-sm font-semibold text-slate-600 uppercase tracking-wider mb-1.5">
+                                เวลาเริ่มต้น
+                            </label>
                             <select class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-[#5388D8]/30 focus:ring-2 focus:ring-blue-500/10 transition disabled:opacity-60" id="startTime" required disabled onchange="validateTimeSlot()"></select>
                         </div>
                         <div>
-                            <label class="flex items-center gap-2 text-sm font-semibold text-slate-600 uppercase tracking-wider mb-1.5"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <g clip-path="url(#clip0_1222_11525_end)">
-                            <path d="M7 14C10.3137 14 13 11.3137 13 8C13 4.68629 10.3137 2 7 2C3.68629 2 1 4.68629 1 8C1 11.3137 3.68629 14 7 14Z" fill="#8FBFFA"/>
-                            <path fill-rule="evenodd" clip-rule="evenodd" d="M3.91195 0.397528C4.10669 0.763105 3.96821 1.21734 3.60263 1.41209C2.73461 1.87449 1.96006 2.49413 1.3184 3.23947C1.04815 3.55338 0.574601 3.58878 0.26069 3.31854C-0.0532214 3.04829 -0.0886191 2.57474 0.181627 2.26083C0.944513 1.37468 1.86539 0.637972 2.89739 0.0882131C3.26297 -0.106534 3.7172 0.0319508 3.91195 0.397528ZM10.0881 0.397528C10.2828 0.0319508 10.737 -0.106534 11.1026 0.0882131C12.1346 0.637972 13.0555 1.37468 13.8184 2.26083C14.0886 2.57474 14.0532 3.04829 13.7393 3.31854C13.4254 3.58878 12.9519 3.55338 12.6816 3.23947C12.0399 2.49413 11.2654 1.87449 10.3974 1.41209C10.0318 1.21734 9.89333 0.763105 10.0881 0.397528ZM7.62501 5.00015C7.62501 4.65497 7.34519 4.37515 7.00001 4.37515C6.65483 4.37515 6.37501 4.65497 6.37501 5.00015V8.00015C6.37501 8.34533 6.65483 8.62515 7.00001 8.62515H9.50001C9.84519 8.62515 10.125 8.34533 10.125 8.00015C10.125 7.65497 9.84519 7.37515 9.50001 7.37515H7.62501V5.00015Z" fill="#5388D8" fill-opacity="0.6"/>
-                            </g>
-                            <defs>
-                            <clipPath id="clip0_1222_11525_end">
-                            <rect width="14" height="14" fill="white"/>
-                            </clipPath>
-                            </defs>
-                            </svg>
-                            เวลาสิ้นสุด</label>
+                            <label class="flex items-center gap-2 text-sm font-semibold text-slate-600 uppercase tracking-wider mb-1.5">
+                                เวลาสิ้นสุด
+                            </label>
                             <select class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-[#5388D8]/30 focus:ring-2 focus:ring-blue-500/10 transition disabled:opacity-60" id="endTime" required disabled onchange="validateTimeSlot()"></select>
                         </div>
                     </div>
 
                     <div>
-                        <label class="flex items-center gap-2 text-sm font-semibold text-slate-600 uppercase tracking-wider mb-1.5"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M5 7.5C6.65685 7.5 8 6.15685 8 4.5C8 2.84315 6.65685 1.5 5 1.5C3.34315 1.5 2 2.84315 2 4.5C2 6.15685 3.34315 7.5 5 7.5Z" fill="#8FBFFA"/>
-                        <path d="M0 13.5C0 10.7386 2.23858 8.5 5 8.5C7.76142 8.5 10 10.7386 10 13.5C10 13.7761 9.77614 14 9.5 14H0.5C0.223858 14 0 13.7761 0 13.5Z" fill="#8FBFFA"/>
-                        <path fill-rule="evenodd" clip-rule="evenodd" d="M11.1775 14H13.5C13.7761 14 14 13.7761 14 13.5C14 10.7386 11.7614 8.49997 9 8.49997C8.91895 8.49997 8.83835 8.5019 8.75824 8.50571C10.2716 9.64634 11.25 11.4589 11.25 13.5C11.25 13.6737 11.2247 13.8416 11.1775 14ZM8.13225 7.37258C8.40695 7.45545 8.69827 7.5 9 7.5C10.6569 7.5 12 6.15685 12 4.5C12 2.84315 10.6569 1.5 9 1.5C8.69827 1.5 8.40695 1.54454 8.13225 1.62741C8.82634 2.38385 9.25 3.39245 9.25 4.5C9.25 5.60755 8.82634 6.61615 8.13225 7.37258Z" fill="#2859C5"/>
-                        </svg>
-                        ชื่อผู้จอง / รหัสประจำตัว</label>
+                        <label class="flex items-center gap-2 text-sm font-semibold text-slate-600 uppercase tracking-wider mb-1.5">
+                            ชื่อผู้จอง / รหัสประจำตัว
+                        </label>
                         <input type="text" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-[#5388D8]/30 focus:ring-2 focus:ring-blue-500/10 transition" id="requester" placeholder="ตัวอย่าง: นายโซล่าร์ 100xxx" required>
                     </div>
 
                     <div>
-                        <label class="flex items-center gap-2 text-sm font-semibold text-slate-600 uppercase tracking-wider mb-1.5"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <g clip-path="url(#clip0_1222_15758)">
-                        <path d="M2.95068 7.00025L2.95569 9.5169C2.95592 9.62534 2.9914 9.73077 3.05678 9.81729L3.45565 9.51588C3.05678 9.81729 3.05678 9.81729 3.05678 9.81729L3.05748 9.81822L3.05829 9.81928L3.06021 9.82179L3.0653 9.82835L3.08051 9.84736C3.09288 9.86257 3.10977 9.88275 3.13126 9.90717C3.17422 9.95599 3.23569 10.0219 3.3164 10.0991C3.47771 10.2534 3.71674 10.4535 4.03914 10.6518C4.68718 11.0505 5.66293 11.436 6.99973 11.436C8.33649 11.436 9.31348 11.0505 9.9627 10.6521C10.2857 10.4539 10.5254 10.2539 10.6872 10.0998C10.7681 10.0226 10.8298 9.95678 10.8729 9.90802C10.8945 9.88363 10.9114 9.86348 10.9238 9.8483L10.9391 9.82933L10.9442 9.82279L10.9461 9.82029L10.9469 9.81923C10.9469 9.81923 10.9476 9.81831 10.5495 9.51585L10.9476 9.81831C11.0137 9.7313 11.0495 9.62502 11.0495 9.51575L11.049 7L7.69527 8.45308C7.25139 8.6454 6.74769 8.6454 6.3038 8.45308L2.95068 7.00025Z" fill="#8FBFFA"/>
-                        <path fill-rule="evenodd" clip-rule="evenodd" d="M1.69531 4.06885C1.97145 4.06885 2.19531 4.34867 2.19531 4.69385V11.5845C2.19531 11.9297 1.97145 12.2095 1.69531 12.2095C1.41917 12.2095 1.19531 11.9297 1.19531 11.5845V4.69385C1.19531 4.34867 1.41917 4.06885 1.69531 4.06885Z" fill="#2859C5"/>
-                        <path fill-rule="evenodd" clip-rule="evenodd" d="M1.69595 10.9976C1.01145 10.9976 0.456543 11.5525 0.456543 12.237C0.456543 12.9215 1.01145 13.4764 1.69595 13.4764C2.38046 13.4764 2.93536 12.9215 2.93536 12.237C2.93536 11.5525 2.38046 10.9976 1.69595 10.9976Z" fill="#8FBFFA"/>
-                        <path fill-rule="evenodd" clip-rule="evenodd" d="M7.19878 0.891798C7.07196 0.836848 6.92804 0.836848 6.80122 0.891798L0.301219 3.70808C0.118352 3.78731 0 3.96758 0 4.16687C0 4.36616 0.118352 4.54643 0.301219 4.62566L6.80122 7.44194C6.92804 7.49689 7.07196 7.49689 7.19878 7.44194L13.6988 4.62566C13.8816 4.54643 14 4.36616 14 4.16687C14 3.96758 13.8816 3.78731 13.6988 3.70808L7.19878 0.891798Z" fill="#8FBFFA"/>
-                        <path fill-rule="evenodd" clip-rule="evenodd" d="M2.95068 5.77363L6.80122 7.44197C6.92804 7.49692 7.07196 7.49692 7.19878 7.44197L11.0495 5.77356V9.21954L11.049 7L7.69527 8.45307C7.25139 8.6454 6.74769 8.6454 6.3038 8.45307L2.95068 7.00025V5.77363ZM2.95068 7.00025L2.9551 9.21954H2.95068V7.00025Z" fill="#2859C5"/>
-                        </g>
-                        <defs>
-                        <clipPath id="clip0_1222_15758">
-                        <rect width="14" height="14" fill="white"/>
-                        </clipPath>
-                        </defs>
-                        </svg>
-                        Status ผู้ใช้งาน</label>
-                        <select class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-[#5388D8]/30 focus:ring-2 focus:ring-blue-500/10 transition" id="userStatus" required onchange="updateDepartmentOptions()">
+                        <label class="flex items-center gap-2 text-sm font-semibold text-slate-600 uppercase tracking-wider mb-1.5">
+                            Status ผู้ใช้งาน
+                        </label>
+                        <select class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-[#5388D8]/30 focus:ring-2 focus:ring-blue-500/10 transition" id="userStatus" required onchange="updateDepartmentOptions(); checkFormCompletion(); saveFormState();">
                             <option value="">-- กรุณาเลือกสถานะ --</option>
                             <option value="นักศึกษา">นักศึกษา</option>
                             <option value="อาจารย์">อาจารย์</option>
@@ -436,40 +366,28 @@
 
                     <div id="departmentWrapper" style="display: none;">
                         <label class="flex items-center gap-2 text-sm font-semibold text-slate-600 uppercase tracking-wider mb-1.5" id="departmentLabel">📋 คณะ / หน่วยงาน</label>
-                        <select class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-[#5388D8]/30 focus:ring-2 focus:ring-blue-500/10 transition" id="departmentSelect" style="display: none;">
+                        <select class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-[#5388D8]/30 focus:ring-2 focus:ring-blue-500/10 transition" id="departmentSelect" style="display: none;" onchange="checkFormCompletion(); saveFormState();">
                             <option value="">-- กรุณาเลือกคณะ --</option>
                         </select>
-                        <input type="text" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-[#5388D8]/30 focus:ring-2 focus:ring-blue-500/10 transition" id="departmentInput" placeholder="ระบุชื่อแผนก/ฝ่าย เช่น ฝ่ายการเงิน" style="display: none;">
+                        <input type="text" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-[#5388D8]/30 focus:ring-2 focus:ring-blue-500/10 transition" id="departmentInput" placeholder="ระบุชื่อแผนก/ฝ่าย เช่น ฝ่ายการเงิน" style="display: none;" oninput="checkFormCompletion(); saveFormState();">
                     </div>
 
                     <div>
-                        <label class="flex items-center gap-2 text-sm font-semibold text-slate-600 uppercase tracking-wider mb-1.5"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path fill-rule="evenodd" clip-rule="evenodd" d="M2.21823 0C1.54542 0 1 0.545422 1 1.21823V5.78891C1 6.46172 1.54542 7.00714 2.21823 7.00714H11.7818C12.4546 7.00714 13 6.46172 13 5.78891V1.21823C13 0.545421 12.4546 0 11.7818 0H2.21823Z" fill="#F8DD9C"/>
-                        <path fill-rule="evenodd" clip-rule="evenodd" d="M7.00009 3.70789C7.74593 3.70789 8.35056 3.10326 8.35056 2.35742C8.35056 1.61158 7.74593 1.00696 7.00009 1.00696C6.25425 1.00696 5.64963 1.61158 5.64963 2.35742C5.64963 3.10326 6.25425 3.70789 7.00009 3.70789ZM4.62575 6.60766C4.81607 5.4683 5.80664 4.59991 7.00004 4.59991C8.19343 4.59991 9.184 5.4683 9.37432 6.60766C9.41083 6.82622 9.22769 7.00719 9.00611 7.00719H4.99397C4.77238 7.00719 4.58925 6.82621 4.62575 6.60766Z" fill="#5388D8"/>
-                        <path fill-rule="evenodd" clip-rule="evenodd" d="M3.47958 10.8865C4.27559 10.8865 4.92088 10.2412 4.92088 9.44521C4.92088 8.6492 4.27559 8.00391 3.47958 8.00391C2.68356 8.00391 2.03827 8.6492 2.03827 9.44521C2.03827 10.2412 2.68356 10.8865 3.47958 10.8865ZM10.5254 10.8865C11.3214 10.8865 11.9667 10.2412 11.9667 9.44521C11.9667 8.6492 11.3214 8.00391 10.5254 8.00391C9.72939 8.00391 9.08409 8.6492 9.08409 9.44521C9.08409 10.2412 9.72939 10.8865 10.5254 10.8865ZM3.47949 11.6649C2.32188 11.6649 1.36101 12.5072 1.1764 13.6124C1.14098 13.8244 1.31863 14 1.53357 14H5.42542C5.64036 14 5.818 13.8244 5.78259 13.6124C5.59798 12.5072 4.63711 11.6649 3.47949 11.6649ZM8.22229 13.6124C8.40691 12.5072 9.36778 11.6649 10.5254 11.6649C11.683 11.6649 12.6439 12.5072 12.8285 13.6124C12.8639 13.8244 12.6863 14 12.4713 14H8.57947C8.36453 14 8.18688 13.8244 8.22229 13.6124Z" fill="#5388D8"/>
-                        </svg>
-                        จำนวนผู้เข้าใช้งาน (คน)</label>
+                        <label class="flex items-center gap-2 text-sm font-semibold text-slate-600 uppercase tracking-wider mb-1.5">
+                            จำนวนผู้เข้าใช้งาน (คน)
+                        </label>
                         <input type="number" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-[#5388D8]/30 focus:ring-2 focus:ring-blue-500/10 transition" id="attendees" min="1" max="50" placeholder="ระบุจำนวนคน" required>
                     </div>
               
                     <div>
-                        <label class="flex items-center gap-2 text-sm font-semibold text-slate-600 uppercase tracking-wider mb-1.5"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <g clip-path="url(#clip0_1222_15774)">
-                        <path fill-rule="evenodd" clip-rule="evenodd" d="M0.5 0.125244C0.223858 0.125244 0 0.349102 0 0.625244V10.6252C0 10.9014 0.223858 11.1252 0.5 11.1252H5.25606C5.09023 10.6561 5 10.1512 5 9.62524C5 8.35387 5.52724 7.20564 6.375 6.38728V1.42771C6.09192 0.667083 5.35924 0.125244 4.5 0.125244H0.5ZM7.625 1.4277V5.53328C8.19579 5.2713 8.83084 5.12524 9.5 5.12524C11.8136 5.12524 13.7194 6.87122 13.9717 9.11743H14V0.625244C14 0.349102 13.7761 0.125244 13.5 0.125244H9.5C8.64077 0.125244 7.90808 0.667068 7.625 1.4277Z" fill="#8FBFFA"/>
-                        <path fill-rule="evenodd" clip-rule="evenodd" d="M7.75 9.62524C7.75 8.65875 8.5335 7.87524 9.5 7.87524C10.4665 7.87524 11.25 8.65875 11.25 9.62524C11.25 10.5917 10.4665 11.3752 9.5 11.3752C8.5335 11.3752 7.75 10.5917 7.75 9.62524ZM9.5 6.37524C7.70507 6.37524 6.25 7.83032 6.25 9.62524C6.25 11.4202 7.70507 12.8752 9.5 12.8752C10.1257 12.8752 10.7102 12.6984 11.2061 12.392L12.4692 13.6551C12.7621 13.948 13.237 13.948 13.5299 13.6551C13.8228 13.3622 13.8228 12.8873 13.5299 12.5944L12.2667 11.3313C12.5732 10.8354 12.75 10.251 12.75 9.62524C12.75 7.83032 11.2949 6.37524 9.5 6.37524Z" fill="#2859C5"/>
-                        </g>
-                        <defs>
-                        <clipPath id="clip0_1222_15774">
-                        <rect width="14" height="14" fill="white"/>
-                        </clipPath>
-                        </defs>
-                        </svg>
-                        วัตถุประสงค์การใช้งาน</label>
+                        <label class="flex items-center gap-2 text-sm font-semibold text-slate-600 uppercase tracking-wider mb-1.5">
+                            วัตถุประสงค์การใช้งาน
+                        </label>
                         <textarea class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-[#5388D8]/30 focus:ring-2 focus:ring-blue-500/10 transition" id="purpose" rows="2" placeholder="ระบุหัวข้อประชุม/กิจกรรมสัมมนา"></textarea>
                     </div>
 
-                    <button type="submit" class="w-full bg-gradient-to-r from-blue-300 to-blue-400 text-white font-medium text-sm rounded-xl py-3 shadow-lg shadow-blue-200/40 hover:shadow-blue-200/50 hover:from-blue-350 hover:to-blue-450 active:scale-[0.98] transition enabled:from-[#1e40af] enabled:to-[#2563eb] enabled:shadow-blue-600/30 enabled:hover:shadow-xl enabled:hover:shadow-blue-600/40 enabled:hover:from-[#1e3a8a] enabled:hover:to-[#1d4ed8] disabled:cursor-not-allowed mt-2" id="submitBtn">
-                        <span class="[text-shadow:_0_2px_4px_rgba(0,0,0,0.5)]"><i class="fa-solid fa-paper-plane me-2"></i>ส่งข้อมูลการจอง </span>
+                    <button type="submit" class="w-full bg-gradient-to-r from-blue-300 to-blue-400 text-white font-medium text-sm rounded-xl py-3 shadow-lg shadow-blue-200/40 hover:shadow-blue-200/50 active:scale-[0.98] transition enabled:from-[#1e40af] enabled:to-[#2563eb] enabled:shadow-blue-600/30 enabled:hover:shadow-xl enabled:hover:from-[#1e3a8a] enabled:hover:to-[#1d4ed8] disabled:cursor-not-allowed mt-2" id="submitBtn">
+                        <span class="[text-shadow:_0_2px_4px_rgba(0,0,0,0.5)]"><i class="fa-solid fa-paper-plane me-2"></i>ส่งข้อมูลการจอง</span>
                     </button>
                 </form>
             </div>
@@ -477,10 +395,15 @@
 
         <div class="lg:col-span-7">
             <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 hover:shadow-md transition duration-300">
-                <h2 class="text-lg font-semibold text-[#0D2535] border-b border-slate-100 pb-4 mb-4 flex items-center gap-2">
-                    <div class="w-12 h-7 bg-gradient-to-r from-[#5388D8]/30 to-[#F8DD9C]/30 rounded-lg flex items-center justify-center text-[#0D2535]">
-                    <i class="fa-solid fa-calendar-check text-[#0D2535]"></i></div> ตรวจสอบตารางการจอง
-                </h2>
+                <div class="flex flex-wrap items-center justify-between border-b border-slate-100 pb-4 mb-4 gap-2">
+                    <h2 class="text-lg font-semibold text-[#0D2535] flex items-center gap-2">
+                        <div class="w-12 h-7 bg-gradient-to-r from-[#5388D8]/30 to-[#F8DD9C]/30 rounded-lg flex items-center justify-center text-[#0D2535]">
+                        <i class="fa-solid fa-calendar-check text-[#0D2535]"></i></div> ตรวจสอบตารางการจอง
+                    </h2>
+                    <span class="text-xs text-slate-500 bg-slate-100 px-2.5 py-1 rounded-md font-medium">
+                        <i class="fa-solid fa-arrow-down-short-wide me-1"></i>เรียงตาม: อาคาร > ห้อง > เวลา
+                    </span>
+                </div>
                 
                 <div class="bg-slate-50 border border-slate-100 rounded-xl p-4 mb-6">
                     <div class="flex flex-wrap items-center gap-4">
@@ -511,16 +434,16 @@
                 <div class="overflow-x-auto">
                     <table class="w-full text-left border-collapse">
                         <thead>
-                            <tr class="border-b border-slate-100 text-xs font-bold text-slate-400 uppercase tracking-wider bg-slate-50/50">
-                                <th class="p-4 w-[160px]">อาคาร / ห้องประชุม</th>
+                            <tr class="border-b border-slate-100 text-xs font-bold text-slate-500 uppercase tracking-wider bg-slate-50/50">
+                                <th class="p-4 w-[170px]">อาคาร / ห้องประชุม</th>
                                 <th class="p-4 w-[140px]">ช่วงเวลา</th>
                                 <th class="p-4 w-[140px]">ผู้รับสิทธิ์จอง</th>
                             </tr>
                         </thead>
-                        <tbody id="bookingTableBody" class="divide-y divide-slate-50 text-sm">
+                        <tbody id="bookingTableBody" class="divide-y divide-slate-100 text-sm">
                             <tr>
                                 <td colspan="3" class="text-center text-slate-400 py-8">
-                                    <i class="fa-solid fa-spinner fa-spin me-2 text-[#5388D8]/30"></i>กำลังโหลดข้อมูล...
+                                    <i class="fa-solid fa-spinner fa-spin me-2 text-[#5388D8]/50"></i>กำลังโหลดข้อมูล...
                                 </td>
                             </tr>
                         </tbody>
@@ -533,7 +456,7 @@
         </div>
 
         <div id="view-dashboard" class="hidden">
-        <div class="max-w-7xl mx-auto px-4">
+        <div class="max-w-7xl mx-auto px-2 md:px-4">
 
             <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
                 <div>
@@ -656,33 +579,30 @@
 
         </div>
         </div>
-<div class="fixed bottom-8 right-8 z-[100] flex items-center justify-center">
-    
-    <a id="fab-fb" href="https://www.facebook.com/SLCLib/" target="_blank" aria-label="ติดต่อผ่าน Facebook"
-       class="absolute bottom-0 right-0 w-12 h-12 bg-[#5388D8] rounded-full shadow-lg flex items-center justify-center text-white transition-all duration-300 transform opacity-0 scale-0">
-        <i class="fa-brands fa-facebook-f text-2xl"></i>
-    </a>
 
-    <a id="fab-line" href="https://line.me/ti/g2/rJDHa3r305wqq488K1rnMf-5g6U2tdpdYNF4TA?utm_source=invitation&utm_medium=link_copy&utm_campaign=default" target="_blank" aria-label="ติดต่อผ่าน LINE"
-       class="absolute bottom-0 right-0 w-12 h-12 bg-green-500 rounded-full shadow-lg flex items-center justify-center text-white transition-all duration-300 transform opacity-0 scale-0">
-        <i class="fa-brands fa-line text-2xl"></i>
-    </a>
+        <div class="fixed bottom-8 right-8 z-[100] flex items-center justify-center">
+            <a id="fab-fb" href="https://www.facebook.com/SLCLib/" target="_blank" aria-label="ติดต่อผ่าน Facebook"
+               class="absolute bottom-0 right-0 w-12 h-12 bg-[#5388D8] rounded-full shadow-lg flex items-center justify-center text-white transition-all duration-300 transform opacity-0 scale-0">
+                <i class="fa-brands fa-facebook-f text-2xl"></i>
+            </a>
 
-    <button id="fab-main" aria-label="เปิด/ปิดเมนูช่องทางติดต่อ" class="w-12 h-12 bg-[#0D2535] rounded-full shadow-2xl flex items-center justify-center text-white hover:scale-105 transition-transform z-10">
-        <i id="fab-icon" class="fa-solid fa-headset text-3xl"></i>
-    </button>
-</div>
+            <a id="fab-line" href="https://line.me/ti/g2/rJDHa3r305wqq488K1rnMf-5g6U2tdpdYNF4TA?utm_source=invitation&utm_medium=link_copy&utm_campaign=default" target="_blank" aria-label="ติดต่อผ่าน LINE"
+               class="absolute bottom-0 right-0 w-12 h-12 bg-green-500 rounded-full shadow-lg flex items-center justify-center text-white transition-all duration-300 transform opacity-0 scale-0">
+                <i class="fa-brands fa-line text-2xl"></i>
+            </a>
+
+            <button id="fab-main" aria-label="เปิด/ปิดเมนูช่องทางติดต่อ" class="w-12 h-12 bg-[#0D2535] rounded-full shadow-2xl flex items-center justify-center text-white hover:scale-105 transition-transform z-10">
+                <i id="fab-icon" class="fa-solid fa-headset text-3xl"></i>
+            </button>
+        </div>
     </main>
 
     <script>
-        // ✅ ธีมกลางของป็อปอัพ (SweetAlert2) ทั้งระบบ — แนว Modern โทนเดียวกับสีหลักของระบบจอง (#01224D)
-        // ทุกจุดที่เคยเรียก Swal.fire(...) ตรงๆ เปลี่ยนมาเรียก BrandSwal.fire(...) แทน
-        // จะได้มุมโค้งมน / เงานุ่ม / ปุ่มทรงแคปซูลไล่สี เหมือนกันหมดทั้งระบบ ไม่ต้องแก้ทีละจุด
         const BrandSwal = Swal.mixin({
             confirmButtonColor: '#01224D',
             cancelButtonColor: '#94a3b8',
-            buttonsStyling: false, // ปิดปุ่ม default ของ Swal แล้วคุมรูปทรงเองผ่าน CSS ด้านล่างแทน
-            backdrop: 'rgba(1, 34, 77, 0.35)', // เบลอโทนกรมท่าจางๆ แทนดำทึบเดิม ให้ความรู้สึก modern/glass
+            buttonsStyling: false,
+            backdrop: 'rgba(1, 34, 77, 0.35)',
             customClass: {
                 popup: 'brand-swal-popup',
                 title: 'brand-swal-title',
@@ -693,7 +613,6 @@
             }
         });
 
-        // ระบบสลับหน้า
         function switchView(view) {
             document.getElementById('view-booking').classList.toggle('hidden', view !== 'booking');
             document.getElementById('view-dashboard').classList.toggle('hidden', view !== 'dashboard');
@@ -706,707 +625,423 @@
             }
         }
 
-        // ย่อ/ขยายแถบเมนูซ้าย
         function toggleSidebar() {
             document.getElementById('sidebar').classList.toggle('collapsed');
         }
 
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzDSTAZ097LZcya3VfwHOigdPEzboHnYYVOMGkpAz-X66UQEfg7BpdkRTWuIf5Wxc9MYw/exec";
-    const rooms = {
-        "Saint Louis": ["Conference Room 1", "Conference Room 2", "Conference Room 3", "Mini Theater Room", "Research Room"],
-        "Saint Benedict": [
-            { value: "Conference Room 1", label: "Conference Room 1 (3-6 คน)" },
-            { value: "Conference Room 2", label: "Conference Room 2 (ไม่เกิน 10 คน)" },
-            "Multiple Purpose Room"
-        ]
-    };
+        const rooms = {
+            "Saint Louis": [
+                "Conference Room 1",
+                "Conference Room 2",
+                "Conference Room 3",
+                "Mini Theater Room",
+                "Research Room"
+            ],
+            "Saint Benedict": [
+                { value: "Conference Room 1", label: "Conference Room 1 (3-6 คน)" },
+                { value: "Conference Room 2", label: "Conference Room 2 (ไม่เกิน 10 คน)" },
+                "Multiple Purpose Room"
+            ]
+        };
 
-    // ห้องบางห้องเก็บเป็น object {value, label} เพื่อให้ dropdown โชว์ข้อความความจุได้
-    // โดยไม่ให้ข้อความนั้นติดไปกับค่าที่บันทึกจริง (value) — ใช้ 2 ฟังก์ชันนี้ดึงค่าที่ต้องการเสมอ
-    function getRoomValue(r) {
-        return (typeof r === "object" && r !== null) ? r.value : r;
-    }
-    function getRoomLabel(r) {
-        return (typeof r === "object" && r !== null) ? r.label : r;
-    }
-    let allBookings = []; 
-    let fpBookingInstance, fpFilterInstance; 
-
-    function generateTimeOptions(startHour, endHour) {
-        let options = [];
-        for (let h = startHour; h <= endHour; h++) {
-            let hourStr = h.toString().padStart(2, '0');
-            options.push(`${hourStr}:00`);
-            if (h !== endHour) options.push(`${hourStr}:30`);
+        function getRoomValue(r) {
+            return (typeof r === "object" && r !== null) ? r.value : r;
         }
-        return options;
-    }
-
-    function toggleRules(show) {
-        const popup = document.getElementById('rulesPopup');
-        if (show) {
-            popup.classList.remove('hidden');
-        } else {
-            popup.classList.add('hidden');
-        }
-    }
-
-    function updateRoomsAndTimes() {
-        const building = document.getElementById("building").value;
-        const roomSelect = document.getElementById("room");
-
-        roomSelect.innerHTML = '<option value="">-- เลือกห้อง --</option>';
-        if (!building) {
-            roomSelect.disabled = true;
-            updateTimeOptions(); // ปิดใช้งาน dropdown เวลาให้เองถ้ายังไม่เลือกอาคาร
-            return;
+        function getRoomLabel(r) {
+            return (typeof r === "object" && r !== null) ? r.label : r;
         }
 
-        rooms[building].forEach(r => {
-            roomSelect.innerHTML += `<option value="${getRoomValue(r)}">${getRoomLabel(r)}</option>`;
-        });
-        roomSelect.disabled = false;
-
-        updateTimeOptions();
-    }
-
-    // ✅ เพิ่มใหม่: แยกออกมาจาก updateRoomsAndTimes เพื่อให้เรียกซ้ำได้ตอนเปลี่ยน "วันที่" อย่างเดียว
-    // โดยไม่ไปรีเซ็ตห้องที่เลือกไว้แล้ว — เปลี่ยนแค่ตัวเลือกเวลาให้ตรงกับเวลาเปิด-ปิดของวันนั้น
-    // (เผื่อวันที่เลือกตรงกับช่วงที่มีประกาศเปลี่ยนแปลงเวลาชั่วคราว เช่น ช่วงปิดเทอม)
-    function updateTimeOptions() {
-        const building = document.getElementById("building").value;
-        const startSelect = document.getElementById("startTime");
-        const endSelect = document.getElementById("endTime");
-
-        startSelect.innerHTML = '<option value="">-- เริ่ม --</option>';
-        endSelect.innerHTML = '<option value="">-- สิ้นสุด --</option>';
-
-        if (!building) {
-            startSelect.disabled = endSelect.disabled = true;
-            return;
+        // ลำดับของห้องในแต่ละอาคาร เพื่อใช้จัดเรียงในตารางตรวจสอบ
+        function getRoomOrder(building, roomName) {
+            const roomList = rooms[building] || [];
+            const idx = roomList.findIndex(r => getRoomValue(r) === roomName);
+            return idx !== -1 ? idx : 999;
         }
 
-        // ✅ แก้ไข: ใช้เวลาเปิด-ปิดที่ "มีผลจริง" ของวันที่เลือกไว้ แทนที่จะ hardcode 10-19 / 8-17 ตรงๆ เหมือนเดิม
-        const selectedDateForHours = fpBookingInstance ? fpBookingInstance.input.value : "";
-        const effHours = getEffectiveOperatingHours(building, selectedDateForHours);
-        let timeOpts = generateTimeOptions(effHours.start, effHours.end);
-        timeOpts.forEach(t => {
-            startSelect.innerHTML += `<option value="${t}">${t}</option>`;
-            endSelect.innerHTML += `<option value="${t}">${t}</option>`;
-        });
-        startSelect.disabled = endSelect.disabled = false;
-    }
+        let allBookings = []; 
+        let fpBookingInstance, fpFilterInstance; 
 
-    function updateDepartmentOptions() {
-        const status = document.getElementById("userStatus").value;
-        const wrapper = document.getElementById("departmentWrapper");
-        const selectField = document.getElementById("departmentSelect");
-        const inputField = document.getElementById("departmentInput");
-        const label = document.getElementById("departmentLabel");
-
-        selectField.required = false;
-        inputField.required = false;
-        
-        wrapper.style.display = "none";
-        selectField.style.display = "none";
-        inputField.style.display = "none";
-        
-        if (!status) return;
-
-        wrapper.style.display = "block";
-        if (status === "นักศึกษา") {
-            label.innerHTML = "📋 คณะที่สังกัด";
-            selectField.innerHTML = `
-                <option value="">-- กรุณาเลือกคณะ --</option>
-                <option value="คณะพยาบาลศาสตร์">คณะพยาบาลศาสตร์</option>
-                <option value="คณะจิตวิทยา">คณะจิตวิทยา</option>
-                <option value="คณะกายภาพบำบัด">คณะกายภาพบำบัด</option>
-            `;
-            selectField.style.display = "block";
-            selectField.required = true;
-        } else if (status === "อาจารย์") {
-            label.innerHTML = "📋 คณะ / สำนักวิชาที่สังกัด";
-            selectField.innerHTML = `
-                <option value="">-- กรุณาเลือกคณะ/สำนักวิชา --</option>
-                <option value="คณะพยาบาลศาสตร์">คณะพยาบาลศาสตร์</option>
-                <option value="คณะจิตวิทยา">คณะจิตวิทยา</option>
-                <option value="คณะกายภาพบำบัด">คณะกายภาพบำบัด</option>
-                <option value="สำนักวิชาศึกษาทั่วไป">สำนักวิชาศึกษาทั่วไป</option>
-            `;
-            selectField.style.display = "block";
-            selectField.required = true;
-        } else if (status === "บุคลากร") {
-            label.innerHTML = "🏢 แผนก / ฝ่ายงานที่สังกัด";
-            inputField.style.display = "block";
-            inputField.required = true;
-            inputField.value = "";
+        function generateTimeOptions(startHour, endHour) {
+            let options = [];
+            for (let h = startHour; h <= endHour; h++) {
+                let hourStr = h.toString().padStart(2, '0');
+                options.push(`${hourStr}:00`);
+                if (h !== endHour) options.push(`${hourStr}:30`);
+            }
+            return options;
         }
-    }
-        
-    function validateTimeSlot() {
-        const start = document.getElementById("startTime").value;
-        const end = document.getElementById("endTime").value;
-        const submitBtn = document.getElementById("submitBtn");
 
-        if (start && end) {
-            let [sH, sM] = start.split(':').map(Number);
-            let [eH, eM] = end.split(':').map(Number);
-            let diff = (eH * 60 + eM) - (sH * 60 + sM);
-            if (diff <= 0) {
-                BrandSwal.fire({ title: 'ข้อผิดพลาดเกี่ยวกับเวลา', text: 'เวลาสิ้นสุดต้องอยู่หลังเวลาเริ่มต้น', icon: 'warning', confirmButtonColor: '#1e3c72' });
-                submitBtn.disabled = true;
-            } else if (diff > 120) {
-                BrandSwal.fire({ title: 'เงื่อนไขการใช้ห้อง', text: '⚠️ ขอใช้งานห้องประชุมได้ครั้งละไม่เกิน 2 ชั่วโมงต่อคน', icon: 'info', confirmButtonColor: '#1e3c72' });
-                submitBtn.disabled = true;
+        function toggleRules(show) {
+            const popup = document.getElementById('rulesPopup');
+            if (show) {
+                popup.classList.remove('hidden');
             } else {
-                // 🐛 แก้บั๊ก: เดิมตั้ง submitBtn.disabled = false ตรงๆ ตรงนี้ ซึ่งไป "ปลดล็อก" ปุ่มจอง
-                // ทับสถานะล็อกที่ checkSelectedDateWarning() ตั้งไว้ (เมื่อวันนั้นห้องสมุดปิดทั้งวัน)
-                // เพราะทั้งสองฟังก์ชันแก้ submitBtn.disabled คนละจุดโดยไม่รู้สถานะของกันและกัน
-                // ผลคือถ้าเลือกวันที่ปิดทั้งวันไว้ก่อน แล้วมาเปลี่ยนเวลาเริ่ม/สิ้นสุดทีหลัง ปุ่มจองจะกลับมากดได้
-                // แก้โดยเช็คสถานะ "วันนี้ปิดทั้งวันไหม" ร่วมด้วยเสมอ แทนที่จะปลดล็อกอย่างไม่มีเงื่อนไข
-                const dateStr = fpBookingInstance ? fpBookingInstance.input.value : "";
-                submitBtn.disabled = isDateFullyClosed(dateStr);
+                popup.classList.add('hidden');
             }
         }
-    }
 
-    // ✅ เพิ่มใหม่: ตรวจสอบข้อมูลในฟอร์มแบบรวมทุกช่อง ก่อนอนุญาตให้ submit
-    // (เดิมพึ่งพา required attribute ของ HTML5 อย่างเดียว ซึ่งเช็คได้แต่ไม่ครอบคลุม
-    // ช่องที่โชว์/ซ่อนแบบ dynamic เช่น departmentInput/departmentSelect)
-    function validateBookingForm() {
-        const errors = [];
+        function updateRoomsAndTimes() {
+            const building = document.getElementById("building").value;
+            const roomSelect = document.getElementById("room");
 
-        if (!document.getElementById("building").value) errors.push("กรุณาเลือกอาคาร");
-        if (!document.getElementById("room").value) errors.push("กรุณาเลือกห้องประชุม");
-        if (!(fpBookingInstance && fpBookingInstance.input.value)) errors.push("กรุณาเลือกวันที่");
-        if (!document.getElementById("startTime").value) errors.push("กรุณาเลือกเวลาเริ่มต้น");
-        if (!document.getElementById("endTime").value) errors.push("กรุณาเลือกเวลาสิ้นสุด");
-        if (!document.getElementById("requester").value.trim()) errors.push("กรุณากรอกชื่อผู้จอง");
-        // หมายเหตุ: ช่อง "purpose" ในฟอร์ม HTML ไม่มี attribute required (จงใจให้กรอกหรือไม่ก็ได้)
-        // จึงไม่บังคับตรงนี้ด้วย เพื่อไม่ให้ validateBookingForm() เปลี่ยนพฤติกรรมฟอร์มไปจากที่ออกแบบไว้เดิม
-
-        const statusValue = document.getElementById("userStatus").value;
-        if (!statusValue) {
-            errors.push("กรุณาเลือกสถานะผู้ใช้งาน");
-        } else if (statusValue === "บุคลากร") {
-            if (!document.getElementById("departmentInput").value.trim()) errors.push("กรุณากรอกแผนก/ฝ่ายงานที่สังกัด");
-        } else if (statusValue === "นักศึกษา" || statusValue === "อาจารย์") {
-            if (!document.getElementById("departmentSelect").value) errors.push("กรุณาเลือกคณะ/สำนักวิชาที่สังกัด");
-        }
-
-        if (errors.length > 0) {
-            BrandSwal.fire({
-                title: 'ข้อมูลไม่ครบถ้วน',
-                html: '<ul class="text-left list-none space-y-1">' + errors.map(e => `<li>• ${escapeHtml(e)}</li>`).join('') + '</ul>',
-                icon: 'warning',
-                confirmButtonColor: '#1e3c72'
-            });
-            return false;
-        }
-        return true;
-    }
-
-    // ป้องกัน XSS: แปลงตัวอักษรพิเศษของ HTML ให้เป็นข้อความธรรมดา
-    // ก่อนเอาไปแสดงผลด้วย innerHTML เสมอ ไม่ว่าค่านั้นจะมาจากไหนก็ตาม
-    function escapeHtml(str) {
-        if (str === null || str === undefined) return "";
-        return String(str)
-            .replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;")
-            .replace(/"/g, "&quot;")
-            .replace(/'/g, "&#39;");
-    }
-
-    // Persist/restore form + dashboard UI state in localStorage (non-sensitive fields only)
-    function saveFormState() {
-        try {
-            const state = {
-                building: document.getElementById('building') ? document.getElementById('building').value : '',
-                room: document.getElementById('room') ? document.getElementById('room').value : '',
-                bookingDate: document.getElementById('bookingDate') ? document.getElementById('bookingDate').value : '',
-                startTime: document.getElementById('startTime') ? document.getElementById('startTime').value : '',
-                endTime: document.getElementById('endTime') ? document.getElementById('endTime').value : '',
-                userStatus: document.getElementById('userStatus') ? document.getElementById('userStatus').value : '',
-                departmentSelect: document.getElementById('departmentSelect') ? document.getElementById('departmentSelect').value : '',
-                departmentInput: document.getElementById('departmentInput') ? document.getElementById('departmentInput').value : '',
-                attendees: document.getElementById('attendees') ? document.getElementById('attendees').value : '',
-                purpose: document.getElementById('purpose') ? document.getElementById('purpose').value : ''
-            };
-            localStorage.setItem('slc_formState', JSON.stringify(state));
-        } catch (e) {
-            console.warn('Failed to save form state', e);
-        }
-    }
-
-    function loadFormState() {
-        try {
-            const raw = localStorage.getItem('slc_formState');
-            if (!raw) return;
-            const state = JSON.parse(raw);
-            if (state.building) document.getElementById('building').value = state.building;
-            if (state.room) document.getElementById('room').value = state.room;
-            if (state.bookingDate) {
-                const bdEl = document.getElementById('bookingDate');
-                if (bdEl) bdEl.value = state.bookingDate;
-                if (fpBookingInstance) fpBookingInstance.setDate(state.bookingDate);
-            }
-            if (state.startTime) document.getElementById('startTime').value = state.startTime;
-            if (state.endTime) document.getElementById('endTime').value = state.endTime;
-            if (state.userStatus) document.getElementById('userStatus').value = state.userStatus;
-            if (state.departmentSelect) document.getElementById('departmentSelect').value = state.departmentSelect;
-            if (state.departmentInput) document.getElementById('departmentInput').value = state.departmentInput;
-            if (state.attendees) document.getElementById('attendees').value = state.attendees;
-            if (state.purpose) document.getElementById('purpose').value = state.purpose;
-
-            // Apply dependent UI updates
-            if (state.building) updateRoomsAndTimes();
-            if (state.userStatus) updateDepartmentOptions();
-            checkFormCompletion();
-        } catch (e) {
-            console.warn('Failed to load form state', e);
-        }
-    }
-
-    function timeToMinutes(timeStr) {
-        if (!timeStr) return 0;
-        var parts = timeStr.split(':');
-        return parseInt(parts[0]) * 60 + parseInt(parts[1]);
-    }
-
-    // ✅ แยกส่วน "แสดงผลตาราง" ออกจากส่วน "ดึงข้อมูล" เพื่อให้ fetchAllData() (โหลดตอนเปิดเว็บ)
-    // เอา allBookings ที่โหลดมาแล้วมาเรียกฟังก์ชันนี้ต่อได้เลย ไม่ต้องยิง fetch ซ้ำอีกรอบ
-    function renderBookingTable() {
-        const filterDateInput = document.getElementById("filterDate");
-        const selectedDate = fpFilterInstance && fpFilterInstance.selectedDates.length > 0 
-            ? filterDateInput.value 
-            : new Date().toLocaleDateString('sv-SE');
-        if(fpFilterInstance && fpFilterInstance.selectedDates.length === 0) {
-            fpFilterInstance.setDate(selectedDate);
-        }
-
-        const selectedBuilding = document.getElementById("filterBuilding").value;
-        const selectedRoom = document.getElementById("filterRoom") ? document.getElementById("filterRoom").value : "";
-        const tbody = document.getElementById("bookingTableBody");
-
-        const filteredData = allBookings.filter(b => {
-            if (!b.date) return false;
-            const bDateStr = (b.date || '').split('T')[0]; 
-            const matchDate = bDateStr === selectedDate;
-            const matchBuilding = selectedBuilding === "" || b.building === selectedBuilding;
-            const matchRoom = selectedRoom === "" || b.room === selectedRoom;
-
-            return matchDate && matchBuilding && matchRoom;
-        });
-
-        filteredData.sort((a, b) => timeToMinutes(a.startTime) - timeToMinutes(b.startTime));
-        tbody.innerHTML = "";
-
-        if (filteredData.length === 0) {
-            tbody.innerHTML = `
-                <tr>
-                    <td colspan="3" class="text-center text-slate-400 py-12">
-                        <i class="fa-regular fa-folder-open d-block mb-3 opacity-40 text-4xl text-slate-300"></i>
-                        <div class="text-sm">ไม่พบข้อมูลการจองตามเงื่อนไขที่เลือกในวันนี้</div>
-                    </td>
-                </tr>`;
-            return;
-        }
-
-        filteredData.forEach(b => {
-            const isSL = b.building === "Saint Louis";
-            const customTagStyle = isSL 
-            ? "background: linear-gradient(135deg, rgba(248, 221, 156, 0.3), rgba(248, 221, 156, 0.7)); color: #0D2535;"
-            : "background: linear-gradient(135deg, rgba(83, 136, 216, 0.3), rgba(83, 136, 216, 0.5)); color: #0D2535;"
-
-            const displayName = isSL ? "Saint Louis" : "Saint Benedict";
-
-            // escape ไว้สำหรับแสดงผล (กัน XSS)
-            const safeRoomHtml = escapeHtml(b.room);
-            const safeRequesterHtml = escapeHtml(b.requester);
-            const safeStatusHtml = escapeHtml(b.userStatus || '-');
-
-            // ✅ แก้ XSS: เลิกใช้ onclick="..." แบบฝังค่า dynamic ลงใน HTML attribute โดยตรง
-            // (เดิม escape แค่ single quote แต่ไม่ escape double quote จึงยังหลุดออกจาก
-            // attribute ได้ถ้าชื่อผู้จองมีอักขระ " อยู่) เปลี่ยนมาเก็บค่าไว้ใน data-* attribute
-            // (ผ่าน escapeHtml เต็มรูปแบบเหมือนส่วนแสดงผลอื่น) แล้วอ่านค่าผ่าน Event Delegation แทน
-            const safeDateAttr = escapeHtml(b.date);
-            const safeStartTimeAttr = escapeHtml(b.startTime);
-
-            tbody.innerHTML += `
-                <tr class="hover:bg-slate-50/80 transition duration-150">
-                    <td class="p-4 max-w-[240px]">
-                        <span class="inline-block text-[10px] font-bold px-2 py-0.5 rounded-md shadow-sm mb-1" style="${customTagStyle}">${displayName}</span>
-                        <div class="font-bold text-[#0D2535] truncate" title="${safeRoomHtml}">${safeRoomHtml}</div>
-                    </td>
-                    <td class="p-4 whitespace-nowrap">
-                        <span class="inline-flex items-center gap-1 font-semibold text-[#0D2535] bg-blue-50 border border-blue-100/50 px-2.5 py-1 rounded-lg text-xs">
-                            <i class="fa-regular fa-clock opacity-70"></i>${escapeHtml(b.startTime)} - ${escapeHtml(b.endTime)}
-                        </span>
-                    </td>
-                    <td class="p-4">
-                        <div class="flex justify-between items-center gap-2">
-                            <div class="min-w-0 flex-1">
-                                <div class="font-semibold text-slate-800 truncate text-[13px]" title="${safeRequesterHtml}">${safeRequesterHtml}</div>
-                                <div class="mt-0.5">
-                                    <span class="inline-block bg-slate-100 text-slate-600 text-[10px] font-medium px-1.5 py-0.5 rounded">
-                                        ${safeStatusHtml}
-                                    </span>
-                                </div>
-                            </div>
-                            <button class="delete-btn w-8 h-8 rounded-full text-slate-400 hover:text-rose-600 hover:bg-rose-50 flex items-center justify-center transition flex-shrink-0" 
-                                data-requester="${safeRequesterHtml}" data-date="${safeDateAttr}" data-start-time="${safeStartTimeAttr}" data-room="${safeRoomHtml}"
-                                title="ยกเลิกการจองนี้ (เฉพาะแอดมิน)" aria-label="ยกเลิกการจองนี้ (เฉพาะแอดมิน)">
-                                <i class="fa-solid fa-trash-can text-xs"></i>
-                            </button>
-                        </div>
-                    </td>
-                </tr>
-            `;
-        });
-    }
-
-    // ✅ Event Delegation สำหรับปุ่มลบ: ผูก listener แค่ครั้งเดียวที่ตัว tbody (แทนการฝัง onclick
-    // ในทุกแถวที่ render) ค่าที่อ่านมาจาก dataset จะถูก HTML-decode อัตโนมัติโดย browser
-    // ปลอดภัยกว่าการต่อ string เข้า onclick="..." attribute โดยตรง
-    const bookingTbody = document.getElementById("bookingTableBody");
-    if (bookingTbody && !bookingTbody.__deleteListenerAdded) {
-        bookingTbody.addEventListener("click", function (e) {
-            const btn = e.target.closest(".delete-btn");
-            if (!btn) return;
-            deleteBooking(btn.dataset.requester, btn.dataset.date, btn.dataset.startTime, btn.dataset.room);
-        });
-        bookingTbody.__deleteListenerAdded = true;
-    }
-
-    // ใช้ตอน filter เปลี่ยน / หลังจองสำเร็จ / หลังลบ — ยิง fetch แค่ข้อมูลจองอย่างเดียว (เบา เร็ว)
-    // ไม่ต้องดึง maintenance/hours ซ้ำทุกครั้ง เพราะข้อมูลพวกนั้นไม่ได้เปลี่ยนบ่อยขนาดนั้น
-    function loadBookings() {
-        const tbody = document.getElementById("bookingTableBody");
-        tbody.innerHTML = `<tr><td colspan="3" class="text-center text-slate-400 py-8"><i class="fa-solid fa-spinner fa-spin me-2 text-blue-500"></i>กำลังโหลดข้อมูล...</td></tr>`;
-        fetch(SCRIPT_URL)
-        .then(res => {
-            if (!res.ok) {
-                const err = new Error(`Request failed with status ${res.status}`);
-                err.status = res.status;
-                throw err;
-            }
-            return res.json();
-        })
-        .then(data => {
-            allBookings = Array.isArray(data.bookings) ? data.bookings : (Array.isArray(data) ? data : []);
-            renderBookingTable();
-        }).catch(err => {
-            console.error('Failed to load bookings:', err);
-
-            // ✅ ให้ข้อความ error สื่อความหมายตามสาเหตุ แทนข้อความรวมเดียวแบบเดิม
-            let message = 'โหลดข้อมูลระบบล้มเหลว กรุณาลองใหม่อีกครั้ง';
-            if (!navigator.onLine || err instanceof TypeError) {
-                message = 'ไม่สามารถเชื่อมต่ออินเทอร์เน็ตได้ กรุณาตรวจสอบการเชื่อมต่อ';
-            } else if (err.status >= 500) {
-                message = 'เซิร์ฟเวอร์ขัดข้อง กรุณาลองใหม่อีกครั้งในภายหลัง';
-            }
-
-            tbody.innerHTML = `
-                <tr>
-                    <td colspan="3" class="text-center text-rose-500 py-6 font-medium">
-                        <i class="fa-solid fa-triangle-exclamation me-2"></i>${escapeHtml(message)}
-                        <button onclick="loadBookings()" class="block mx-auto mt-2 text-xs underline text-slate-500 hover:text-slate-700">ลองอีกครั้ง</button>
-                    </td>
-                </tr>`;
-        });
-    }
-
-    function updateFilterRooms() {
-        const building = document.getElementById("filterBuilding").value;
-        const roomSelect = document.getElementById("filterRoom");
-        const roomWrapper = document.getElementById("filterRoomWrapper");
-        
-        if (!building) {
-            roomSelect.innerHTML = '<option value="">-- ทั้งหมด --</option>';
-            roomSelect.value = "";
-            roomWrapper.classList.add("hidden");
-            loadBookings();
-            return;
-        }
-        
-        roomSelect.innerHTML = '<option value="">-- ทั้งหมด --</option>';
-        if (rooms[building]) {
-            rooms[building].forEach(r => {
-                roomSelect.innerHTML += `<option value="${getRoomValue(r)}">${getRoomLabel(r)}</option>`;
-            });
-        }
-        roomWrapper.classList.remove("hidden");
-        loadBookings();
-    }
-        
-    // เช็คว่าห้อง/วัน/เวลาที่เลือก ชนกับรายการที่จองไว้แล้วหรือไม่
-    // (เช็คแบบคร่าวๆ ฝั่ง frontend เพื่อเตือนผู้ใช้ก่อน ตัวเช็คจริงยังต้องอยู่ที่ backend เสมอ)
-    function hasTimeConflict(building, room, date, startTime, endTime) {
-        const newStart = timeToMinutes(startTime);
-        const newEnd = timeToMinutes(endTime);
-        return allBookings.some(b => {
-            if (b.building !== building || b.room !== room) return false;
-            const bDateStr = (b.date || "").split('T')[0];
-            if (bDateStr !== date) return false;
-            const existStart = timeToMinutes(b.startTime);
-            const existEnd = timeToMinutes(b.endTime);
-            // ชนกันถ้าช่วงเวลาทับซ้อนกัน (ไม่ใช่แค่เวลาเริ่มตรงกันเป๊ะ)
-            return newStart < existEnd && existStart < newEnd;
-        });
-    }
-
-    // ✅ เพิ่มใหม่: เช็คว่าช่วงเวลาที่เลือกตรงกับช่วง "ปิดปรับปรุง/ปิดใช้งานชั่วคราว" หรือไม่
-    // (เดิมข้อมูล Maintenance ถูกใช้แค่โชว์บน Dashboard แต่ไม่เคยเช็คตอนจองจริงเลย)
-    function getMaintenanceConflict(building, room, date, startTime, endTime) {
-        const newStart = timeToMinutes(startTime);
-        const newEnd = timeToMinutes(endTime);
-        return maintenanceSlots.find(m => {
-            if (date < m.startDate || date > m.endDate) return false; // นอกช่วงวันที่ปิด
-            if (m.building && m.building !== building) return false;
-            if (m.room && m.room !== room) return false;
-            const mStart = timeToMinutes(m.start);
-            const mEnd = timeToMinutes(m.end);
-            return newStart < mEnd && mStart < newEnd;
-        });
-    }
-
-    // ✅ เพิ่มใหม่: รีเฟรชข้อมูลการจองก่อนตรวจสอบการทับซ้อน (ป้องกัน race condition)
-    function refreshBookingsData() {
-        return fetch(SCRIPT_URL)
-            .then(res => {
-                if (!res.ok) throw new Error(`HTTP ${res.status}`);
-                return res.json();
-            })
-            .then(data => {
-                allBookings = Array.isArray(data.bookings) ? data.bookings : (Array.isArray(data) ? data : []);
-            })
-            .catch(err => {
-                console.error('Failed to refresh bookings:', err);
-                // ถ้าดึงข้อมูลไม่ได้ให้ใช้ข้อมูลเก่า เพื่อไม่ให้การตรวจสอบเสีย
-            });
-    }
-
-    document.getElementById("bookingForm").addEventListener("submit", function(e) {
-        e.preventDefault();
-
-        if (!validateBookingForm()) return;
-
-        const bookingDateValue = fpBookingInstance ? fpBookingInstance.input.value : "";
-        const statusValue = document.getElementById("userStatus").value;
-        const buildingValue = document.getElementById("building").value;
-        const roomValue = document.getElementById("room").value;
-        const startTimeValue = document.getElementById("startTime").value;
-        const endTimeValue = document.getElementById("endTime").value;
-
-        const maintConflict = getMaintenanceConflict(buildingValue, roomValue, bookingDateValue, startTimeValue, endTimeValue);
-        if (maintConflict) {
-            BrandSwal.fire({
-                title: 'ช่วงเวลานี้ปิดใช้งานชั่วคราว',
-                text: maintConflict.reason || 'ห้องสมุดปิดใช้งานในช่วงเวลานี้ กรุณาเลือกวัน/เวลาอื่น',
-                icon: 'info',
-                confirmButtonColor: '#01224D'
-            });
-            return;
-        }
-
-        // ตรวจสอบระยะเวลาการจองไม่เกิน 2 ชั่วโมงก่อนทำ network
-        const durationMins = timeToMinutes(endTimeValue) - timeToMinutes(startTimeValue);
-        if (durationMins > 120) {
-            BrandSwal.fire({ title: 'เงื่อนไขการใช้ห้อง', text: '⚠️ ขอใช้งานห้องประชุมได้ครั้งละไม่เกิน 2 ชั่วโมงต่อคน', icon: 'info', confirmButtonColor: '#1e3c72' });
-            return;
-        }
-
-        // ✅ รีเฟรชข้อมูลการจองก่อนตรวจสอบ (ป้องกัน race condition)
-        refreshBookingsData().then(() => {
-            if (hasTimeConflict(buildingValue, roomValue, bookingDateValue, startTimeValue, endTimeValue)) {
-                BrandSwal.fire({
-                    title: 'ช่วงเวลานี้ถูกจองแล้ว',
-                    text: 'มีคนจองห้องนี้ในช่วงเวลาที่คุณเลือกไปแล้ว กรุณาเลือกเวลาอื่น',
-                    icon: 'warning',
-                    confirmButtonColor: '#1e3c72'
-                });
+            roomSelect.innerHTML = '<option value="">-- เลือกห้อง --</option>';
+            if (!building) {
+                roomSelect.disabled = true;
+                updateTimeOptions();
                 return;
             }
 
-            document.getElementById("submitBtn").disabled = true;
-            document.getElementById("submitBtn").innerHTML = "<i class='fa-solid fa-spinner fa-spin me-2'></i>กำลังบันทึกข้อมูล...";
-
-            let deptValue = "";
-            if (statusValue === "บุคลากร") {
-                deptValue = document.getElementById("departmentInput").value;
-            } else if (statusValue === "นักศึกษา" || statusValue === "อาจารย์") {
-                deptValue = document.getElementById("departmentSelect").value;
-            }
-
-            const payload = {
-                building: buildingValue,
-                room: roomValue,
-                date: bookingDateValue, 
-                startTime: startTimeValue,
-                endTime: endTimeValue,
-                requester: document.getElementById("requester").value,
-                purpose: document.getElementById("purpose").value,
-                userStatus: statusValue,
-                department: deptValue,
-                attendees: document.getElementById("attendees").value
-            };
-            // Use application/json for POST so Apps Script receives parsed JSON body correctly (was text/plain causing Apps Script to reject body)
-            fetch(SCRIPT_URL, {
-                method: "POST",
-            // ใช้ text/plain เพื่อเลี่ยง preflight CORS (Apps Script อ่าน e.postData.contents ได้)
-            headers: { "Content-Type": "text/plain;charset=utf-8" },
-            body: JSON.stringify(payload)
-            })
-            .then(res => res.json())
-            .then(result => {
-                if (result.status === "error") {
-                    // 🐛 แก้บั๊ก/ความเสี่ยง: เดิมใช้ html: result.message ใส่ข้อความจากฝั่ง backend ตรงๆ
-                    // โดยไม่ escape ถ้า Apps Script เผลอสะท้อนข้อมูลที่ผู้ใช้กรอกเอง (เช่น ชื่อผู้จอง)
-                    // กลับมาในข้อความ error จะกลายเป็นช่องโหว่ XSS อีกจุดหนึ่ง (คล้ายปัญหา XSS ที่แก้ไปแล้ว)
-                    // เปลี่ยนเป็น text: แทน เพราะข้อความ error เป็นข้อความธรรมดา ไม่ต้องใช้ HTML formatting
-                    BrandSwal.fire({
-                        title: 'ไม่สามารถจองได้',
-                        text: result.message,
-                        icon: 'warning',
-                        confirmButtonColor: '#1d4ed8'
-                    });
-                } else {
-                    BrandSwal.fire({
-                        title: 'จองสำเร็จ!',
-                        text: 'โปรดติดต่อเจ้าหน้าที่ห้องสมุด SLC ก่อนเข้าใช้งาน',
-                        icon: 'success',
-                        confirmButtonText: 'ตกลง',
-                        confirmButtonColor: '#1d4ed8'
-                    });
-                    
-                    if (fpFilterInstance) {
-                        fpFilterInstance.setDate(payload.date);
-                    }
-
-                    document.getElementById("bookingForm").reset();
-                    if(fpBookingInstance) fpBookingInstance.clear(); 
-                    
-                    document.getElementById("room").disabled = true;
-                    document.getElementById("startTime").disabled = true;
-                    document.getElementById("endTime").disabled = true;
-                    
-                    document.getElementById("departmentWrapper").style.display = "none";
-                    document.getElementById("departmentSelect").style.display = "none";
-                    document.getElementById("departmentInput").style.display = "none";
-                    loadBookings();
-                }
-            })
-            .catch(err => {
-                console.error(err);
-                BrandSwal.fire({
-                    title: 'เกิดข้อผิดพลาด!',
-                    text: 'ไม่สามารถติดต่อเซิร์ฟเวอร์ได้ กรุณาลองใหม่อีกครั้ง',
-                    icon: 'error',
-                    confirmButtonText: 'รับทราบ',
-                    confirmButtonColor: '#e11d48'
-                });
-            })
-            .finally(() => {
-                document.getElementById("submitBtn").innerHTML = "<i class='fa-solid fa-paper-plane me-2'></i>ส่งข้อมูลการจอง";
-                // อัปเดตสถานะปุ่มตามสถานะฟอร์มแทนการปลดล็อกตายตัว
-                try { checkFormCompletion(); } catch (e) { console.warn('checkFormCompletion failed', e); }
-                try { saveFormState(); } catch (e) { /* ignore */ }
+            rooms[building].forEach(r => {
+                roomSelect.innerHTML += `<option value="${getRoomValue(r)}">${getRoomLabel(r)}</option>`;
             });
-        }).catch(err => {
-            console.error('Failed to refresh bookings before submit:', err);
-            BrandSwal.fire({
-                title: 'เกิดข้อผิดพลาด!',
-                text: 'ไม่สามารถตรวจสอบการจองได้ กรุณาลองใหม่อีกครั้ง',
-                icon: 'error',
-                confirmButtonText: 'รับทราบ',
-                confirmButtonColor: '#e11d48'
-            });
-            // อัปเดตปุ่มตามสถานะฟอร์ม เพื่อไม่ให้ปลดล็อกโดยไม่มีเงื่อนไข
-            try { checkFormCompletion(); } catch (e) { console.warn('checkFormCompletion failed', e); }
-        });
-    });
+            roomSelect.disabled = false;
 
-    // ✅ เช็คการกรอกฟอร์มแต่ละครั้ง และอัปเดตสีปุ่ม (ย้ายออกจาก fetchAllData ให้เป็น global)
-    function checkFormCompletion() {
-        const building = document.getElementById("building").value;
-        const room = document.getElementById("room").value;
-        const bookingDate = document.getElementById("bookingDate").value;
-        const startTime = document.getElementById("startTime").value;
-        const endTime = document.getElementById("endTime").value;
-        const requester = document.getElementById("requester").value.trim();
-        const userStatus = document.getElementById("userStatus").value;
-        const attendees = document.getElementById("attendees").value;
-        
-        const isComplete = building && room && bookingDate && startTime && endTime && requester && userStatus && attendees;
-        const submitBtn = document.getElementById("submitBtn");
-        submitBtn.disabled = !isComplete;
-    }
-
-    window.onload = function() {
-        // เช็คตอนเปิดหน้าเว็บครั้งแรก ก่อนทุกคำสั่ง
-        checkFormCompletion();
-            // โหลดสถานะที่เก็บใน localStorage (form + dashboard)
-            loadFormState();
-            const savedB = localStorage.getItem('slc_dashboardBuilding');
-            if (savedB) dashboardBuilding = savedB;
-            const savedP = localStorage.getItem('slc_dashboardPeriod');
-            if (savedP) dashboardPeriod = savedP;
-        
-            // เพิ่ม event listeners สำหรับทุก required fields
-            const requiredFields = [
-                "building", "room", "bookingDate", "startTime", "endTime", 
-                "requester", "userStatus", "attendees"
-            ];
-        requiredFields.forEach(fieldId => {
-            const field = document.getElementById(fieldId);
-            if (field) {
-                field.addEventListener("change", () => { checkFormCompletion(); saveFormState(); });
-                field.addEventListener("input", () => { checkFormCompletion(); saveFormState(); });
-            }
-        });
-        
-        fpBookingInstance = flatpickr("#bookingDate", {
-            dateFormat: "Y-m-d", 
-            altInput: true,      
-            altFormat: "d/m/Y",  
-            locale: "th",            
-            minDate: "today",        
-            allowInput: false,
-            // ✅ เพิ่มใหม่: พอเลือกวันที่ปุ๊บ เช็คทันทีว่าวันนั้นมีประกาศปิดไหม
-            // ไม่ต้องรอให้กรอกฟอร์มจนจบแล้วไปเจอตอนกด submit
-            onChange: function(selectedDates, dateStr) {
-                checkSelectedDateWarning(dateStr);
-                // ✅ เพิ่มใหม่: พอเปลี่ยนวันที่ ให้รีเฟรชตัวเลือกเวลาเริ่ม/สิ้นสุดตามเวลาเปิด-ปิดของวันนั้นด้วย
-                // เผื่อวันที่เลือกตรงกับช่วงที่มีประกาศเปลี่ยนแปลงเวลาชั่วคราว (เช่น ช่วงปิดเทอม)
-                updateTimeOptions();
-            }
-        });
-        fpFilterInstance = flatpickr("#filterDate", {
-            dateFormat: "Y-m-d", 
-            altInput: true,
-            altFormat: "d/m/Y",  
-            locale: "th",
-            allowInput: false,
-            onChange: function(selectedDates, dateStr, instance) {
-                filterBookings(); 
-            }
-        });
-        // ✅ แก้ปัญหาโหลดช้า/ล้มเหลวบางครั้ง: เดิมตรงนี้ยิง 3 คำขอแยกกัน (จอง/ปิดซ่อมบำรุง/เวลาเปิด-ปิด)
-        // ไปที่ Apps Script พร้อมกัน แต่ Apps Script Web App รันคำขอทีละตัว ไม่ขนานจริง
-        // พอชนกัน 3 คำขอพร้อมกันทุกครั้งที่เปิดเว็บ เลยช้าและหลุด timeout เป็นบางครั้ง
-        // รวมเป็นคำขอเดียว (?type=all) แทน ลดจำนวนรอบที่ต้องรอคิวจาก 3 เหลือ 1
-        fetchAllData();
-    };
-
-    // ดึงข้อมูลจอง + ปิดซ่อมบำรุง + เวลาเปิด-ปิดชั่วคราว รวมในคำขอเดียว ใช้ตอนเปิดหน้าเว็บครั้งแรก
-    function fetchAllData() {
-        const tbody = document.getElementById("bookingTableBody");
-        if (tbody) {
-            tbody.innerHTML = `<tr><td colspan="3" class="text-center text-slate-400 py-8"><i class="fa-solid fa-spinner fa-spin me-2 text-blue-500"></i>กำลังโหลดข้อมูล...</td></tr>`;
+            updateTimeOptions();
         }
 
-        return fetch(`${SCRIPT_URL}?type=all`)
+        function updateTimeOptions() {
+            const building = document.getElementById("building").value;
+            const startSelect = document.getElementById("startTime");
+            const endSelect = document.getElementById("endTime");
+
+            startSelect.innerHTML = '<option value="">-- เริ่ม --</option>';
+            endSelect.innerHTML = '<option value="">-- สิ้นสุด --</option>';
+
+            if (!building) {
+                startSelect.disabled = endSelect.disabled = true;
+                return;
+            }
+
+            const selectedDateForHours = (fpBookingInstance && fpBookingInstance.input) ? fpBookingInstance.input.value : "";
+            const effHours = getEffectiveOperatingHours(building, selectedDateForHours);
+            let timeOpts = generateTimeOptions(effHours.start, effHours.end);
+            timeOpts.forEach(t => {
+                startSelect.innerHTML += `<option value="${t}">${t}</option>`;
+                endSelect.innerHTML += `<option value="${t}">${t}</option>`;
+            });
+            startSelect.disabled = endSelect.disabled = false;
+        }
+
+        function updateDepartmentOptions() {
+            const status = document.getElementById("userStatus").value;
+            const wrapper = document.getElementById("departmentWrapper");
+            const selectField = document.getElementById("departmentSelect");
+            const inputField = document.getElementById("departmentInput");
+            const label = document.getElementById("departmentLabel");
+
+            selectField.required = false;
+            inputField.required = false;
+            
+            wrapper.style.display = "none";
+            selectField.style.display = "none";
+            inputField.style.display = "none";
+            
+            if (!status) return;
+
+            wrapper.style.display = "block";
+            if (status === "นักศึกษา") {
+                label.innerHTML = "📋 คณะที่สังกัด";
+                selectField.innerHTML = `
+                    <option value="">-- กรุณาเลือกคณะ --</option>
+                    <option value="คณะพยาบาลศาสตร์">คณะพยาบาลศาสตร์</option>
+                    <option value="คณะจิตวิทยา">คณะจิตวิทยา</option>
+                    <option value="คณะกายภาพบำบัด">คณะกายภาพบำบัด</option>
+                `;
+                selectField.style.display = "block";
+                selectField.required = true;
+            } else if (status === "อาจารย์") {
+                label.innerHTML = "📋 คณะ / สำนักวิชาที่สังกัด";
+                selectField.innerHTML = `
+                    <option value="">-- กรุณาเลือกคณะ/สำนักวิชา --</option>
+                    <option value="คณะพยาบาลศาสตร์">คณะพยาบาลศาสตร์</option>
+                    <option value="คณะจิตวิทยา">คณะจิตวิทยา</option>
+                    <option value="คณะกายภาพบำบัด">คณะกายภาพบำบัด</option>
+                    <option value="สำนักวิชาศึกษาทั่วไป">สำนักวิชาศึกษาทั่วไป</option>
+                `;
+                selectField.style.display = "block";
+                selectField.required = true;
+            } else if (status === "บุคลากร") {
+                label.innerHTML = "🏢 แผนก / ฝ่ายงานที่สังกัด";
+                inputField.style.display = "block";
+                inputField.required = true;
+            }
+        }
+            
+        function validateTimeSlot() {
+            const start = document.getElementById("startTime").value;
+            const end = document.getElementById("endTime").value;
+
+            if (start && end) {
+                let diff = timeToMinutes(end) - timeToMinutes(start);
+                if (diff <= 0) {
+                    BrandSwal.fire({ title: 'ข้อผิดพลาดเกี่ยวกับเวลา', text: 'เวลาสิ้นสุดต้องอยู่หลังเวลาเริ่มต้น', icon: 'warning', confirmButtonColor: '#1e3c72' });
+                } else if (diff > 120) {
+                    BrandSwal.fire({ title: 'เงื่อนไขการใช้ห้อง', text: '⚠️ ขอใช้งานห้องประชุมได้ครั้งละไม่เกิน 2 ชั่วโมงต่อคน', icon: 'info', confirmButtonColor: '#1e3c72' });
+                }
+            }
+            checkFormCompletion();
+            saveFormState();
+        }
+
+        function validateBookingForm() {
+            const errors = [];
+
+            if (!document.getElementById("building").value) errors.push("กรุณาเลือกอาคาร");
+            if (!document.getElementById("room").value) errors.push("กรุณาเลือกห้องประชุม");
+            if (!(fpBookingInstance && fpBookingInstance.input.value)) errors.push("กรุณาเลือกวันที่");
+            if (!document.getElementById("startTime").value) errors.push("กรุณาเลือกเวลาเริ่มต้น");
+            if (!document.getElementById("endTime").value) errors.push("กรุณาเลือกเวลาสิ้นสุด");
+            if (!document.getElementById("requester").value.trim()) errors.push("กรุณากรอกชื่อผู้จอง");
+
+            const attendeesVal = parseInt(document.getElementById("attendees").value, 10);
+            if (!attendeesVal || attendeesVal < 1 || attendeesVal > 50) {
+                errors.push("กรุณาระบุจำนวนผู้ใช้งานระหว่าง 1 - 50 คน");
+            }
+
+            const statusValue = document.getElementById("userStatus").value;
+            if (!statusValue) {
+                errors.push("กรุณาเลือกสถานะผู้ใช้งาน");
+            } else if (statusValue === "บุคลากร") {
+                if (!document.getElementById("departmentInput").value.trim()) errors.push("กรุณากรอกแผนก/ฝ่ายงานที่สังกัด");
+            } else if (statusValue === "นักศึกษา" || statusValue === "อาจารย์") {
+                if (!document.getElementById("departmentSelect").value) errors.push("กรุณาเลือกคณะ/สำนักวิชาที่สังกัด");
+            }
+
+            if (errors.length > 0) {
+                BrandSwal.fire({
+                    title: 'ข้อมูลไม่ครบถ้วน',
+                    html: '<ul class="text-left list-none space-y-1">' + errors.map(e => `<li>• ${escapeHtml(e)}</li>`).join('') + '</ul>',
+                    icon: 'warning',
+                    confirmButtonColor: '#1e3c72'
+                });
+                return false;
+            }
+            return true;
+        }
+
+        function escapeHtml(str) {
+            if (str === null || str === undefined) return "";
+            return String(str)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#39;");
+        }
+
+        function saveFormState() {
+            try {
+                const state = {
+                    building: document.getElementById('building') ? document.getElementById('building').value : '',
+                    room: document.getElementById('room') ? document.getElementById('room').value : '',
+                    bookingDate: (fpBookingInstance && fpBookingInstance.input) ? fpBookingInstance.input.value : '',
+                    startTime: document.getElementById('startTime') ? document.getElementById('startTime').value : '',
+                    endTime: document.getElementById('endTime') ? document.getElementById('endTime').value : '',
+                    requester: document.getElementById('requester') ? document.getElementById('requester').value : '',
+                    userStatus: document.getElementById('userStatus') ? document.getElementById('userStatus').value : '',
+                    departmentSelect: document.getElementById('departmentSelect') ? document.getElementById('departmentSelect').value : '',
+                    departmentInput: document.getElementById('departmentInput') ? document.getElementById('departmentInput').value : '',
+                    attendees: document.getElementById('attendees') ? document.getElementById('attendees').value : '',
+                    purpose: document.getElementById('purpose') ? document.getElementById('purpose').value : ''
+                };
+                localStorage.setItem('slc_formState', JSON.stringify(state));
+            } catch (e) {
+                console.warn('Failed to save form state', e);
+            }
+        }
+
+        function loadFormState() {
+            try {
+                const raw = localStorage.getItem('slc_formState');
+                if (!raw) return;
+                const state = JSON.parse(raw);
+                
+                if (state.building) {
+                    const bEl = document.getElementById('building');
+                    if (bEl) {
+                        bEl.value = state.building;
+                        updateRoomsAndTimes();
+                    }
+                }
+                if (state.room) {
+                    const rEl = document.getElementById('room');
+                    if (rEl) rEl.value = state.room;
+                }
+                if (state.bookingDate) {
+                    const bdEl = document.getElementById('bookingDate');
+                    if (bdEl) bdEl.value = state.bookingDate;
+                    if (fpBookingInstance) fpBookingInstance.setDate(state.bookingDate, true);
+                }
+                if (state.startTime) {
+                    const stEl = document.getElementById('startTime');
+                    if (stEl) stEl.value = state.startTime;
+                }
+                if (state.endTime) {
+                    const etEl = document.getElementById('endTime');
+                    if (etEl) etEl.value = state.endTime;
+                }
+                if (state.requester) {
+                    const reqEl = document.getElementById('requester');
+                    if (reqEl) reqEl.value = state.requester;
+                }
+                if (state.userStatus) {
+                    const usEl = document.getElementById('userStatus');
+                    if (usEl) {
+                        usEl.value = state.userStatus;
+                        updateDepartmentOptions();
+                    }
+                }
+                if (state.departmentSelect) {
+                    const dsEl = document.getElementById('departmentSelect');
+                    if (dsEl) dsEl.value = state.departmentSelect;
+                }
+                if (state.departmentInput) {
+                    const diEl = document.getElementById('departmentInput');
+                    if (diEl) diEl.value = state.departmentInput;
+                }
+                if (state.attendees) {
+                    const atEl = document.getElementById('attendees');
+                    if (atEl) atEl.value = state.attendees;
+                }
+                if (state.purpose) {
+                    const pEl = document.getElementById('purpose');
+                    if (pEl) pEl.value = state.purpose;
+                }
+
+                checkFormCompletion();
+            } catch (e) {
+                console.warn('Failed to load form state', e);
+            }
+        }
+
+        function timeToMinutes(timeStr) {
+            if (!timeStr) return 0;
+            var parts = timeStr.split(':');
+            return parseInt(parts[0]) * 60 + parseInt(parts[1]);
+        }
+
+        // ✅ อัปเดต: เรียงตาม อาคาร -> ห้อง -> เวลา เพื่อให้ดูง่ายว่าห้องไหนว่างช่วงเวลาใด
+        function renderBookingTable() {
+            const filterDateInput = document.getElementById("filterDate");
+            const selectedDate = fpFilterInstance && fpFilterInstance.selectedDates.length > 0 
+                ? filterDateInput.value 
+                : new Date().toLocaleDateString('sv-SE');
+            if(fpFilterInstance && fpFilterInstance.selectedDates.length === 0) {
+                fpFilterInstance.setDate(selectedDate);
+            }
+
+            const selectedBuilding = document.getElementById("filterBuilding").value;
+            const selectedRoom = document.getElementById("filterRoom") ? document.getElementById("filterRoom").value : "";
+            const tbody = document.getElementById("bookingTableBody");
+
+            const filteredData = allBookings.filter(b => {
+                if (!b.date) return false;
+                const bDateStr = (b.date || '').split('T')[0]; 
+                const matchDate = bDateStr === selectedDate;
+                const matchBuilding = selectedBuilding === "" || b.building === selectedBuilding;
+                const matchRoom = selectedRoom === "" || b.room === selectedRoom;
+
+                return matchDate && matchBuilding && matchRoom;
+            });
+
+            // ⭐ จัดเรียงข้อมูล: 1. อาคาร -> 2. ห้อง (ตามลำดับที่กำหนด) -> 3. เวลาเริ่ม -> 4. เวลาสิ้นสุด
+            filteredData.sort((a, b) => {
+                // 1. เรียงตามอาคาร (Saint Louis ก่อน Saint Benedict)
+                const buildingOrder = { "Saint Louis": 1, "Saint Benedict": 2 };
+                const bOrderA = buildingOrder[a.building] || 99;
+                const bOrderB = buildingOrder[b.building] || 99;
+                if (bOrderA !== bOrderB) return bOrderA - bOrderB;
+
+                // 2. เรียงตามลำดับห้องในอาคารนั้นๆ
+                const roomOrderA = getRoomOrder(a.building, a.room);
+                const roomOrderB = getRoomOrder(b.building, b.room);
+                if (roomOrderA !== roomOrderB) return roomOrderA - roomOrderB;
+
+                // 3. เรียงตามเวลาเริ่มต้น
+                const timeDiff = timeToMinutes(a.startTime) - timeToMinutes(b.startTime);
+                if (timeDiff !== 0) return timeDiff;
+
+                // 4. เรียงตามเวลาสิ้นสุด
+                return timeToMinutes(a.endTime) - timeToMinutes(b.endTime);
+            });
+
+            tbody.innerHTML = "";
+
+            if (filteredData.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="3" class="text-center text-slate-400 py-12">
+                            <i class="fa-regular fa-folder-open d-block mb-3 opacity-40 text-4xl text-slate-300"></i>
+                            <div class="text-sm">ไม่พบข้อมูลการจองตามเงื่อนไขที่เลือกในวันนี้</div>
+                        </td>
+                    </tr>`;
+                return;
+            }
+
+            const rows = [];
+            filteredData.forEach(b => {
+                const isSL = b.building === "Saint Louis";
+                const customTagStyle = isSL 
+                ? "background: linear-gradient(135deg, rgba(248, 221, 156, 0.3), rgba(248, 221, 156, 0.7)); color: #0D2535;"
+                : "background: linear-gradient(135deg, rgba(83, 136, 216, 0.3), rgba(83, 136, 216, 0.5)); color: #0D2535;";
+
+                const displayName = isSL ? "Saint Louis" : "Saint Benedict";
+                const safeRoomHtml = escapeHtml(b.room);
+                const safeRequesterHtml = escapeHtml(b.requester);
+                const safeStatusHtml = escapeHtml(b.userStatus || '-');
+                const safeDateAttr = escapeHtml(b.date);
+                const safeStartTimeAttr = escapeHtml(b.startTime);
+
+                rows.push(`
+                    <tr class="hover:bg-slate-50/80 transition duration-150">
+                        <td class="p-4 max-w-[240px]">
+                            <span class="inline-block text-[10px] font-bold px-2 py-0.5 rounded-md shadow-sm mb-1" style="${customTagStyle}">${displayName}</span>
+                            <div class="font-bold text-[#0D2535] truncate" title="${safeRoomHtml}">${safeRoomHtml}</div>
+                        </td>
+                        <td class="p-4 whitespace-nowrap">
+                            <span class="inline-flex items-center gap-1 font-semibold text-[#0D2535] bg-blue-50 border border-blue-100/50 px-2.5 py-1 rounded-lg text-xs">
+                                <i class="fa-regular fa-clock opacity-70"></i>${escapeHtml(b.startTime)} - ${escapeHtml(b.endTime)}
+                            </span>
+                        </td>
+                        <td class="p-4">
+                            <div class="flex justify-between items-center gap-2">
+                                <div class="min-w-0 flex-1">
+                                    <div class="font-semibold text-slate-800 truncate text-[13px]" title="${safeRequesterHtml}">${safeRequesterHtml}</div>
+                                    <div class="mt-0.5">
+                                        <span class="inline-block bg-slate-100 text-slate-600 text-[10px] font-medium px-1.5 py-0.5 rounded">
+                                            ${safeStatusHtml}
+                                        </span>
+                                    </div>
+                                </div>
+                                <button class="delete-btn w-8 h-8 rounded-full text-slate-400 hover:text-rose-600 hover:bg-rose-50 flex items-center justify-center transition flex-shrink-0" 
+                                    data-requester="${safeRequesterHtml}" data-date="${safeDateAttr}" data-start-time="${safeStartTimeAttr}" data-room="${safeRoomHtml}"
+                                    title="ยกเลิกการจองนี้ (เฉพาะแอดมิน)" aria-label="ยกเลิกการจองนี้ (เฉพาะแอดมิน)">
+                                    <i class="fa-solid fa-trash-can text-xs"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `);
+            });
+
+            tbody.innerHTML = rows.join('');
+        }
+
+        const bookingTbody = document.getElementById("bookingTableBody");
+        if (bookingTbody && !bookingTbody.__deleteListenerAdded) {
+            bookingTbody.addEventListener("click", function (e) {
+                const btn = e.target.closest(".delete-btn");
+                if (!btn) return;
+                deleteBooking(btn.dataset.requester, btn.dataset.date, btn.dataset.startTime, btn.dataset.room);
+            });
+            bookingTbody.__deleteListenerAdded = true;
+        }
+
+        function loadBookings() {
+            const tbody = document.getElementById("bookingTableBody");
+            tbody.innerHTML = `<tr><td colspan="3" class="text-center text-slate-400 py-8"><i class="fa-solid fa-spinner fa-spin me-2 text-blue-500"></i>กำลังโหลดข้อมูล...</td></tr>`;
+            fetch(SCRIPT_URL)
             .then(res => {
                 if (!res.ok) {
                     const err = new Error(`Request failed with status ${res.status}`);
@@ -1416,711 +1051,989 @@
                 return res.json();
             })
             .then(data => {
-                allBookings = Array.isArray(data.bookings) ? data.bookings : [];
-                maintenanceSlots = Array.isArray(data.maintenance) ? data.maintenance : [];
-                operatingHoursOverrides = Array.isArray(data.hours) ? data.hours : [];
-
+                allBookings = Array.isArray(data.bookings) ? data.bookings : (Array.isArray(data) ? data : []);
                 renderBookingTable();
-                showUpcomingClosuresPopup();
-                // ถ้าตอนนี้ผู้ใช้เลือกอาคารไว้อยู่แล้ว (ไม่น่าเกิดตอนเพิ่งโหลดหน้า แต่กันเหนียวไว้)
-                // ให้รีเฟรชตัวเลือกเวลาให้ตรงกับเวลาที่ประกาศใหม่ทันที
-                if (document.getElementById("building") && document.getElementById("building").value) {
-                    updateTimeOptions();
-                }
-            })
-            .catch(err => {
-                console.error('Failed to load initial data:', err);
-
-                // ✅ ให้ข้อความ error สื่อความหมายตามสาเหตุ แทนข้อความรวมเดียวแบบเดิม
-                let message = 'โหลดข้อมูลระบบล้มเหลว กรุณารีเฟรชหน้าเว็บอีกครั้ง';
+            }).catch(err => {
+                console.error('Failed to load bookings:', err);
+                let message = 'โหลดข้อมูลระบบล้มเหลว กรุณาลองใหม่อีกครั้ง';
                 if (!navigator.onLine || err instanceof TypeError) {
-                    message = 'ไม่สามารถเชื่อมต่ออินเทอร์เน็ตได้ กรุณาตรวจสอบการเชื่อมต่อแล้วรีเฟรชหน้าเว็บ';
+                    message = 'ไม่สามารถเชื่อมต่ออินเทอร์เน็ตได้ กรุณาตรวจสอบการเชื่อมต่อ';
                 } else if (err.status >= 500) {
                     message = 'เซิร์ฟเวอร์ขัดข้อง กรุณาลองใหม่อีกครั้งในภายหลัง';
                 }
 
-                if (tbody) {
-                    tbody.innerHTML = `
-                        <tr>
-                            <td colspan="3" class="text-center text-rose-500 py-6 font-medium">
-                                <i class="fa-solid fa-triangle-exclamation me-2"></i>${escapeHtml(message)}
-                                <button onclick="fetchAllData()" class="block mx-auto mt-2 text-xs underline text-slate-500 hover:text-slate-700">ลองอีกครั้ง</button>
-                            </td>
-                        </tr>`;
-                }
-                // ยังตั้งเป็น array ว่างไว้ กัน error ต่อเนื่องจากโค้ดจุดอื่นที่คาดว่าตัวแปรพวกนี้เป็น array เสมอ
-                maintenanceSlots = maintenanceSlots || [];
-                operatingHoursOverrides = operatingHoursOverrides || [];
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="3" class="text-center text-rose-500 py-6 font-medium">
+                            <i class="fa-solid fa-triangle-exclamation me-2"></i>${escapeHtml(message)}
+                            <button onclick="loadBookings()" class="block mx-auto mt-2 text-xs underline text-slate-500 hover:text-slate-700">ลองอีกครั้ง</button>
+                        </td>
+                    </tr>`;
             });
-    }
-
-    // ✅ เพิ่มใหม่: แจ้งเตือนล่วงหน้าตอนเปิดเว็บ ว่าใน 14 วันข้างหน้ามีวัน/ช่วงไหนปิดบ้าง
-    // เป็นแค่การ "แจ้งให้ทราบ" กด "รับทราบ" ปิดได้เสมอ ไม่ว่าจะปิดกี่วัน/ปิดทั้งวันหรือไม่ก็ตาม
-    // เพราะถึงวันนี้จะปิดทั้งวัน ก็ไม่ควรบล็อกคนที่ตั้งใจจะจองล่วงหน้าไปวันอื่น
-    function showUpcomingClosuresPopup() {
-        const todayStr = new Date().toLocaleDateString('sv-SE');
-        const horizon = new Date();
-        horizon.setDate(horizon.getDate() + 14);
-        const horizonStr = horizon.toLocaleDateString('sv-SE');
-
-        // แสดงรายการที่ "ช่วงวันที่ปิด" คาบเกี่ยวกับช่วง 14 วันข้างหน้า (ไม่ใช่แค่วันเดียวแล้ว)
-        const upcomingClosures = maintenanceSlots
-            .filter(m => m.startDate <= horizonStr && m.endDate >= todayStr)
-            .sort((a, b) => a.startDate.localeCompare(b.startDate));
-
-        if (upcomingClosures.length > 0) {
-            showClosureListPopup('ประกาศปิดให้บริการ', upcomingClosures);
-        }
-    }
-
-    // ✅ เพิ่มใหม่: เช็คทันทีตอนเลือกวันที่ในฟอร์มจอง ว่าวันนั้นมีประกาศปิดไหม
-    // - แสดงข้อความเตือนใต้ช่องวันที่ค้างไว้ตลอด (เห็นง่าย ไม่ต้องเปิดป็อปอัพซ้ำ)
-    // - เด้งป็อปอัพเตือนอีกรอบตอนเลือกวันนั้นพอดี (กด "รับทราบ" ปิดได้)
-    // - ถ้าวันนั้น "ปิดทั้งวัน" จะล็อกปุ่มจองไว้จนกว่าจะเปลี่ยนวัน (ปิดบางช่วงยังจองได้ตามปกติ
-    //   เพราะยังเลือกเวลานอกช่วงปิดได้ ระบบจะกันไม่ให้เลือกช่วงที่ปิดอีกทีตอนกด submit)
-    // ✅ เพิ่มใหม่: ฟังก์ชันกลางเช็คว่า "วันที่ระบุ" ห้องสมุดปิดทั้งวันหรือไม่ (ใช้ maintenanceSlots)
-    // แยกออกมาให้ทั้ง checkSelectedDateWarning() และ validateTimeSlot() เรียกใช้ร่วมกัน
-    // กันไม่ให้สองจุดนี้ไปแก้ submitBtn.disabled แบบไม่รู้สถานะของกันและกันจนขัดแย้งกันเอง
-    function isDateFullyClosed(dateStr) {
-        if (!dateStr) return false;
-        return maintenanceSlots.some(m =>
-            dateStr >= m.startDate && dateStr <= m.endDate &&
-            timeToMinutes(m.start) <= 1 && timeToMinutes(m.end) >= (24 * 60)
-        );
-    }
-
-    function checkSelectedDateWarning(dateStr) {
-        const warningEl = document.getElementById('dateClosureWarning');
-        const submitBtn = document.getElementById('submitBtn');
-        if (!warningEl) return;
-
-        const closuresOnDate = maintenanceSlots.filter(m => dateStr >= m.startDate && dateStr <= m.endDate);
-
-        if (closuresOnDate.length === 0) {
-            warningEl.classList.add('hidden');
-            warningEl.textContent = '';
-            if (submitBtn) submitBtn.disabled = false;
-            return;
         }
 
-        const isFullDay = isDateFullyClosed(dateStr);
-
-        if (isFullDay) {
-            warningEl.textContent = `⚠️ วันที่เลือกห้องสมุดปิดทำการ: ${closuresOnDate[0].reason || 'ปิดทำการชั่วคราว'} — กรุณาเลือกวันอื่น`;
-        } else {
-            const ranges = closuresOnDate.map(c => `${c.start}-${c.end} (${c.reason || 'ปิดใช้งานชั่วคราว'})`).join(', ');
-            warningEl.textContent = `⚠️ วันที่เลือกมีบางช่วงปิด: ${ranges}`;
+        function updateFilterRooms() {
+            const building = document.getElementById("filterBuilding").value;
+            const roomSelect = document.getElementById("filterRoom");
+            const roomWrapper = document.getElementById("filterRoomWrapper");
+            
+            if (!building) {
+                roomSelect.innerHTML = '<option value="">-- ทั้งหมด --</option>';
+                roomSelect.value = "";
+                roomWrapper.classList.add("hidden");
+                loadBookings();
+                return;
+            }
+            
+            roomSelect.innerHTML = '<option value="">-- ทั้งหมด --</option>';
+            if (rooms[building]) {
+                rooms[building].forEach(r => {
+                    roomSelect.innerHTML += `<option value="${getRoomValue(r)}">${getRoomLabel(r)}</option>`;
+                });
+            }
+            roomWrapper.classList.remove("hidden");
+            loadBookings();
         }
-        warningEl.classList.remove('hidden');
+            
+        function hasTimeConflict(building, room, date, startTime, endTime) {
+            const newStart = timeToMinutes(startTime);
+            const newEnd = timeToMinutes(endTime);
+            return allBookings.some(b => {
+                if (b.building !== building || b.room !== room) return false;
+                const bDateStr = (b.date || "").split('T')[0];
+                if (bDateStr !== date) return false;
+                const existStart = timeToMinutes(b.startTime);
+                const existEnd = timeToMinutes(b.endTime);
+                return newStart < existEnd && existStart < newEnd;
+            });
+        }
 
-        // ล็อกปุ่มจองเฉพาะกรณีปิดทั้งวันเท่านั้น — ปิดบางช่วงยังปล่อยให้จองได้ตามปกติ
-        if (submitBtn) submitBtn.disabled = isFullDay;
+        function getMaintenanceConflict(building, room, date, startTime, endTime) {
+            const newStart = timeToMinutes(startTime);
+            const newEnd = timeToMinutes(endTime);
+            return maintenanceSlots.find(m => {
+                if (date < m.startDate || date > m.endDate) return false;
+                if (m.building && m.building !== building) return false;
+                if (m.room && m.room !== room) return false;
+                const mStart = timeToMinutes(m.start);
+                const mEnd = timeToMinutes(m.end);
+                return newStart < mEnd && mStart < newEnd;
+            });
+        }
 
-        showClosureListPopup(
-            isFullDay ? 'วันที่เลือกห้องสมุดปิดทำการ' : 'วันที่เลือกมีบางช่วงปิดให้บริการ',
-            closuresOnDate,
-            isFullDay ? 'กรุณาเลือกวันอื่น' : 'ไม่สามารถจองได้ในช่วงเวลาที่ห้องสมุดปิดทำการ'
-        );
-    }
+        function refreshBookingsData() {
+            return fetch(SCRIPT_URL)
+                .then(res => {
+                    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                    return res.json();
+                })
+                .then(data => {
+                    allBookings = Array.isArray(data.bookings) ? data.bookings : (Array.isArray(data) ? data : []);
+                })
+                .catch(err => {
+                    console.error('Failed to refresh bookings:', err);
+                });
+        }
 
-    // ป็อปอัพแจ้งรายการปิด — ใช้ร่วมกันทั้งตอนเปิดเว็บและตอนเลือกวันที่ กด "รับทราบ" ปิดได้เสมอ
-    function showClosureListPopup(title, closures, footNote) {
-        const todayStr = new Date().toLocaleDateString('sv-SE');
-        const formatDateLabel = (d) => {
-            if (d === todayStr) return 'วันนี้';
-            const dt = new Date(d + 'T00:00:00');
-            return dt.toLocaleDateString('th-TH', { day: 'numeric', month: 'short' });
-        };
+        document.getElementById("bookingForm").addEventListener("submit", function(e) {
+            e.preventDefault();
 
-        // แต่ละรายการปิด แสดงเป็นการ์ดกึ่งกลางเหมือนกันทั้งหมด (ช่วงวันที่+เวลา เด่น, เหตุผลรอง)
-        // จัดกึ่งกลางให้สอดคล้องกับไอคอน/หัวข้อด้านบน ไม่สลับซ้าย-กลาง
-        const cardsHtml = closures.map(c => {
-            const scopeLabel = c.building
-                ? (c.room ? `${escapeHtml(c.building)} • ${escapeHtml(c.room)}` : `อาคาร ${escapeHtml(c.building)}`)
-                : 'ทุกอาคาร';
-            const isFullDay = timeToMinutes(c.start) <= 1 && timeToMinutes(c.end) >= (24 * 60);
-            const timeLabel = isFullDay ? 'ปิดทั้งวัน' : `${escapeHtml(c.start)} - ${escapeHtml(c.end)}`;
-            // ช่วงวันเดียว -> โชว์วันเดียว, หลายวัน -> โชว์เป็นช่วง "เริ่ม - สิ้นสุด" แถวเดียว ไม่ต้องแตกเป็นรายวัน
-            const dateLabel = c.startDate === c.endDate
-                ? formatDateLabel(c.startDate)
-                : `${formatDateLabel(c.startDate)} - ${formatDateLabel(c.endDate)}`;
-            return `<div style="text-align:center;background:#eef4fc;border:1px solid #cfe0f5;border-radius:12px;padding:14px 16px;margin-bottom:8px;">
-                        <div style="font-weight:700;color:#01224D;font-size:14.5px;margin-bottom:2px;">
-                            ${dateLabel} · ${timeLabel}
-                        </div>
-                        <div style="font-weight:500;color:#3568a8;font-size:12.5px;margin-bottom:6px;">
-                            (${scopeLabel})
-                        </div>
-                        <div style="color:#57534e;font-size:13.5px;line-height:1.5;">
-                            ${escapeHtml(c.reason || 'ปิดใช้งานชั่วคราว')}
-                        </div>
-                    </div>`;
-        }).join('');
+            if (!validateBookingForm()) return;
 
-        BrandSwal.fire({
-            icon: 'warning',
-            title: title,
-            html: cardsHtml +
-                  (footNote ? `<p style="font-size:13px;color:#94a3b8;margin:0;">${escapeHtml(footNote)}</p>` : ''),
-            confirmButtonText: 'รับทราบ',
-            allowOutsideClick: true,
-            allowEscapeKey: true
-        });
-    }
-    
-    function deleteBooking(requester, date, startTime, room) {
-        BrandSwal.fire({
-            title: '🔒 ยืนยันการลบรายการ',
-            html: 'ฟังก์ชันนี้เฉพาะเจ้าหน้าที่ห้องสมุดเท่านั้น<br>กรุณาใส่รหัสผ่านแอดมิน:',
-            input: 'password', 
-            inputAttributes: {
-                autocapitalize: 'off',
-                autocorrect: 'off'
-            },
-            showCancelButton: true,
-            confirmButtonText: 'ยืนยันการลบ',
-            cancelButtonText: 'ยกเลิก',
-            showLoaderOnConfirm: true,
-            customClass: {
-                popup: 'brand-swal-popup',
-                title: 'brand-swal-title',
-                htmlContainer: 'brand-swal-html',
-                confirmButton: 'brand-swal-confirm brand-swal-confirm-danger',
-                cancelButton: 'brand-swal-cancel',
-                actions: 'brand-swal-actions'
-            },
-            preConfirm: (password) => {
-                if (!password) {
-                    Swal.showValidationMessage('กรุณากรอกรหัสผ่าน');
-                    return false;
+            const bookingDateValue = fpBookingInstance ? fpBookingInstance.input.value : "";
+            const statusValue = document.getElementById("userStatus").value;
+            const buildingValue = document.getElementById("building").value;
+            const roomValue = document.getElementById("room").value;
+            const startTimeValue = document.getElementById("startTime").value;
+            const endTimeValue = document.getElementById("endTime").value;
+
+            // ตรวจสอบวันปิดทั้งวัน
+            if (isDateFullyClosed(bookingDateValue)) {
+                BrandSwal.fire({
+                    title: 'ห้องสมุดปิดทำการ',
+                    text: 'ไม่สามารถทำรายการจองในวันที่ห้องสมุดปิดทำการได้ กรุณาเลือกวันอื่น',
+                    icon: 'warning',
+                    confirmButtonColor: '#01224D'
+                });
+                return;
+            }
+
+            const maintConflict = getMaintenanceConflict(buildingValue, roomValue, bookingDateValue, startTimeValue, endTimeValue);
+            if (maintConflict) {
+                BrandSwal.fire({
+                    title: 'ช่วงเวลานี้ปิดใช้งานชั่วคราว',
+                    text: maintConflict.reason || 'ห้องสมุดปิดใช้งานในช่วงเวลานี้ กรุณาเลือกวัน/เวลาอื่น',
+                    icon: 'info',
+                    confirmButtonColor: '#01224D'
+                });
+                return;
+            }
+
+            const durationMins = timeToMinutes(endTimeValue) - timeToMinutes(startTimeValue);
+            if (durationMins <= 0 || durationMins > 120) {
+                BrandSwal.fire({ title: 'เงื่อนไขการใช้ห้อง', text: '⚠️ ขอใช้งานห้องประชุมได้ครั้งละไม่เกิน 2 ชั่วโมงต่อคน', icon: 'info', confirmButtonColor: '#1e3c72' });
+                return;
+            }
+
+            refreshBookingsData().then(() => {
+                if (hasTimeConflict(buildingValue, roomValue, bookingDateValue, startTimeValue, endTimeValue)) {
+                    BrandSwal.fire({
+                        title: 'ช่วงเวลานี้ถูกจองแล้ว',
+                        text: 'มีคนจองห้องนี้ในช่วงเวลาที่คุณเลือกไปแล้ว กรุณาเลือกเวลาอื่น',
+                        icon: 'warning',
+                        confirmButtonColor: '#1e3c72'
+                    });
+                    return;
                 }
-                // สำคัญ: ใช้ POST และใส่ password ไว้ใน body แทนการแปะบน URL
-                // เพราะ URL แบบ GET จะไปโผล่ใน browser history / server log ทำให้รหัสผ่านรั่วได้
-                // Use application/json for POST so Apps Script receives parsed JSON body correctly (was text/plain causing Apps Script to reject body)
-                return fetch(SCRIPT_URL, {
-                    method: 'POST',
-                    // ใช้ text/plain เพื่อเลี่ยง preflight CORS (Apps Script อ่าน e.postData.contents ได้)
+
+                document.getElementById("submitBtn").disabled = true;
+                document.getElementById("submitBtn").innerHTML = "<i class='fa-solid fa-spinner fa-spin me-2'></i>กำลังบันทึกข้อมูล...";
+
+                let deptValue = "";
+                if (statusValue === "บุคลากร") {
+                    deptValue = document.getElementById("departmentInput").value;
+                } else if (statusValue === "นักศึกษา" || statusValue === "อาจารย์") {
+                    deptValue = document.getElementById("departmentSelect").value;
+                }
+
+                const payload = {
+                    building: buildingValue,
+                    room: roomValue,
+                    date: bookingDateValue, 
+                    startTime: startTimeValue,
+                    endTime: endTimeValue,
+                    requester: document.getElementById("requester").value,
+                    purpose: document.getElementById("purpose").value,
+                    userStatus: statusValue,
+                    department: deptValue,
+                    attendees: document.getElementById("attendees").value
+                };
+
+                fetch(SCRIPT_URL, {
+                    method: "POST",
                     headers: { "Content-Type": "text/plain;charset=utf-8" },
-                    body: JSON.stringify({
-                        action: 'delete',
-                        password: password,
-                        requester: requester,
-                        date: date,
-                        startTime: startTime,
-                        room: room
-                    })
+                    body: JSON.stringify(payload)
                 })
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error(response.statusText);
+                .then(res => res.json())
+                .then(result => {
+                    if (result.status === "error") {
+                        BrandSwal.fire({
+                            title: 'ไม่สามารถจองได้',
+                            text: result.message,
+                            icon: 'warning',
+                            confirmButtonColor: '#1d4ed8'
+                        });
+                    } else {
+                        BrandSwal.fire({
+                            title: 'จองสำเร็จ!',
+                            text: 'โปรดติดต่อเจ้าหน้าที่ห้องสมุด SLC ก่อนเข้าใช้งาน',
+                            icon: 'success',
+                            confirmButtonText: 'ตกลง',
+                            confirmButtonColor: '#1d4ed8'
+                        });
+                        
+                        // ล้าง localStorage หลังจองสำเร็จ
+                        localStorage.removeItem('slc_formState');
+
+                        if (fpFilterInstance) {
+                            fpFilterInstance.setDate(payload.date);
+                        }
+
+                        document.getElementById("bookingForm").reset();
+                        if(fpBookingInstance) fpBookingInstance.clear(); 
+                        
+                        document.getElementById("room").disabled = true;
+                        document.getElementById("startTime").disabled = true;
+                        document.getElementById("endTime").disabled = true;
+                        
+                        document.getElementById("departmentWrapper").style.display = "none";
+                        document.getElementById("departmentSelect").style.display = "none";
+                        document.getElementById("departmentInput").style.display = "none";
+                        loadBookings();
                     }
-                    return response.json();
                 })
-                .catch(error => {
-                    // 🐛 แก้บั๊ก: เดิม catch นี้ไม่ได้ return อะไรเลย (undefined) ทำให้ SweetAlert2
-                    // ตีความว่า preConfirm "สำเร็จ" แล้วปิดป็อปอัพทันที ข้อความ showValidationMessage
-                    // ที่เพิ่งตั้งไว้เลยโผล่มาแวบเดียวแล้วหายไปพร้อมหน้าต่างปิด ผู้ใช้ไม่ทันเห็น
-                    // ต้อง return false ชัดเจน เพื่อบอก SweetAlert2 ว่า validation ไม่ผ่าน ให้ค้างหน้าต่างไว้
-                    Swal.showValidationMessage(`เกิดข้อผิดพลาด: ${error}`);
-                    return false;
-                });
-            },
-            allowOutsideClick: () => !Swal.isLoading()
-        }).then((result) => {
-            if (result.isConfirmed && result.value) {
-                if (result.value.status === "success") {
+                .catch(err => {
+                    console.error(err);
                     BrandSwal.fire({
-                        title: 'ลบรายการสำเร็จ!',
-                        text: 'ลบข้อมูลการจองเรียบร้อยแล้ว',
-                        icon: 'success',
-                        confirmButtonColor: '#1d4ed8'
-                    });
-                    loadBookings(); 
-                } else {
-                    BrandSwal.fire({
-                        title: 'ไม่สามารถลบได้!',
-                        text: result.value.message || 'รหัสผ่านไม่ถูกต้อง หรือไม่พบข้อมูล',
+                        title: 'เกิดข้อผิดพลาด!',
+                        text: 'ไม่สามารถติดต่อเซิร์ฟเวอร์ได้ กรุณาลองใหม่อีกครั้ง',
                         icon: 'error',
-                        confirmButtonColor: '#1d4ed8'
+                        confirmButtonText: 'รับทราบ',
+                        confirmButtonColor: '#e11d48'
                     });
-                }
-            }
-        });
-    }
-
-    function filterBookings() {
-        loadBookings();
-    }
-
-     const mainBtn = document.getElementById('fab-main');
-    const fbBtn = document.getElementById('fab-fb');
-    const lineBtn = document.getElementById('fab-line');
-    const icon = document.getElementById('fab-icon');
-    let isOpen = false;
-
-    mainBtn.addEventListener('click', () => {
-        isOpen = !isOpen;
-        if (isOpen) {
-            // กางออกมาเป็นรูปตัว L
-            fbBtn.style.transform = 'translateY(-60px)'; // ขึ้นบน
-            fbBtn.classList.replace('opacity-0', 'opacity-100');
-            fbBtn.classList.replace('scale-0', 'scale-100');
-            
-            lineBtn.style.transform = 'translateX(-60px)'; // ไปซ้าย
-            lineBtn.classList.replace('opacity-0', 'opacity-100');
-            lineBtn.classList.replace('scale-0', 'scale-100');
-            
-            icon.classList.replace('fa-headset', 'fa-xmark');
-        } else {
-            // หุบกลับ
-            fbBtn.style.transform = 'translateY(0)';
-            fbBtn.classList.replace('opacity-100', 'opacity-0');
-            fbBtn.classList.replace('scale-100', 'scale-0');
-            
-            lineBtn.style.transform = 'translateX(0)';
-            lineBtn.classList.replace('opacity-100', 'opacity-0');
-            lineBtn.classList.replace('scale-100', 'scale-0');
-            
-            icon.classList.replace('fa-xmark', 'fa-headset');
-        }
-    });
-
-    /* ===========================================================
-       DASHBOARD (Real-time)
-    =========================================================== */
-    let dashboardInterval = null;
-    let timeIndicatorInterval = null;
-    let dashboardBuilding = "Saint Louis";
-    let dashboardPeriod = "all";
-    let chartUserStatusInstance = null;
-    let chartFacultyInstance = null;
-    let dashboardRunning = false;
-    let dashboardLoopStarted = false;
-
-    // ข้อมูลปิดซ่อมบำรุง ดึงจาก Google Sheet แท็บ "Maintenance" ผ่าน SCRIPT_URL?type=maintenance
-    // (โหลดจริงใน fetchAllData() ตอนเปิดหน้าเว็บ — ค่าตั้งต้นเป็น array ว่างระหว่างรอโหลด)
-    let maintenanceSlots = [];
-
-    const roomOperatingHours = {
-        "Saint Louis": { start: 10, end: 19 },
-        "Saint Benedict": { start: 8, end: 17 }
-    };
-
-    // ✅ เพิ่มใหม่: รายการ "ประกาศเปลี่ยนแปลงเวลาเปิด-ปิดชั่วคราว" ดึงจาก Google Sheet แท็บ "OperatingHours"
-    // (โหลดจริงใน fetchAllData() ตอนเปิดหน้าเว็บ — ค่าตั้งต้นเป็น array ว่างระหว่างรอโหลด)
-    let operatingHoursOverrides = [];
-
-    // ✅ เพิ่มใหม่: คืนค่าเวลาเปิด-ปิดที่ "มีผลจริง" ของอาคาร+วันที่ที่ระบุ เป็น { start, end } หน่วยชั่วโมง
-    // ถ้ามีประกาศใน OperatingHours ครอบคลุมวันนั้น ใช้ค่านั้นแทนเวลาเปิด-ปิดปกติของอาคาร
-    function getEffectiveOperatingHours(building, dateStr) {
-        if (dateStr) {
-            const override = operatingHoursOverrides.find(o =>
-                (!o.building || o.building === building) &&
-                dateStr >= o.startDate && dateStr <= o.endDate
-            );
-            if (override && override.openTime && override.closeTime) {
-                const openHour = timeToMinutes(override.openTime) / 60;
-                const closeHour = timeToMinutes(override.closeTime) / 60;
-                return { start: openHour, end: closeHour };
-            }
-        }
-        return roomOperatingHours[building] || { start: 8, end: 20 };
-    }
-
-    function generateHalfHourSlots(startHour, endHour) {
-        const slots = [];
-        for (let h = startHour; h < endHour; h++) {
-            slots.push(`${h.toString().padStart(2, '0')}:00`);
-            slots.push(`${h.toString().padStart(2, '0')}:30`);
-        }
-        return slots;
-    }
-
-    function setDashboardBuilding(b) {
-        dashboardBuilding = b;
-        localStorage.setItem('slc_dashboardBuilding', b);
-        document.querySelectorAll('.dash-toggle-btn').forEach(btn => {
-            btn.classList.toggle('active', btn.dataset.building === b);
-        });
-        renderTimeline();
-    }
-
-    function setDashboardPeriod(p) {
-        dashboardPeriod = p;
-        localStorage.setItem('slc_dashboardPeriod', p);
-        document.querySelectorAll('.dash-period-btn').forEach(btn => {
-            btn.classList.toggle('active', btn.dataset.period === p);
-        });
-        renderTimeline();
-    }
-
-    function initDashboard() {
-        document.querySelectorAll('.dash-toggle-btn').forEach(btn => {
-            btn.classList.toggle('active', btn.dataset.building === dashboardBuilding);
-        });
-        document.querySelectorAll('.dash-period-btn').forEach(btn => {
-            btn.classList.toggle('active', btn.dataset.period === dashboardPeriod);
-        });
-        // เริ่ม loop แบบรอให้คำขอก่อนหน้าจบก่อนค่อยรอ 30 วินาที แล้วค่อยเรียกอีกครั้ง
-        dashboardRunning = true;
-        if (!dashboardLoopStarted) runDashboardLoop();
-        // เส้นเวลาปัจจุบันขยับเองทุก 30 วินาที โดยไม่ต้องรอโหลดข้อมูลใหม่ทั้งหมด
-        if (!timeIndicatorInterval) {
-            timeIndicatorInterval = setInterval(updateCurrentTimeIndicator, 30000);
-        }
-        window.addEventListener('resize', updateCurrentTimeIndicator);
-    }
-
-    async function runDashboardLoop() {
-        if (dashboardLoopStarted) return;
-        dashboardLoopStarted = true;
-        while (dashboardRunning) {
-            try {
-                await refreshDashboardData();
-            } catch (e) {
-                console.error('Dashboard loop fetch failed', e);
-            }
-            await new Promise(r => setTimeout(r, 30000));
-        }
-        dashboardLoopStarted = false;
-    }
-
-    function stopDashboard() {
-        dashboardRunning = false;
-        if (timeIndicatorInterval) {
-            clearInterval(timeIndicatorInterval);
-            timeIndicatorInterval = null;
-        }
-        window.removeEventListener('resize', updateCurrentTimeIndicator);
-    }
-
-    // หมายเหตุ: fetchMaintenanceData() และ fetchOperatingHours() (แบบแยกคำขอ) ถูกลบออกแล้ว
-    // เพราะรวมไปอยู่ใน fetchAllData() (?type=all) เพื่อลดจำนวนคำขอที่ยิงไป Apps Script พร้อมกัน
-    // ถ้าฝั่ง Apps Script endpoint ?type=maintenance หรือ ?type=hours ยังใช้แยกได้อยู่ (เผื่อ debug)
-    // แต่หน้าเว็บหลักไม่เรียกใช้ตรงๆ อีกแล้ว
-
-    function refreshDashboardData() {
-        const btnIcon = document.querySelector('#dashRefreshBtn i');
-        if (btnIcon) btnIcon.classList.add('fa-spin');
-
-        // ✅ แก้ปัญหาเดียวกับตอนเปิดเว็บ: เดิมยิง 2 คำขอ (จอง + ปิดซ่อมบำรุง) พร้อมกันทุก 30 วิ
-        // ที่ Dashboard เปิดอยู่ รวมเป็นคำขอเดียวลดโอกาสชนคิว/ timeout
-        return fetch(`${SCRIPT_URL}?type=all`)
-            .then(res => res.json())
-            .then(data => {
-                allBookings = Array.isArray(data.bookings) ? data.bookings : [];
-                maintenanceSlots = Array.isArray(data.maintenance) ? data.maintenance : [];
-                renderDashboard();
-                const now = new Date();
-                document.getElementById('dashLastUpdated').innerHTML =
-                    `<i class="fa-regular fa-clock me-1"></i>อัปเดตล่าสุด ${now.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', second: '2-digit' })} น.`;
-            })
-            .catch(err => {
-                console.error(err);
-                document.getElementById('dashLastUpdated').innerHTML =
-                    `<span class="text-rose-500"><i class="fa-solid fa-triangle-exclamation me-1"></i>โหลดข้อมูลล้มเหลว กำลังลองใหม่รอบถัดไป</span>`;
-            })
-            .finally(() => {
-                if (btnIcon) btnIcon.classList.remove('fa-spin');
-            });
-    }
-
-    function renderDashboard() {
-        renderStatCards();
-        renderTimeline();
-        renderPieCharts();
-    }
-
-    function renderStatCards() {
-        const todayStr = new Date().toLocaleDateString('sv-SE');
-        const now = new Date();
-        const curYear = now.getFullYear();
-        const curMonth = now.getMonth() + 1; // 1-12
-
-        // ปีการศึกษาไทย (ของโรงเรียนนี้): เริ่ม 1 ส.ค. ของปีนี้ ถึง 31 ก.ค. ของปีถัดไป
-        const acadStartYear = curMonth >= 8 ? curYear : curYear - 1;
-        const acadStart = new Date(acadStartYear, 7, 1);
-        const acadEnd = new Date(acadStartYear + 1, 6, 31, 23, 59, 59);
-
-        // ช่วงเปรียบเทียบ: เมื่อวาน / เดือนที่แล้ว / ปีการศึกษาที่แล้ว
-        const yesterday = new Date(now); yesterday.setDate(yesterday.getDate() - 1);
-        const yesterdayStr = yesterday.toLocaleDateString('sv-SE');
-
-        const lastMonthYear = curMonth === 1 ? curYear - 1 : curYear;
-        const lastMonth = curMonth === 1 ? 12 : curMonth - 1;
-
-        const prevAcadStart = new Date(acadStartYear - 1, 7, 1);
-        const prevAcadEnd = new Date(acadStartYear, 6, 31, 23, 59, 59);
-
-        let countToday = 0, countMonth = 0, countYear = 0;
-        let countYesterday = 0, countLastMonth = 0, countLastYear = 0;
-
-        allBookings.forEach(b => {
-            if (!b.date) return;
-            const dStr = (b.date || '').split('T')[0];
-            const d = new Date(dStr + 'T00:00:00');
-            if (isNaN(d)) return;
-            if (dStr === todayStr) countToday++;
-            if (dStr === yesterdayStr) countYesterday++;
-            if (d.getFullYear() === curYear && (d.getMonth() + 1) === curMonth) countMonth++;
-            if (d.getFullYear() === lastMonthYear && (d.getMonth() + 1) === lastMonth) countLastMonth++;
-            if (d >= acadStart && d <= acadEnd) countYear++;
-            if (d >= prevAcadStart && d <= prevAcadEnd) countLastYear++;
-        });
-
-        document.getElementById('statToday').textContent = countToday;
-        document.getElementById('statMonth').textContent = countMonth;
-        document.getElementById('statYear').textContent = countYear;
-        document.getElementById('statYearLabel').textContent = `ยอดการจองปีการศึกษา ${acadStartYear + 543}`;
-
-        renderDeltaBadge('statTodayDelta', countToday, countYesterday, 'จากวันที่แล้ว');
-        renderDeltaBadge('statMonthDelta', countMonth, countLastMonth, 'จากเดือนที่แล้ว');
-        renderDeltaBadge('statYearDelta', countYear, countLastYear, 'จากปีการศึกษาที่แล้ว');
-    }
-
-    // แสดงป้ายเทียบการเติบโต (+xx% / -xx%) ใต้ตัวเลขในกล่องสรุป โดยคำนวณจากข้อมูลจริง
-    // ไม่ใช้เลขตายตัว เพราะจะไม่ตรงกับข้อมูลจริงเมื่อเวลาผ่านไป
-    function renderDeltaBadge(elId, current, previous, label) {
-        const el = document.getElementById(elId);
-        if (!el) return;
-
-        if (previous === 0) {
-            if (current === 0) {
-                el.innerHTML = `<span class="text-slate-400">ยังไม่มีข้อมูลเปรียบเทียบ</span>`;
-            } else {
-                el.innerHTML = `<span class="text-emerald-500"><i class="fa-solid fa-arrow-up"></i> ข้อมูลใหม่</span> <span class="text-slate-400">${label}</span>`;
-            }
-            return;
-        }
-
-        const pct = Math.round(((current - previous) / previous) * 100);
-        if (pct > 0) {
-            el.innerHTML = `<span class="text-emerald-500"><i class="fa-solid fa-arrow-up"></i> +${pct}%</span> <span class="text-slate-400">${label}</span>`;
-        } else if (pct < 0) {
-            el.innerHTML = `<span class="text-rose-500"><i class="fa-solid fa-arrow-down"></i> ${pct}%</span> <span class="text-slate-400">${label}</span>`;
-        } else {
-            el.innerHTML = `<span class="text-slate-400"><i class="fa-solid fa-minus"></i> 0% ${label}</span>`;
-        }
-    }
-
-    function renderTimeline() {
-        const todayStr = new Date().toLocaleDateString('sv-SE');
-        // 🐛 แก้บั๊ก: เดิมใช้ roomOperatingHours[dashboardBuilding] ตรงๆ (เวลาเปิด-ปิดปกติแบบ hardcode)
-        // ทำให้ถ้ามีประกาศเปลี่ยนแปลงเวลาเปิด-ปิดชั่วคราวของ "วันนี้" (ผ่าน getEffectiveOperatingHours
-        // ที่ใช้อยู่แล้วในฟอร์มจอง) ตาราง Dashboard จะยังโชว์ช่วงเวลาเปิด-ปิดแบบเดิมที่ไม่ตรงกับความจริง
-        const hours = getEffectiveOperatingHours(dashboardBuilding, todayStr);
-        let slots = generateHalfHourSlots(hours.start, hours.end);
-        if (dashboardPeriod === 'morning') slots = slots.filter(s => parseInt(s.split(':')[0]) < 12);
-        if (dashboardPeriod === 'afternoon') slots = slots.filter(s => parseInt(s.split(':')[0]) >= 12);
-
-        const roomList = rooms[dashboardBuilding] || [];
-        const table = document.getElementById('timelineTable');
-        const thead = table.querySelector('thead tr');
-        const tbody = table.querySelector('tbody');
-
-        // Performance: build header HTML in-memory then assign once to avoid repeated DOM writes (innerHTML += in loops causes O(n^2) behavior)
-        const theadParts = ['<th class="text-xs text-slate-400 sticky left-0 bg-white z-10 pr-3 text-left font-bold">ห้อง</th>'];
-        slots.forEach(s => {
-            const [hh, mm] = s.split(':');
-            const label = mm === '00' ? hh + ':00' : '';
-            theadParts.push(`<th class="text-[10px] font-semibold text-slate-400 text-center align-bottom pb-1" data-start="${timeToMinutes(s)}" style="min-width:26px;">${label}</th>`);
-        });
-        thead.innerHTML = theadParts.join('');
-
-        tbody.innerHTML = '';
-        if (roomList.length === 0) {
-            tbody.innerHTML = `<tr><td class="text-center text-slate-400 py-6 text-sm">ไม่มีข้อมูลห้อง</td></tr>`;
-            return;
-        }
-
-        // Performance: accumulate row HTML into array and set tbody.innerHTML once to avoid repetitive DOM writes
-        const rows = [];
-
-        roomList.forEach(roomRaw => {
-            const room = getRoomValue(roomRaw);
-            let row = `<tr><td class="text-xs font-semibold text-[#0D2535] sticky left-0 bg-white z-10 pr-3 py-1 whitespace-nowrap">${escapeHtml(room)}</td>`;
-            slots.forEach(s => {
-                const slotStart = timeToMinutes(s);
-                const slotEnd = slotStart + 30;
-
-                const inMaint = maintenanceSlots.some(m =>
-                    (!m.building || m.building === dashboardBuilding) &&
-                    (!m.room || m.room === room) &&
-                    todayStr >= m.startDate && todayStr <= m.endDate &&
-                    slotStart < timeToMinutes(m.end) && timeToMinutes(m.start) < slotEnd
-                );
-
-                const booking = !inMaint && allBookings.find(b => {
-                    if (b.building !== dashboardBuilding || b.room !== room) return false;
-                    const bDateStr = (b.date || '').split('T')[0];
-                    if (bDateStr !== todayStr) return false;
-                    const bStart = timeToMinutes(b.startTime);
-                    const bEnd = timeToMinutes(b.endTime);
-                    return slotStart < bEnd && bStart < slotEnd;
+                })
+                .finally(() => {
+                    document.getElementById("submitBtn").innerHTML = "<i class='fa-solid fa-paper-plane me-2'></i>ส่งข้อมูลการจอง";
+                    checkFormCompletion();
                 });
+            }).catch(err => {
+                console.error('Failed to refresh bookings before submit:', err);
+                BrandSwal.fire({
+                    title: 'เกิดข้อผิดพลาด!',
+                    text: 'ไม่สามารถตรวจสอบการจองได้ กรุณาลองใหม่อีกครั้ง',
+                    icon: 'error',
+                    confirmButtonText: 'รับทราบ',
+                    confirmButtonColor: '#e11d48'
+                });
+                checkFormCompletion();
+            });
+        });
 
-                let cellClass = 'bg-emerald-400';
-                let title = `${escapeHtml(room)} • ${s} • ว่าง`;
-                let style = '';
-                if (inMaint) {
-                    cellClass = '';
-                    style = 'style="background-image: repeating-linear-gradient(45deg,#cbd5e1,#cbd5e1 3px,#f1f5f9 3px,#f1f5f9 6px);"';
-                    title = `${escapeHtml(room)} • ${s} • ปิดซ่อมบำรุง`;
-                } else if (booking) {
-                    cellClass = 'bg-rose-400';
-                    title = `${room} • ${s} • ${escapeHtml(booking.requester || 'มีการจอง')}`;
+        // ✅ อัปเดต: ตรวจสอบความครบถ้วน พร้อมดักเช็ควันปิดทำการทั้งวัน
+        function checkFormCompletion() {
+            const building = document.getElementById("building") ? document.getElementById("building").value : "";
+            const room = document.getElementById("room") ? document.getElementById("room").value : "";
+            const bookingDate = (fpBookingInstance && fpBookingInstance.input) ? fpBookingInstance.input.value : (document.getElementById("bookingDate") ? document.getElementById("bookingDate").value : "");
+            const startTime = document.getElementById("startTime") ? document.getElementById("startTime").value : "";
+            const endTime = document.getElementById("endTime") ? document.getElementById("endTime").value : "";
+            const requester = document.getElementById("requester") ? document.getElementById("requester").value.trim() : "";
+            const userStatus = document.getElementById("userStatus") ? document.getElementById("userStatus").value : "";
+            const attendees = document.getElementById("attendees") ? document.getElementById("attendees").value : "";
+            
+            let isComplete = !!(building && room && bookingDate && startTime && endTime && requester && userStatus && attendees);
+
+            if (userStatus === "บุคลากร") {
+                const di = document.getElementById("departmentInput");
+                if (!di || !di.value.trim()) isComplete = false;
+            } else if (userStatus === "นักศึกษา" || userStatus === "อาจารย์") {
+                const ds = document.getElementById("departmentSelect");
+                if (!ds || !ds.value) isComplete = false;
+            }
+
+            if (startTime && endTime) {
+                const diff = timeToMinutes(endTime) - timeToMinutes(startTime);
+                if (diff <= 0 || diff > 120) isComplete = false;
+            }
+
+            // ถ้าวันนั้นปิดทำการทั้งวัน ไม่อนุญาตให้กดปุ่มจอง
+            const isClosed = isDateFullyClosed(bookingDate);
+            const submitBtn = document.getElementById("submitBtn");
+            if (submitBtn) {
+                submitBtn.disabled = !isComplete || isClosed;
+            }
+        }
+
+        window.onload = function() {
+            // 1. สร้าง Flatpickr ก่อน เพื่อให้พร้อมใช้งาน
+            fpBookingInstance = flatpickr("#bookingDate", {
+                dateFormat: "Y-m-d", 
+                altInput: true,      
+                altFormat: "d/m/Y",  
+                locale: "th",            
+                minDate: "today",        
+                allowInput: false,
+                onChange: function(selectedDates, dateStr) {
+                    checkSelectedDateWarning(dateStr);
+                    updateTimeOptions();
+                    checkFormCompletion();
+                    saveFormState();
                 }
-
-                row += `<td class="rounded-sm h-6 ${cellClass}" ${style} title="${title}"></td>`;
             });
-            row += '</tr>';
-            rows.push(row);
-        });
 
-        tbody.innerHTML = rows.join('');
-
-        updateCurrentTimeIndicator();
-    }
-
-    // วาด/ขยับเส้นสีแดงบอก "ตอนนี้เวลาเท่าไหร่" บนตารางสถานะห้อง
-    // หาตำแหน่งจริงจากคอลัมน์เวลาบนตาราง (data-start) แล้วคำนวณเทียบสัดส่วนภายในช่อง 30 นาทีนั้น
-    function updateCurrentTimeIndicator() {
-        const wrapper = document.getElementById('timelineWrapper');
-        const table = document.getElementById('timelineTable');
-        if (!wrapper || !table) return;
-
-        let line = document.getElementById('currentTimeLine');
-        if (!line) {
-            line = document.createElement('div');
-            line.id = 'currentTimeLine';
-            line.className = 'current-time-line';
-            line.innerHTML = `<div class="ctl-label" id="ctlLabel"></div><div class="ctl-dot"><div class="ctl-dot-ping"></div><div class="ctl-dot-core"></div></div>`;
-            wrapper.appendChild(line);
-        }
-
-        const now = new Date();
-        const todayStr = now.toLocaleDateString('sv-SE');
-        const nowMinutes = now.getHours() * 60 + now.getMinutes();
-
-        // ตารางนี้แสดงเฉพาะ "วันนี้" เสมอ ถ้าเผลอเปิดค้างข้ามวันเที่ยงคืนก็ให้ซ่อนเส้นไปก่อน (จะโผล่มาใหม่ตอน renderTimeline รอบถัดไป)
-        if (window.__timelineRenderedFor && window.__timelineRenderedFor !== todayStr) {
-            line.style.display = 'none';
-            return;
-        }
-        window.__timelineRenderedFor = todayStr;
-
-        const slotThs = Array.from(table.querySelectorAll('thead th[data-start]'));
-        if (slotThs.length === 0) { line.style.display = 'none'; return; }
-
-        const firstStart = parseInt(slotThs[0].dataset.start, 10);
-        const lastStart = parseInt(slotThs[slotThs.length - 1].dataset.start, 10);
-
-        // นอกช่วงเวลาทำการที่กำลังแสดงอยู่ (เช่น ยังไม่เปิด หรือปิดไปแล้ว) ก็ไม่ต้องโชว์เส้น
-        if (nowMinutes < firstStart || nowMinutes > lastStart + 30) {
-            line.style.display = 'none';
-            return;
-        }
-
-        // หาคอลัมน์ (th) ที่เวลาปัจจุบันตกอยู่ในช่วงนั้น
-        let targetTh = slotThs[slotThs.length - 1];
-        for (const th of slotThs) {
-            const s = parseInt(th.dataset.start, 10);
-            if (nowMinutes < s + 30) { targetTh = th; break; }
-        }
-        const slotStart = parseInt(targetTh.dataset.start, 10);
-        const frac = Math.min(1, Math.max(0, (nowMinutes - slotStart) / 30));
-
-        const wrapperRect = wrapper.getBoundingClientRect();
-        const thRect = targetTh.getBoundingClientRect();
-        const leftPx = (thRect.left - wrapperRect.left) + wrapper.scrollLeft + (thRect.width * frac);
-
-        line.style.left = leftPx + 'px';
-        line.style.display = 'block';
-
-        const hh = String(now.getHours()).padStart(2, '0');
-        const mm = String(now.getMinutes()).padStart(2, '0');
-        const labelEl = document.getElementById('ctlLabel');
-        if (labelEl) labelEl.textContent = `${hh}:${mm}`;
-    }
-
-    function renderPieCharts() {
-        // --- กราฟ 1: แบ่งตามสถานะผู้ใช้ ---
-        const statusCounts = { 'นักศึกษา': 0, 'อาจารย์': 0, 'บุคลากร': 0 };
-        allBookings.forEach(b => {
-            const s = b.userStatus;
-            if (s && statusCounts.hasOwnProperty(s)) statusCounts[s]++;
-            else statusCounts['อื่นๆ'] = (statusCounts['อื่นๆ'] || 0) + 1;
-        });
-        const statusColors = { 'นักศึกษา': '#D4E1F5', 'อาจารย์': '#FAEBC4', 'บุคลากร': '#0D2535', 'อื่นๆ': '#FF9F40' };
-        const statusLabels = Object.keys(statusCounts).filter(k => statusCounts[k] > 0);
-        const statusData = statusLabels.map(k => statusCounts[k]);
-
-        const ctx1 = document.getElementById('chartUserStatus').getContext('2d');
-        try { if (chartUserStatusInstance) chartUserStatusInstance.destroy(); } catch (e) { console.warn('Failed to destroy chartUserStatusInstance', e); }
-        if (statusData.length === 0) {
-            document.getElementById('legendUserStatus').innerHTML = '<span class="text-slate-400">ยังไม่มีข้อมูลการจอง</span>';
-        } else {
-            chartUserStatusInstance = new Chart(ctx1, {
-                type: 'doughnut',
-                data: {
-                    labels: statusLabels,
-                    datasets: [{ data: statusData, backgroundColor: statusLabels.map(l => statusColors[l] || '#94a3b8'), borderWidth: 2, borderColor: '#fff' }]
-                },
-                options: { responsive: true, maintainAspectRatio: false, cutout: '60%', plugins: { legend: { display: false } } }
+            fpFilterInstance = flatpickr("#filterDate", {
+                dateFormat: "Y-m-d", 
+                altInput: true,
+                altFormat: "d/m/Y",  
+                locale: "th",
+                allowInput: false,
+                onChange: function(selectedDates, dateStr, instance) {
+                    filterBookings(); 
+                }
             });
-            renderChartLegend('legendUserStatus', statusLabels, statusData, statusLabels.map(l => statusColors[l] || '#94a3b8'));
-        }
 
-        // --- กราฟ 2: การจองของนักศึกษา แบ่งตามคณะ ---
-        const facultyCounts = {};
-        allBookings.forEach(b => {
-            if (b.userStatus !== 'นักศึกษา') return;
-            const dep = (b.department && b.department.trim()) ? b.department : 'ไม่ระบุ';
-            facultyCounts[dep] = (facultyCounts[dep] || 0) + 1;
-        });
-        const facultyLabels = Object.keys(facultyCounts);
-        const facultyData = facultyLabels.map(k => facultyCounts[k]);
+            // 2. โหลดสถานะที่เคยเก็บไว้ใน localStorage
+            loadFormState();
+            const savedB = localStorage.getItem('slc_dashboardBuilding');
+            if (savedB) dashboardBuilding = savedB;
+            const savedP = localStorage.getItem('slc_dashboardPeriod');
+            if (savedP) dashboardPeriod = savedP;
+            
+            // 3. ผูก event listener สำหรับ input ต่างๆ
+            const requiredFields = [
+                "building", "room", "bookingDate", "startTime", "endTime", 
+                "requester", "userStatus", "attendees", "purpose"
+            ];
+            requiredFields.forEach(fieldId => {
+                const field = document.getElementById(fieldId);
+                if (field) {
+                    field.addEventListener("change", () => { checkFormCompletion(); saveFormState(); });
+                    field.addEventListener("input", () => { checkFormCompletion(); saveFormState(); });
+                }
+            });
+            
+            checkFormCompletion();
 
-        // สีประจำคณะ: ผูกกับชื่อคณะตรงๆ แทนการไล่สีตามลำดับ เพื่อให้สีคงที่เสมอไม่ว่าคณะไหนจะมีข้อมูลก่อน-หลัง
-        const facultyColorMap = {
-            'คณะพยาบาลศาสตร์': '#FBEBC3',
-            'คณะจิตวิทยา': '#D2DFF4',
-            'คณะกายภาพบำบัด': '#FFACCD'
+            // 4. ดึงข้อมูลจากเซิร์ฟเวอร์
+            fetchAllData();
         };
-        const facultyFallbackPalette = ['#0D2535', '#FF9F40', '#94a3b8']; // เผื่อมีคณะ/ค่าอื่นที่ไม่อยู่ในลิสต์ข้างบน
-        let fallbackIdx = 0;
-        const facultyColors = facultyLabels.map(l => {
-            if (facultyColorMap[l]) return facultyColorMap[l];
-            const c = facultyFallbackPalette[fallbackIdx % facultyFallbackPalette.length];
-            fallbackIdx++;
-            return c;
+
+        function fetchAllData() {
+            const tbody = document.getElementById("bookingTableBody");
+            if (tbody) {
+                tbody.innerHTML = `<tr><td colspan="3" class="text-center text-slate-400 py-8"><i class="fa-solid fa-spinner fa-spin me-2 text-blue-500"></i>กำลังโหลดข้อมูล...</td></tr>`;
+            }
+
+            return fetch(`${SCRIPT_URL}?type=all`)
+                .then(res => {
+                    if (!res.ok) {
+                        const err = new Error(`Request failed with status ${res.status}`);
+                        err.status = res.status;
+                        throw err;
+                    }
+                    return res.json();
+                })
+                .then(data => {
+                    allBookings = Array.isArray(data.bookings) ? data.bookings : [];
+                    maintenanceSlots = Array.isArray(data.maintenance) ? data.maintenance : [];
+                    operatingHoursOverrides = Array.isArray(data.hours) ? data.hours : [];
+
+                    renderBookingTable();
+                    showUpcomingClosuresPopup();
+
+                    if (document.getElementById("building") && document.getElementById("building").value) {
+                        updateTimeOptions();
+                    }
+                    checkFormCompletion();
+                })
+                .catch(err => {
+                    console.error('Failed to load initial data:', err);
+                    let message = 'โหลดข้อมูลระบบล้มเหลว กรุณารีเฟรชหน้าเว็บอีกครั้ง';
+                    if (!navigator.onLine || err instanceof TypeError) {
+                        message = 'ไม่สามารถเชื่อมต่ออินเทอร์เน็ตได้ กรุณาตรวจสอบการเชื่อมต่อแล้วรีเฟรชหน้าเว็บ';
+                    } else if (err.status >= 500) {
+                        message = 'เซิร์ฟเวอร์ขัดข้อง กรุณาลองใหม่อีกครั้งในภายหลัง';
+                    }
+
+                    if (tbody) {
+                        tbody.innerHTML = `
+                            <tr>
+                                <td colspan="3" class="text-center text-rose-500 py-6 font-medium">
+                                    <i class="fa-solid fa-triangle-exclamation me-2"></i>${escapeHtml(message)}
+                                    <button onclick="fetchAllData()" class="block mx-auto mt-2 text-xs underline text-slate-500 hover:text-slate-700">ลองอีกครั้ง</button>
+                                </td>
+                            </tr>`;
+                    }
+                    maintenanceSlots = maintenanceSlots || [];
+                    operatingHoursOverrides = operatingHoursOverrides || [];
+                });
+        }
+
+        function showUpcomingClosuresPopup() {
+            const todayStr = new Date().toLocaleDateString('sv-SE');
+            const horizon = new Date();
+            horizon.setDate(horizon.getDate() + 14);
+            const horizonStr = horizon.toLocaleDateString('sv-SE');
+
+            const upcomingClosures = maintenanceSlots
+                .filter(m => m.startDate <= horizonStr && m.endDate >= todayStr)
+                .sort((a, b) => a.startDate.localeCompare(b.startDate));
+
+            if (upcomingClosures.length > 0) {
+                showClosureListPopup('ประกาศปิดให้บริการ', upcomingClosures);
+            }
+        }
+
+        // ✅ อัปเดต: ตรวจสอบเวลา 23:50 น. ขึ้นไป ถือเป็นปิดทั้งวันอย่างแม่นยำ
+        function isDateFullyClosed(dateStr) {
+            if (!dateStr) return false;
+            return maintenanceSlots.some(m =>
+                dateStr >= m.startDate && dateStr <= m.endDate &&
+                timeToMinutes(m.start) <= 1 && timeToMinutes(m.end) >= (23 * 60 + 50)
+            );
+        }
+
+        function checkSelectedDateWarning(dateStr) {
+            const warningEl = document.getElementById('dateClosureWarning');
+            const submitBtn = document.getElementById('submitBtn');
+            if (!warningEl) return;
+
+            const closuresOnDate = maintenanceSlots.filter(m => dateStr >= m.startDate && dateStr <= m.endDate);
+
+            if (closuresOnDate.length === 0) {
+                warningEl.classList.add('hidden');
+                warningEl.textContent = '';
+                checkFormCompletion();
+                return;
+            }
+
+            const isFullDay = isDateFullyClosed(dateStr);
+
+            if (isFullDay) {
+                warningEl.textContent = `⚠️ วันที่เลือกห้องสมุดปิดทำการ: ${closuresOnDate[0].reason || 'ปิดทำการชั่วคราว'} — กรุณาเลือกวันอื่น`;
+            } else {
+                const ranges = closuresOnDate.map(c => `${c.start}-${c.end} (${c.reason || 'ปิดใช้งานชั่วคราว'})`).join(', ');
+                warningEl.textContent = `⚠️ วันที่เลือกมีบางช่วงปิด: ${ranges}`;
+            }
+            warningEl.classList.remove('hidden');
+
+            checkFormCompletion();
+
+            showClosureListPopup(
+                isFullDay ? 'วันที่เลือกห้องสมุดปิดทำการ' : 'วันที่เลือกมีบางช่วงปิดให้บริการ',
+                closuresOnDate,
+                isFullDay ? 'กรุณาเลือกวันอื่น' : 'ไม่สามารถจองได้ในช่วงเวลาที่ห้องสมุดปิดทำการ'
+            );
+        }
+
+        function showClosureListPopup(title, closures, footNote) {
+            const todayStr = new Date().toLocaleDateString('sv-SE');
+            const formatDateLabel = (d) => {
+                if (d === todayStr) return 'วันนี้';
+                const dt = new Date(d + 'T00:00:00');
+                return dt.toLocaleDateString('th-TH', { day: 'numeric', month: 'short' });
+            };
+
+            const cardsHtml = closures.map(c => {
+                const scopeLabel = c.building
+                    ? (c.room ? `${escapeHtml(c.building)} • ${escapeHtml(c.room)}` : `อาคาร ${escapeHtml(c.building)}`)
+                    : 'ทุกอาคาร';
+                const isFullDay = timeToMinutes(c.start) <= 1 && timeToMinutes(c.end) >= (23 * 60 + 50);
+                const timeLabel = isFullDay ? 'ปิดทั้งวัน' : `${escapeHtml(c.start)} - ${escapeHtml(c.end)}`;
+                const dateLabel = c.startDate === c.endDate
+                    ? formatDateLabel(c.startDate)
+                    : `${formatDateLabel(c.startDate)} - ${formatDateLabel(c.endDate)}`;
+                return `<div style="text-align:center;background:#eef4fc;border:1px solid #cfe0f5;border-radius:12px;padding:14px 16px;margin-bottom:8px;">
+                            <div style="font-weight:700;color:#01224D;font-size:14.5px;margin-bottom:2px;">
+                                ${dateLabel} · ${timeLabel}
+                            </div>
+                            <div style="font-weight:500;color:#3568a8;font-size:12.5px;margin-bottom:6px;">
+                                (${scopeLabel})
+                            </div>
+                            <div style="color:#57534e;font-size:13.5px;line-height:1.5;">
+                                ${escapeHtml(c.reason || 'ปิดใช้งานชั่วคราว')}
+                            </div>
+                        </div>`;
+            }).join('');
+
+            BrandSwal.fire({
+                icon: 'warning',
+                title: title,
+                html: cardsHtml + (footNote ? `<p style="font-size:13px;color:#94a3b8;margin:0;">${escapeHtml(footNote)}</p>` : ''),
+                confirmButtonText: 'รับทราบ',
+                allowOutsideClick: true,
+                allowEscapeKey: true
+            });
+        }
+        
+        function deleteBooking(requester, date, startTime, room) {
+            BrandSwal.fire({
+                title: '🔒 ยืนยันการลบรายการ',
+                html: 'ฟังก์ชันนี้เฉพาะเจ้าหน้าที่ห้องสมุดเท่านั้น<br>กรุณาใส่รหัสผ่านแอดมิน:',
+                input: 'password', 
+                inputAttributes: {
+                    autocapitalize: 'off',
+                    autocorrect: 'off'
+                },
+                showCancelButton: true,
+                confirmButtonText: 'ยืนยันการลบ',
+                cancelButtonText: 'ยกเลิก',
+                showLoaderOnConfirm: true,
+                customClass: {
+                    popup: 'brand-swal-popup',
+                    title: 'brand-swal-title',
+                    htmlContainer: 'brand-swal-html',
+                    confirmButton: 'brand-swal-confirm brand-swal-confirm-danger',
+                    cancelButton: 'brand-swal-cancel',
+                    actions: 'brand-swal-actions'
+                },
+                preConfirm: (password) => {
+                    if (!password) {
+                        Swal.showValidationMessage('กรุณากรอกรหัสผ่าน');
+                        return false;
+                    }
+                    return fetch(SCRIPT_URL, {
+                        method: 'POST',
+                        headers: { "Content-Type": "text/plain;charset=utf-8" },
+                        body: JSON.stringify({
+                            action: 'delete',
+                            password: password,
+                            requester: requester,
+                            date: date,
+                            startTime: startTime,
+                            room: room
+                        })
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(response.statusText);
+                        }
+                        return response.json();
+                    })
+                    .catch(error => {
+                        Swal.showValidationMessage(`เกิดข้อผิดพลาด: ${error}`);
+                        return false;
+                    });
+                },
+                allowOutsideClick: () => !Swal.isLoading()
+            }).then((result) => {
+                if (result.isConfirmed && result.value) {
+                    if (result.value.status === "success") {
+                        BrandSwal.fire({
+                            title: 'ลบรายการสำเร็จ!',
+                            text: 'ลบข้อมูลการจองเรียบร้อยแล้ว',
+                            icon: 'success',
+                            confirmButtonColor: '#1d4ed8'
+                        });
+                        loadBookings(); 
+                    } else {
+                        BrandSwal.fire({
+                            title: 'ไม่สามารถลบได้!',
+                            text: result.value.message || 'รหัสผ่านไม่ถูกต้อง หรือไม่พบข้อมูล',
+                            icon: 'error',
+                            confirmButtonColor: '#1d4ed8'
+                        });
+                    }
+                }
+            });
+        }
+
+        function filterBookings() {
+            loadBookings();
+        }
+
+        const mainBtn = document.getElementById('fab-main');
+        const fbBtn = document.getElementById('fab-fb');
+        const lineBtn = document.getElementById('fab-line');
+        const icon = document.getElementById('fab-icon');
+        let isOpen = false;
+
+        mainBtn.addEventListener('click', () => {
+            isOpen = !isOpen;
+            if (isOpen) {
+                fbBtn.style.transform = 'translateY(-60px)';
+                fbBtn.classList.replace('opacity-0', 'opacity-100');
+                fbBtn.classList.replace('scale-0', 'scale-100');
+                
+                lineBtn.style.transform = 'translateX(-60px)';
+                lineBtn.classList.replace('opacity-0', 'opacity-100');
+                lineBtn.classList.replace('scale-0', 'scale-100');
+                
+                icon.classList.replace('fa-headset', 'fa-xmark');
+            } else {
+                fbBtn.style.transform = 'translateY(0)';
+                fbBtn.classList.replace('opacity-100', 'opacity-0');
+                fbBtn.classList.replace('scale-100', 'scale-0');
+                
+                lineBtn.style.transform = 'translateX(0)';
+                lineBtn.classList.replace('opacity-100', 'opacity-0');
+                lineBtn.classList.replace('scale-100', 'scale-0');
+                
+                icon.classList.replace('fa-xmark', 'fa-headset');
+            }
         });
 
-        const ctx2 = document.getElementById('chartFaculty').getContext('2d');
-        try { if (chartFacultyInstance) chartFacultyInstance.destroy(); } catch (e) { console.warn('Failed to destroy chartFacultyInstance', e); }
-        if (facultyLabels.length === 0) {
-            document.getElementById('legendFaculty').innerHTML = '<span class="text-slate-400">ยังไม่มีข้อมูลการจองของนักศึกษา</span>';
-        } else {
-            chartFacultyInstance = new Chart(ctx2, {
-                type: 'doughnut',
-                data: {
-                    labels: facultyLabels,
-                    datasets: [{ data: facultyData, backgroundColor: facultyColors, borderWidth: 2, borderColor: '#fff' }]
-                },
-                options: { responsive: true, maintainAspectRatio: false, cutout: '60%', plugins: { legend: { display: false } } }
-            });
-            renderChartLegend('legendFaculty', facultyLabels, facultyData, facultyColors);
-        }
-    }
+        /* ===========================================================
+           DASHBOARD (Real-time)
+        =========================================================== */
+        let timeIndicatorInterval = null;
+        let dashboardBuilding = "Saint Louis";
+        let dashboardPeriod = "all";
+        let chartUserStatusInstance = null;
+        let chartFacultyInstance = null;
+        let dashboardRunning = false;
+        let dashboardLoopStarted = false;
+        let dashboardTimeoutId = null;
 
-    function renderChartLegend(containerId, labels, data, colors) {
-        const total = data.reduce((a, b) => a + b, 0) || 1;
-        const container = document.getElementById(containerId);
-        container.innerHTML = labels.map((l, i) => {
-            const pct = Math.round((data[i] / total) * 100);
-            return `<span class="flex items-center gap-1.5 text-slate-600"><span class="w-2.5 h-2.5 rounded-full inline-block" style="background:${colors[i]}"></span>${escapeHtml(l)} (${data[i]} · ${pct}%)</span>`;
-        }).join('');
-    }
+        let maintenanceSlots = [];
+
+        const roomOperatingHours = {
+            "Saint Louis": { start: 10, end: 19 },
+            "Saint Benedict": { start: 8, end: 17 }
+        };
+
+        let operatingHoursOverrides = [];
+
+        function getEffectiveOperatingHours(building, dateStr) {
+            if (dateStr) {
+                const override = operatingHoursOverrides.find(o =>
+                    (!o.building || o.building === building) &&
+                    dateStr >= o.startDate && dateStr <= o.endDate
+                );
+                if (override && override.openTime && override.closeTime) {
+                    const openHour = timeToMinutes(override.openTime) / 60;
+                    const closeHour = timeToMinutes(override.closeTime) / 60;
+                    return { start: openHour, end: closeHour };
+                }
+            }
+            return roomOperatingHours[building] || { start: 8, end: 20 };
+        }
+
+        function generateHalfHourSlots(startHour, endHour) {
+            const slots = [];
+            for (let h = startHour; h < endHour; h++) {
+                slots.push(`${h.toString().padStart(2, '0')}:00`);
+                slots.push(`${h.toString().padStart(2, '0')}:30`);
+            }
+            return slots;
+        }
+
+        function setDashboardBuilding(b) {
+            dashboardBuilding = b;
+            localStorage.setItem('slc_dashboardBuilding', b);
+            document.querySelectorAll('.dash-toggle-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.building === b);
+            });
+            renderTimeline();
+        }
+
+        function setDashboardPeriod(p) {
+            dashboardPeriod = p;
+            localStorage.setItem('slc_dashboardPeriod', p);
+            document.querySelectorAll('.dash-period-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.period === p);
+            });
+            renderTimeline();
+        }
+
+        function initDashboard() {
+            document.querySelectorAll('.dash-toggle-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.building === dashboardBuilding);
+            });
+            document.querySelectorAll('.dash-period-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.period === dashboardPeriod);
+            });
+
+            dashboardRunning = true;
+            if (!dashboardLoopStarted) runDashboardLoop();
+
+            if (!timeIndicatorInterval) {
+                timeIndicatorInterval = setInterval(updateCurrentTimeIndicator, 30000);
+            }
+            window.addEventListener('resize', updateCurrentTimeIndicator);
+        }
+
+        async function runDashboardLoop() {
+            if (dashboardLoopStarted) return;
+            dashboardLoopStarted = true;
+            while (dashboardRunning) {
+                try {
+                    await refreshDashboardData();
+                } catch (e) {
+                    console.error('Dashboard loop fetch failed', e);
+                }
+                if (!dashboardRunning) break;
+                await new Promise(resolve => {
+                    dashboardTimeoutId = setTimeout(resolve, 30000);
+                });
+            }
+            dashboardLoopStarted = false;
+        }
+
+        function stopDashboard() {
+            dashboardRunning = false;
+            if (dashboardTimeoutId) {
+                clearTimeout(dashboardTimeoutId);
+                dashboardTimeoutId = null;
+            }
+            if (timeIndicatorInterval) {
+                clearInterval(timeIndicatorInterval);
+                timeIndicatorInterval = null;
+            }
+            window.removeEventListener('resize', updateCurrentTimeIndicator);
+        }
+
+        function refreshDashboardData() {
+            const btnIcon = document.querySelector('#dashRefreshBtn i');
+            if (btnIcon) btnIcon.classList.add('fa-spin');
+
+            return fetch(`${SCRIPT_URL}?type=all`)
+                .then(res => res.json())
+                .then(data => {
+                    allBookings = Array.isArray(data.bookings) ? data.bookings : [];
+                    maintenanceSlots = Array.isArray(data.maintenance) ? data.maintenance : [];
+                    renderDashboard();
+                    const now = new Date();
+                    document.getElementById('dashLastUpdated').innerHTML =
+                        `<i class="fa-regular fa-clock me-1"></i>อัปเดตล่าสุด ${now.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', second: '2-digit' })} น.`;
+                })
+                .catch(err => {
+                    console.error(err);
+                    document.getElementById('dashLastUpdated').innerHTML =
+                        `<span class="text-rose-500"><i class="fa-solid fa-triangle-exclamation me-1"></i>โหลดข้อมูลล้มเหลว กำลังลองใหม่รอบถัดไป</span>`;
+                })
+                .finally(() => {
+                    if (btnIcon) btnIcon.classList.remove('fa-spin');
+                });
+        }
+
+        function renderDashboard() {
+            renderStatCards();
+            renderTimeline();
+            renderPieCharts();
+        }
+
+        function renderStatCards() {
+            const todayStr = new Date().toLocaleDateString('sv-SE');
+            const now = new Date();
+            const curYear = now.getFullYear();
+            const curMonth = now.getMonth() + 1;
+
+            const acadStartYear = curMonth >= 8 ? curYear : curYear - 1;
+            const acadStart = new Date(acadStartYear, 7, 1);
+            const acadEnd = new Date(acadStartYear + 1, 6, 31, 23, 59, 59);
+
+            const yesterday = new Date(now); yesterday.setDate(yesterday.getDate() - 1);
+            const yesterdayStr = yesterday.toLocaleDateString('sv-SE');
+
+            const lastMonthYear = curMonth === 1 ? curYear - 1 : curYear;
+            const lastMonth = curMonth === 1 ? 12 : curMonth - 1;
+
+            const prevAcadStart = new Date(acadStartYear - 1, 7, 1);
+            const prevAcadEnd = new Date(acadStartYear, 6, 31, 23, 59, 59);
+
+            let countToday = 0, countMonth = 0, countYear = 0;
+            let countYesterday = 0, countLastMonth = 0, countLastYear = 0;
+
+            allBookings.forEach(b => {
+                if (!b.date) return;
+                const dStr = (b.date || '').split('T')[0];
+                const d = new Date(dStr + 'T00:00:00');
+                if (isNaN(d)) return;
+                if (dStr === todayStr) countToday++;
+                if (dStr === yesterdayStr) countYesterday++;
+                if (d.getFullYear() === curYear && (d.getMonth() + 1) === curMonth) countMonth++;
+                if (d.getFullYear() === lastMonthYear && (d.getMonth() + 1) === lastMonth) countLastMonth++;
+                if (d >= acadStart && d <= acadEnd) countYear++;
+                if (d >= prevAcadStart && d <= prevAcadEnd) countLastYear++;
+            });
+
+            document.getElementById('statToday').textContent = countToday;
+            document.getElementById('statMonth').textContent = countMonth;
+            document.getElementById('statYear').textContent = countYear;
+            document.getElementById('statYearLabel').textContent = `ยอดการจองปีการศึกษา ${acadStartYear + 543}`;
+
+            renderDeltaBadge('statTodayDelta', countToday, countYesterday, 'จากวันที่แล้ว');
+            renderDeltaBadge('statMonthDelta', countMonth, countLastMonth, 'จากเดือนที่แล้ว');
+            renderDeltaBadge('statYearDelta', countYear, countLastYear, 'จากปีการศึกษาที่แล้ว');
+        }
+
+        function renderDeltaBadge(elId, current, previous, label) {
+            const el = document.getElementById(elId);
+            if (!el) return;
+
+            if (previous === 0) {
+                if (current === 0) {
+                    el.innerHTML = `<span class="text-slate-400">ยังไม่มีข้อมูลเปรียบเทียบ</span>`;
+                } else {
+                    el.innerHTML = `<span class="text-emerald-500"><i class="fa-solid fa-arrow-up"></i> ข้อมูลใหม่</span> <span class="text-slate-400">${label}</span>`;
+                }
+                return;
+            }
+
+            const pct = Math.round(((current - previous) / previous) * 100);
+            if (pct > 0) {
+                el.innerHTML = `<span class="text-emerald-500"><i class="fa-solid fa-arrow-up"></i> +${pct}%</span> <span class="text-slate-400">${label}</span>`;
+            } else if (pct < 0) {
+                el.innerHTML = `<span class="text-rose-500"><i class="fa-solid fa-arrow-down"></i> ${pct}%</span> <span class="text-slate-400">${label}</span>`;
+            } else {
+                el.innerHTML = `<span class="text-slate-400"><i class="fa-solid fa-minus"></i> 0% ${label}</span>`;
+            }
+        }
+
+        function renderTimeline() {
+            const todayStr = new Date().toLocaleDateString('sv-SE');
+            const hours = getEffectiveOperatingHours(dashboardBuilding, todayStr);
+            let slots = generateHalfHourSlots(hours.start, hours.end);
+            if (dashboardPeriod === 'morning') slots = slots.filter(s => parseInt(s.split(':')[0]) < 12);
+            if (dashboardPeriod === 'afternoon') slots = slots.filter(s => parseInt(s.split(':')[0]) >= 12);
+
+            const roomList = rooms[dashboardBuilding] || [];
+            const table = document.getElementById('timelineTable');
+            const thead = table.querySelector('thead tr');
+            const tbody = table.querySelector('tbody');
+
+            const theadParts = ['<th class="text-xs text-slate-400 sticky left-0 bg-white z-10 pr-3 text-left font-bold">ห้อง</th>'];
+            slots.forEach(s => {
+                const [hh, mm] = s.split(':');
+                const label = mm === '00' ? hh + ':00' : '';
+                theadParts.push(`<th class="text-[10px] font-semibold text-slate-400 text-center align-bottom pb-1" data-start="${timeToMinutes(s)}" style="min-width:26px;">${label}</th>`);
+            });
+            thead.innerHTML = theadParts.join('');
+
+            tbody.innerHTML = '';
+            if (roomList.length === 0) {
+                tbody.innerHTML = `<tr><td class="text-center text-slate-400 py-6 text-sm">ไม่มีข้อมูลห้อง</td></tr>`;
+                return;
+            }
+
+            const rows = [];
+            roomList.forEach(roomRaw => {
+                const room = getRoomValue(roomRaw);
+                let row = `<tr><td class="text-xs font-semibold text-[#0D2535] sticky left-0 bg-white z-10 pr-3 py-1 whitespace-nowrap">${escapeHtml(room)}</td>`;
+                slots.forEach(s => {
+                    const slotStart = timeToMinutes(s);
+                    const slotEnd = slotStart + 30;
+
+                    const inMaint = maintenanceSlots.some(m =>
+                        (!m.building || m.building === dashboardBuilding) &&
+                        (!m.room || m.room === room) &&
+                        todayStr >= m.startDate && todayStr <= m.endDate &&
+                        slotStart < timeToMinutes(m.end) && timeToMinutes(m.start) < slotEnd
+                    );
+
+                    const booking = !inMaint && allBookings.find(b => {
+                        if (b.building !== dashboardBuilding || b.room !== room) return false;
+                        const bDateStr = (b.date || '').split('T')[0];
+                        if (bDateStr !== todayStr) return false;
+                        const bStart = timeToMinutes(b.startTime);
+                        const bEnd = timeToMinutes(b.endTime);
+                        return slotStart < bEnd && bStart < slotEnd;
+                    });
+
+                    let cellClass = 'bg-emerald-400';
+                    let title = `${escapeHtml(room)} • ${s} • ว่าง`;
+                    let style = '';
+                    if (inMaint) {
+                        cellClass = '';
+                        style = 'style="background-image: repeating-linear-gradient(45deg,#cbd5e1,#cbd5e1 3px,#f1f5f9 3px,#f1f5f9 6px);"';
+                        title = `${escapeHtml(room)} • ${s} • ปิดซ่อมบำรุง`;
+                    } else if (booking) {
+                        cellClass = 'bg-rose-400';
+                        title = `${escapeHtml(room)} • ${s} • ${escapeHtml(booking.requester || 'มีการจอง')}`;
+                    }
+
+                    row += `<td class="rounded-sm h-6 ${cellClass}" ${style} title="${title}"></td>`;
+                });
+                row += '</tr>';
+                rows.push(row);
+            });
+
+            tbody.innerHTML = rows.join('');
+            updateCurrentTimeIndicator();
+        }
+
+        function updateCurrentTimeIndicator() {
+            const wrapper = document.getElementById('timelineWrapper');
+            const table = document.getElementById('timelineTable');
+            if (!wrapper || !table) return;
+
+            let line = document.getElementById('currentTimeLine');
+            if (!line) {
+                line = document.createElement('div');
+                line.id = 'currentTimeLine';
+                line.className = 'current-time-line';
+                line.innerHTML = `<div class="ctl-label" id="ctlLabel"></div><div class="ctl-dot"><div class="ctl-dot-ping"></div><div class="ctl-dot-core"></div></div>`;
+                wrapper.appendChild(line);
+            }
+
+            const now = new Date();
+            const todayStr = now.toLocaleDateString('sv-SE');
+            const nowMinutes = now.getHours() * 60 + now.getMinutes();
+
+            if (window.__timelineRenderedFor && window.__timelineRenderedFor !== todayStr) {
+                window.__timelineRenderedFor = todayStr;
+                renderTimeline();
+                return;
+            }
+            window.__timelineRenderedFor = todayStr;
+
+            const slotThs = Array.from(table.querySelectorAll('thead th[data-start]'));
+            if (slotThs.length === 0) { line.style.display = 'none'; return; }
+
+            const firstStart = parseInt(slotThs[0].dataset.start, 10);
+            const lastStart = parseInt(slotThs[slotThs.length - 1].dataset.start, 10);
+
+            if (nowMinutes < firstStart || nowMinutes > lastStart + 30) {
+                line.style.display = 'none';
+                return;
+            }
+
+            let targetTh = slotThs[slotThs.length - 1];
+            for (const th of slotThs) {
+                const s = parseInt(th.dataset.start, 10);
+                if (nowMinutes < s + 30) { targetTh = th; break; }
+            }
+            const slotStart = parseInt(targetTh.dataset.start, 10);
+            const frac = Math.min(1, Math.max(0, (nowMinutes - slotStart) / 30));
+
+            const wrapperRect = wrapper.getBoundingClientRect();
+            const thRect = targetTh.getBoundingClientRect();
+            const leftPx = (thRect.left - wrapperRect.left) + wrapper.scrollLeft + (thRect.width * frac);
+
+            line.style.left = leftPx + 'px';
+            line.style.display = 'block';
+
+            const hh = String(now.getHours()).padStart(2, '0');
+            const mm = String(now.getMinutes()).padStart(2, '0');
+            const labelEl = document.getElementById('ctlLabel');
+            if (labelEl) labelEl.textContent = `${hh}:${mm}`;
+        }
+
+        function renderPieCharts() {
+            const statusCounts = { 'นักศึกษา': 0, 'อาจารย์': 0, 'บุคลากร': 0 };
+            allBookings.forEach(b => {
+                const s = b.userStatus;
+                if (s && statusCounts.hasOwnProperty(s)) statusCounts[s]++;
+                else statusCounts['อื่นๆ'] = (statusCounts['อื่นๆ'] || 0) + 1;
+            });
+            const statusColors = { 'นักศึกษา': '#D4E1F5', 'อาจารย์': '#FAEBC4', 'บุคลากร': '#0D2535', 'อื่นๆ': '#FF9F40' };
+            const statusLabels = Object.keys(statusCounts).filter(k => statusCounts[k] > 0);
+            const statusData = statusLabels.map(k => statusCounts[k]);
+
+            const ctx1 = document.getElementById('chartUserStatus').getContext('2d');
+            try { if (chartUserStatusInstance) chartUserStatusInstance.destroy(); } catch (e) { console.warn('Failed to destroy chartUserStatusInstance', e); }
+            if (statusData.length === 0) {
+                document.getElementById('legendUserStatus').innerHTML = '<span class="text-slate-400">ยังไม่มีข้อมูลการจอง</span>';
+            } else {
+                chartUserStatusInstance = new Chart(ctx1, {
+                    type: 'doughnut',
+                    data: {
+                        labels: statusLabels,
+                        datasets: [{ data: statusData, backgroundColor: statusLabels.map(l => statusColors[l] || '#94a3b8'), borderWidth: 2, borderColor: '#fff' }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false, cutout: '60%', plugins: { legend: { display: false } } }
+                });
+                renderChartLegend('legendUserStatus', statusLabels, statusData, statusLabels.map(l => statusColors[l] || '#94a3b8'));
+            }
+
+            const facultyCounts = {};
+            allBookings.forEach(b => {
+                if (b.userStatus !== 'นักศึกษา') return;
+                const dep = (b.department && b.department.trim()) ? b.department : 'ไม่ระบุ';
+                facultyCounts[dep] = (facultyCounts[dep] || 0) + 1;
+            });
+            const facultyLabels = Object.keys(facultyCounts);
+            const facultyData = facultyLabels.map(k => facultyCounts[k]);
+
+            const facultyColorMap = {
+                'คณะพยาบาลศาสตร์': '#FBEBC3',
+                'คณะจิตวิทยา': '#D2DFF4',
+                'คณะกายภาพบำบัด': '#FFACCD'
+            };
+            const facultyFallbackPalette = ['#0D2535', '#FF9F40', '#94a3b8'];
+            let fallbackIdx = 0;
+            const facultyColors = facultyLabels.map(l => {
+                if (facultyColorMap[l]) return facultyColorMap[l];
+                const c = facultyFallbackPalette[fallbackIdx % facultyFallbackPalette.length];
+                fallbackIdx++;
+                return c;
+            });
+
+            const ctx2 = document.getElementById('chartFaculty').getContext('2d');
+            try { if (chartFacultyInstance) chartFacultyInstance.destroy(); } catch (e) { console.warn('Failed to destroy chartFacultyInstance', e); }
+            if (facultyLabels.length === 0) {
+                document.getElementById('legendFaculty').innerHTML = '<span class="text-slate-400">ยังไม่มีข้อมูลการจองของนักศึกษา</span>';
+            } else {
+                chartFacultyInstance = new Chart(ctx2, {
+                    type: 'doughnut',
+                    data: {
+                        labels: facultyLabels,
+                        datasets: [{ data: facultyData, backgroundColor: facultyColors, borderWidth: 2, borderColor: '#fff' }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false, cutout: '60%', plugins: { legend: { display: false } } }
+                });
+                renderChartLegend('legendFaculty', facultyLabels, facultyData, facultyColors);
+            }
+        }
+
+        function renderChartLegend(containerId, labels, data, colors) {
+            const total = data.reduce((a, b) => a + b, 0) || 1;
+            const container = document.getElementById(containerId);
+            container.innerHTML = labels.map((l, i) => {
+                const pct = Math.round((data[i] / total) * 100);
+                return `<span class="flex items-center gap-1.5 text-slate-600"><span class="w-2.5 h-2.5 rounded-full inline-block" style="background:${colors[i]}"></span>${escapeHtml(l)} (${data[i]} · ${pct}%)</span>`;
+            }).join('');
+        }
     </script>
 </body>
 </html>
