@@ -1276,9 +1276,63 @@
             }
         }
 
+        // แอดมินแก้ไขการจอง: ย้ายห้อง/วัน/เวลา หรือแก้ข้อมูลผู้จอง โดยปรับ slot lock ใน transaction เดียวกัน
+        // - slot ใหม่ที่ถูกจองไปแล้วจะ throw Error('SLOT_TAKEN')
+        // - slot เดิมที่ไม่ใช้แล้วจะถูกลบ (ปล่อยว่าง) พร้อมกัน
+        async function updateBookingLocked(id, changes) {
+            const bookingRef = doc(db, "bookings", id);
+            try {
+                return await runTransaction(db, async (tx) => {
+                    const snap = await tx.get(bookingRef);
+                    if (!snap.exists()) throw new Error('BOOKING_NOT_FOUND');
+                    const old = snap.data();
+                    const merged = { ...old, ...changes };
+
+                    const newSlots = computeSlotIds(merged.building, merged.room, merged.date, merged.startTime, merged.endTime);
+                    const newIds = newSlots.map(s => s.id);
+                    if (newIds.length === 0 || newIds.length > 4) throw new Error('INVALID_TIME_RANGE');
+
+                    const oldIds = Array.isArray(old.slotIds) ? old.slotIds : [];
+                    const toAdd = newSlots.filter(s => !oldIds.includes(s.id));
+                    const toRemove = oldIds.filter(sid => !newIds.includes(sid));
+
+                    // อ่านทั้งหมดก่อนเขียน (ข้อกำหนดของ transaction)
+                    const addSnaps = [];
+                    for (const s of toAdd) addSnaps.push(await tx.get(doc(db, "slots", s.id)));
+                    const removeSnaps = [];
+                    for (const sid of toRemove) removeSnaps.push(await tx.get(doc(db, "slots", sid)));
+
+                    if (addSnaps.some(s => s.exists())) throw new Error('SLOT_TAKEN');
+
+                    const nowIso = new Date().toISOString();
+                    removeSnaps.forEach((s, i) => {
+                        if (s.exists() && s.data().bookingId === id) {
+                            tx.delete(doc(db, "slots", toRemove[i]));
+                        }
+                    });
+                    toAdd.forEach((slot) => {
+                        tx.set(doc(db, "slots", slot.id), {
+                            bookingId: id,
+                            building: merged.building,
+                            room: merged.room,
+                            date: merged.date,
+                            slotTime: slot.time,
+                            createdAt: nowIso
+                        });
+                    });
+                    tx.update(bookingRef, { ...changes, slotIds: newIds, updatedAt: nowIso });
+                    return { success: true };
+                });
+            } catch (err) {
+                if (err && ['SLOT_TAKEN', 'BOOKING_NOT_FOUND', 'INVALID_TIME_RANGE'].includes(err.message)) throw err;
+                handleFirestoreError(err, 'update', `bookings/${id}`);
+            }
+        }
+
         window.firestoreOps = {
             db,
             startListeningBookings,
+            updateBookingLocked: (id, changes) => updateBookingLocked(id, changes),
             // สร้างการจองแบบมีการล็อกช่วงเวลาจริง (atomic transaction) เพื่อกันการจองซ้อนกัน
             // ถ้าช่วงเวลาถูกจองไปแล้วจะ throw Error('SLOT_TAKEN')
             createBookingLocked: (payload) => createBookingLocked(payload),
@@ -4166,7 +4220,10 @@
                         </td>
                         <td class="py-3 px-3 text-center">
                             ${b.id ? `
-                                <button onclick="handleAdminDeleteBooking('${b.id}')" class="p-2 text-rose-500 hover:text-rose-700 hover:bg-rose-50 rounded-lg transition" title="ยกเลิกการจอง">
+                                <button onclick="handleAdminEditBooking('${b.id}')" class="p-2 text-[#5388D8] hover:text-[#0D2535] hover:bg-blue-50 rounded-lg transition" title="แก้ไขการจอง" aria-label="แก้ไขการจอง">
+                                    <i class="fa-solid fa-pen-to-square"></i>
+                                </button>
+                                <button onclick="handleAdminDeleteBooking('${b.id}')" class="p-2 text-rose-500 hover:text-rose-700 hover:bg-rose-50 rounded-lg transition" title="ยกเลิกการจอง" aria-label="ยกเลิกการจอง">
                                     <i class="fa-solid fa-trash-can"></i>
                                 </button>
                             ` : `<span class="text-[10px] text-slate-400">Sheet เก่า</span>`}
@@ -4176,6 +4233,227 @@
             });
 
             tbody.innerHTML = html;
+        }
+
+        const ADMIN_EDIT_STATUS_OPTIONS = ['นักศึกษา', 'อาจารย์', 'บุคลากร'];
+        const ADMIN_EDIT_FACULTY_OPTIONS = {
+            'นักศึกษา': ['คณะพยาบาลศาสตร์', 'คณะจิตวิทยา', 'คณะกายภาพบำบัด'],
+            'อาจารย์': ['คณะพยาบาลศาสตร์', 'คณะจิตวิทยา', 'คณะกายภาพบำบัด', 'สำนักวิชาศึกษาทั่วไป']
+        };
+
+        function buildOptionsHtml(values, selected, placeholder) {
+            const list = [...values];
+            if (selected && !list.includes(selected)) list.unshift(selected);
+            const head = placeholder !== undefined ? `<option value="">${escapeHtml(placeholder)}</option>` : '';
+            return head + list.map(v => `<option value="${escapeHtml(v)}"${v === selected ? ' selected' : ''}>${escapeHtml(v)}</option>`).join('');
+        }
+
+        function buildEditTimeOptions(building, date, selected) {
+            const hours = getEffectiveOperatingHours(building, date);
+            const times = generateTimeOptions(hours.start, hours.end);
+            return buildOptionsHtml(times, selected);
+        }
+
+        // แอดมินแก้ไขข้อมูลการจอง (ชื่อ/ห้อง/วัน/เวลา/สถานะ/คณะ/จำนวนคน/วัตถุประสงค์)
+        async function handleAdminEditBooking(id) {
+            const ok = await ensureAdminAuth('🔒 ยืนยันตัวตนเพื่อแก้ไขการจอง');
+            if (!ok) return;
+
+            const booking = allBookings.find(b => b.id === id);
+            if (!booking) {
+                BrandSwal.fire({ icon: 'error', title: 'ไม่พบรายการจอง', text: 'กรุณารีเฟรชข้อมูลแล้วลองใหม่' });
+                return;
+            }
+
+            const cur = {
+                building: booking.building || '',
+                room: booking.room || '',
+                date: (booking.date || '').split('T')[0],
+                startTime: booking.startTime || '',
+                endTime: booking.endTime || '',
+                requester: booking.requester || booking.booker || booking.name || '',
+                userStatus: booking.userStatus || '',
+                department: booking.department || booking.faculty || '',
+                attendees: booking.attendees || '',
+                purpose: booking.purpose || booking.objective || ''
+            };
+
+            const fieldCls = 'w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20';
+            const labelCls = 'block text-xs font-semibold text-slate-600 mb-1';
+
+            const roomValues = (b) => (rooms[b] || []).map(getRoomValue);
+
+            const html = `
+                <div class="text-left space-y-3">
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="${labelCls}" for="editBuilding">อาคาร</label>
+                            <select id="editBuilding" class="${fieldCls}">${buildOptionsHtml(Object.keys(rooms), cur.building)}</select>
+                        </div>
+                        <div>
+                            <label class="${labelCls}" for="editRoom">ห้องประชุม</label>
+                            <select id="editRoom" class="${fieldCls}">${buildOptionsHtml(roomValues(cur.building), cur.room)}</select>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-3 gap-3">
+                        <div>
+                            <label class="${labelCls}" for="editDate">วันที่</label>
+                            <input type="date" id="editDate" value="${escapeHtml(cur.date)}" class="${fieldCls}">
+                        </div>
+                        <div>
+                            <label class="${labelCls}" for="editStart">เริ่ม</label>
+                            <select id="editStart" class="${fieldCls}">${buildEditTimeOptions(cur.building, cur.date, cur.startTime)}</select>
+                        </div>
+                        <div>
+                            <label class="${labelCls}" for="editEnd">สิ้นสุด</label>
+                            <select id="editEnd" class="${fieldCls}">${buildEditTimeOptions(cur.building, cur.date, cur.endTime)}</select>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="${labelCls}" for="editRequester">ชื่อผู้จอง / รหัสประจำตัว</label>
+                        <input type="text" id="editRequester" value="${escapeHtml(cur.requester)}" class="${fieldCls}">
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="${labelCls}" for="editStatus">สถานะผู้ใช้งาน</label>
+                            <select id="editStatus" class="${fieldCls}">${buildOptionsHtml(ADMIN_EDIT_STATUS_OPTIONS, cur.userStatus, '-- เลือกสถานะ --')}</select>
+                        </div>
+                        <div>
+                            <label class="${labelCls}" for="editAttendees">จำนวนผู้เข้าใช้ (คน)</label>
+                            <input type="number" id="editAttendees" min="1" max="50" value="${escapeHtml(String(cur.attendees))}" class="${fieldCls}">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="${labelCls}" for="editDepartmentSelect">คณะ / หน่วยงาน</label>
+                        <select id="editDepartmentSelect" class="${fieldCls}"></select>
+                        <input type="text" id="editDepartmentInput" class="${fieldCls}" placeholder="ระบุแผนก/ฝ่ายงาน" style="display:none;">
+                    </div>
+                    <div>
+                        <label class="${labelCls}" for="editPurpose">วัตถุประสงค์การใช้งาน</label>
+                        <textarea id="editPurpose" rows="2" class="${fieldCls}">${escapeHtml(cur.purpose)}</textarea>
+                    </div>
+                </div>`;
+
+            const result = await BrandSwal.fire({
+                title: 'แก้ไขข้อมูลการจอง',
+                html,
+                showCancelButton: true,
+                confirmButtonText: '<i class="fa-solid fa-floppy-disk me-1.5"></i>บันทึกการแก้ไข',
+                cancelButtonText: 'ยกเลิก',
+                focusConfirm: false,
+                showLoaderOnConfirm: true,
+                allowOutsideClick: () => !Swal.isLoading(),
+                didOpen: (popup) => {
+                    const $ = (sel) => popup.querySelector(sel);
+                    const buildingEl = $('#editBuilding'), roomEl = $('#editRoom'), dateEl = $('#editDate');
+                    const startEl = $('#editStart'), endEl = $('#editEnd');
+                    const statusEl = $('#editStatus');
+                    const depSelect = $('#editDepartmentSelect'), depInput = $('#editDepartmentInput');
+
+                    const refreshTimes = () => {
+                        const s = startEl.value, e = endEl.value;
+                        startEl.innerHTML = buildEditTimeOptions(buildingEl.value, dateEl.value, s);
+                        endEl.innerHTML = buildEditTimeOptions(buildingEl.value, dateEl.value, e);
+                    };
+                    const refreshDepartment = (preset) => {
+                        const status = statusEl.value;
+                        const faculties = ADMIN_EDIT_FACULTY_OPTIONS[status];
+                        if (status === 'บุคลากร') {
+                            depSelect.style.display = 'none';
+                            depInput.style.display = '';
+                            if (preset !== undefined) depInput.value = preset;
+                        } else {
+                            depInput.style.display = 'none';
+                            depSelect.style.display = '';
+                            depSelect.innerHTML = buildOptionsHtml(faculties || [], preset !== undefined ? preset : '', '-- เลือกคณะ/หน่วยงาน --');
+                        }
+                    };
+
+                    buildingEl.addEventListener('change', () => {
+                        roomEl.innerHTML = buildOptionsHtml(roomValues(buildingEl.value), '', '-- เลือกห้อง --');
+                        refreshTimes();
+                    });
+                    dateEl.addEventListener('change', refreshTimes);
+                    statusEl.addEventListener('change', () => refreshDepartment(''));
+                    refreshDepartment(cur.department);
+                },
+                preConfirm: () => {
+                    const popup = Swal.getPopup();
+                    const val = (sel) => popup.querySelector(sel).value;
+                    const status = val('#editStatus');
+                    const department = (status === 'บุคลากร' ? val('#editDepartmentInput') : val('#editDepartmentSelect')).trim();
+                    const data = {
+                        building: val('#editBuilding'),
+                        room: val('#editRoom'),
+                        date: val('#editDate'),
+                        startTime: val('#editStart'),
+                        endTime: val('#editEnd'),
+                        requester: val('#editRequester').trim(),
+                        userStatus: status,
+                        department,
+                        attendees: String(val('#editAttendees')).trim(),
+                        purpose: val('#editPurpose').trim()
+                    };
+
+                    if (!data.building || !data.room) return Swal.showValidationMessage('กรุณาเลือกอาคารและห้องประชุม'), false;
+                    if (!data.date) return Swal.showValidationMessage('กรุณาเลือกวันที่'), false;
+                    if (!data.startTime || !data.endTime) return Swal.showValidationMessage('กรุณาเลือกเวลาเริ่มและเวลาสิ้นสุด'), false;
+                    const diff = timeToMinutes(data.endTime) - timeToMinutes(data.startTime);
+                    if (diff <= 0) return Swal.showValidationMessage('เวลาสิ้นสุดต้องอยู่หลังเวลาเริ่มต้น'), false;
+                    if (diff > 120) return Swal.showValidationMessage('จองได้ครั้งละไม่เกิน 2 ชั่วโมง'), false;
+                    if (!data.requester) return Swal.showValidationMessage('กรุณากรอกชื่อผู้จอง'), false;
+                    const n = parseInt(data.attendees, 10);
+                    if (!n || n < 1 || n > 50) return Swal.showValidationMessage('จำนวนผู้เข้าใช้ต้องอยู่ระหว่าง 1 - 50 คน'), false;
+
+                    // ชนกับรายการจองอื่น (ไม่นับรายการนี้เอง)
+                    const newStart = timeToMinutes(data.startTime), newEnd = timeToMinutes(data.endTime);
+                    const clash = allBookings.find(b => b.id !== id &&
+                        b.building === data.building && b.room === data.room &&
+                        (b.date || '').split('T')[0] === data.date &&
+                        newStart < timeToMinutes(b.endTime) && timeToMinutes(b.startTime) < newEnd);
+                    if (clash) {
+                        return Swal.showValidationMessage(`ชนกับการจองของ ${clash.requester || clash.booker || 'ผู้ใช้อื่น'} (${clash.startTime}-${clash.endTime})`), false;
+                    }
+                    return data;
+                }
+            });
+
+            if (!result.isConfirmed || !result.value) return;
+            const changes = result.value;
+
+            // เตือน (ไม่บล็อก) เมื่อแก้ไปอยู่ในวันปิด/ช่วงปิดซ่อม/นอกเวลาทำการ — แอดมินมีสิทธิ์ override
+            const warnings = [];
+            if (isDateFullyClosed(changes.date)) warnings.push('วันที่เลือกเป็นวันปิดทำการ');
+            else if (getMaintenanceConflict(changes.building, changes.room, changes.date, changes.startTime, changes.endTime)) warnings.push('ช่วงเวลานี้อยู่ในช่วงปิดปรับปรุง');
+            if (!isWithinOperatingHours(changes.building, changes.date, changes.startTime, changes.endTime)) warnings.push('ช่วงเวลานี้อยู่นอกเวลาทำการ');
+            if (warnings.length) {
+                const confirmation = await BrandSwal.fire({
+                    icon: 'warning',
+                    title: 'ต้องการบันทึกต่อหรือไม่?',
+                    html: '<ul class="text-left list-none space-y-1">' + warnings.map(w => `<li>• ${escapeHtml(w)}</li>`).join('') + '</ul>',
+                    showCancelButton: true,
+                    confirmButtonText: 'บันทึกต่อ',
+                    cancelButtonText: 'กลับ'
+                });
+                if (!confirmation.isConfirmed) return;
+            }
+
+            try {
+                const ops = await waitForFirestoreOps();
+                if (!ops) throw new Error('Firestore not ready');
+                await ops.updateBookingLocked(id, changes);
+                BrandSwal.fire({ icon: 'success', title: 'บันทึกการแก้ไขเรียบร้อย', timer: 1500, showConfirmButton: false });
+                await refreshAdminData();
+                loadBookings();
+            } catch (err) {
+                const msg = err && err.message;
+                const text = msg === 'SLOT_TAKEN' ? 'ช่วงเวลาที่เลือกถูกจองไปแล้ว (อาจมีผู้ใช้จองพร้อมกัน) กรุณาเลือกเวลาอื่น'
+                    : msg === 'BOOKING_NOT_FOUND' ? 'ไม่พบรายการจองนี้แล้ว อาจถูกลบไปก่อนหน้า'
+                    : msg === 'INVALID_TIME_RANGE' ? 'ช่วงเวลาไม่ถูกต้อง (ต้องไม่เกิน 2 ชั่วโมง)'
+                    : 'ไม่สามารถบันทึกการแก้ไขได้ กรุณาลองใหม่อีกครั้ง';
+                console.error('Admin edit booking failed:', err);
+                BrandSwal.fire({ icon: 'error', title: 'แก้ไขไม่สำเร็จ', text });
+            }
         }
 
         async function handleAdminDeleteBooking(id) {
