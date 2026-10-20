@@ -361,8 +361,8 @@
       catEn: 'Choose a room',
       qTh: 'มีห้องอะไรให้เลือกบ้าง?',
       qEn: 'Which rooms are available?',
-      aTh: 'อาคาร Saint Louis มี Conference Room 1-3, Mini Theater Room และ Research Room ส่วนอาคาร Saint Benedict มี Conference Room 1-2 และ Multi-purpose Room',
-      aEn: 'Saint Louis has Conference Rooms 1-3, Mini Theater Room, and Research Room. Saint Benedict has Conference Rooms 1-2 and the Multi-purpose Room.'
+      aTh: 'อาคาร Saint Louis มี Conference Room 1-3, Mini Theater Room และ Research Room ส่วนอาคาร Saint Benedict มี Conference Room 1-2 และ Multi-Purpose Room',
+      aEn: 'Saint Louis has Conference Rooms 1-3, Mini Theater Room, and Research Room. Saint Benedict has Conference Rooms 1-2 and the Multi-Purpose Room.'
     },
     {
       id: 7,
@@ -1424,8 +1424,8 @@
     if (/(ห้องอะไร|มีห้อง|เลือกห้อง|รายชื่อห้อง|which room|available rooms|room list)/i.test(q)) {
       return {
         text: isTh
-          ? '**ห้องที่ให้บริการ:**\n• Saint Louis: Conference Room 1-3, Mini Theater Room และ Research Room\n• Saint Benedict: Conference Room 1-2 และ Multi-purpose Room\nเลือกอาคารก่อน แล้วระบบจะแสดงรายชื่อห้องของอาคารนั้น'
-          : '**Available rooms:**\n• Saint Louis: Conference Rooms 1-3, Mini Theater Room, and Research Room\n• Saint Benedict: Conference Rooms 1-2 and the Multi-purpose Room\nSelect a building first to see its rooms.'
+          ? '**ห้องที่ให้บริการ:**\n• Saint Louis: Conference Room 1-3, Mini Theater Room และ Research Room\n• Saint Benedict: Conference Room 1-2 และ Multi-Purpose Room\nเลือกอาคารก่อน แล้วระบบจะแสดงรายชื่อห้องของอาคารนั้น'
+          : '**Available rooms:**\n• Saint Louis: Conference Rooms 1-3, Mini Theater Room, and Research Room\n• Saint Benedict: Conference Rooms 1-2 and the Multi-Purpose Room\nSelect a building first to see its rooms.'
       };
     }
 
