@@ -46,7 +46,7 @@ service cloud.firestore {
         'Saint Louis|Research Room': 'Saint-Louis-yfrg71__Research-Room-kx0ri8',
         'Saint Benedict|Conference Room 1': 'Saint-Benedict-qbhdov__Conference-Room-1-invcts',
         'Saint Benedict|Conference Room 2': 'Saint-Benedict-qbhdov__Conference-Room-2-invctt',
-        'Saint Benedict|Multi-purpose Room': 'Saint-Benedict-qbhdov__Multi-purpose-Room-1y3yrjl'
+        'Saint Benedict|Multi-Purpose Room': 'Saint-Benedict-qbhdov__Multi-Purpose-Room-1sonwx'
       };
       return prefixes.get(building + '|' + room, '');
     }
