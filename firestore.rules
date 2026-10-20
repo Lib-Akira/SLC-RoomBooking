@@ -3,17 +3,21 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     // Keep the approved email list here in sync with index.html.
+    // เช็คอีเมลที่อนุมัติไว้ก่อน (ไม่นับเป็น access call) แล้วค่อยไปเช็ค admins/adminEmails
+    // เพื่อประหยัดโควตา access call ในการเขียนหลายเอกสารพร้อมกัน (เช่น แก้ไขการจอง 2 ชม.)
     function isAdmin() {
       return request.auth != null &&
         (
+          (
+            request.auth.token.email_verified == true &&
+            request.auth.token.email is string &&
+            request.auth.token.email in ['library@slc.ac.th', 'akira@slc.ac.th']
+          ) ||
           exists(/databases/$(database)/documents/admins/$(request.auth.uid)) ||
           (
             request.auth.token.email_verified == true &&
             request.auth.token.email is string &&
-            (
-              request.auth.token.email in ['library@slc.ac.th', 'akira@slc.ac.th'] ||
-              exists(/databases/$(database)/documents/adminEmails/$(request.auth.token.email))
-            )
+            exists(/databases/$(database)/documents/adminEmails/$(request.auth.token.email))
           )
         );
     }
@@ -24,6 +28,27 @@ service cloud.firestore {
 
     function incoming() {
       return request.resource.data;
+    }
+
+    // เวอร์ชันเบา: ไม่สร้าง map 24 ช่องทุกครั้งที่เรียก (เดิมเรียก ~6 ครั้งต่อการจอง)
+    // เรียกใช้หลังตรวจ regex รูปแบบ HH:MM แล้วเท่านั้น
+    function timeToMinutes(time) {
+      return int(time[0:2]) * 60 + int(time[3:5]);
+    }
+
+    // map ค้นหาครั้งเดียว แทน ternary chain 8 ชั้น (ห้องท้าย ๆ เช่น Multi-purpose Room เคยแพงสุด)
+    function slotPrefix(building, room) {
+      let prefixes = {
+        'Saint Louis|Conference Room 1': 'Saint-Louis-yfrg71__Conference-Room-1-invcts',
+        'Saint Louis|Conference Room 2': 'Saint-Louis-yfrg71__Conference-Room-2-invctt',
+        'Saint Louis|Conference Room 3': 'Saint-Louis-yfrg71__Conference-Room-3-invctu',
+        'Saint Louis|Mini Theater Room': 'Saint-Louis-yfrg71__Mini-Theater-Room-8v9ryr',
+        'Saint Louis|Research Room': 'Saint-Louis-yfrg71__Research-Room-kx0ri8',
+        'Saint Benedict|Conference Room 1': 'Saint-Benedict-qbhdov__Conference-Room-1-invcts',
+        'Saint Benedict|Conference Room 2': 'Saint-Benedict-qbhdov__Conference-Room-2-invctt',
+        'Saint Benedict|Multi-purpose Room': 'Saint-Benedict-qbhdov__Multi-purpose-Room-1y3yrjl'
+      };
+      return prefixes.get(building + '|' + room, '');
     }
 
     function isValidBooking(data) {
@@ -38,43 +63,13 @@ service cloud.firestore {
         && ((('requester' in data) && data.requester is string && data.requester.size() > 0) || (('booker' in data) && data.booker is string && data.booker.size() > 0));
     }
 
-    function slotPrefix(building, room) {
-      return building == 'Saint Louis' && room == 'Conference Room 1' ? 'Saint-Louis-yfrg71__Conference-Room-1-invcts' :
-        building == 'Saint Louis' && room == 'Conference Room 2' ? 'Saint-Louis-yfrg71__Conference-Room-2-invctt' :
-        building == 'Saint Louis' && room == 'Conference Room 3' ? 'Saint-Louis-yfrg71__Conference-Room-3-invctu' :
-        building == 'Saint Louis' && room == 'Mini Theater Room' ? 'Saint-Louis-yfrg71__Mini-Theater-Room-8v9ryr' :
-        building == 'Saint Louis' && room == 'Research Room' ? 'Saint-Louis-yfrg71__Research-Room-kx0ri8' :
-        building == 'Saint Benedict' && room == 'Conference Room 1' ? 'Saint-Benedict-qbhdov__Conference-Room-1-invcts' :
-        building == 'Saint Benedict' && room == 'Conference Room 2' ? 'Saint-Benedict-qbhdov__Conference-Room-2-invctt' :
-        building == 'Saint Benedict' && room == 'Multi-purpose Room' ? 'Saint-Benedict-qbhdov__Multi-purpose-Room-1y3yrjl' : '';
-    }
-
-    function hourToMinutes(hour) {
-      let minutesByHour = {
-        '00': 0, '01': 60, '02': 120, '03': 180,
-        '04': 240, '05': 300, '06': 360, '07': 420,
-        '08': 480, '09': 540, '10': 600, '11': 660,
-        '12': 720, '13': 780, '14': 840, '15': 900,
-        '16': 960, '17': 1020, '18': 1080, '19': 1140,
-        '20': 1200, '21': 1260, '22': 1320, '23': 1380
-      };
-      return minutesByHour.keys().hasAny([hour]) ? minutesByHour[hour] : -1;
-    }
-
-    function timeToMinutes(time) {
-      let parts = time.split(':');
-      let hourMinutes = hourToMinutes(parts[0]);
-      return hourMinutes < 0 ? -1 : hourMinutes + (parts[1] == '30' ? 30 : 0);
-    }
-
     function isValidSlotId(slotId) {
       return slotId is string && slotId.matches('^[a-zA-Z0-9_\\-]+$');
     }
 
-    function slotMatchesBooking(bookingId, booking, slotId) {
-      let slotPath = /databases/$(database)/documents/slots/$(slotId);
-      return existsAfter(slotPath)
-        && getAfter(slotPath).data.bookingId == bookingId;
+    // ใช้ getAfter อย่างเดียว (ถ้าเอกสารไม่มีจะ error = ปฏิเสธ) ลดจำนวน access call ลงครึ่งหนึ่ง
+    function slotMatchesBooking(bookingId, slotId) {
+      return getAfter(/databases/$(database)/documents/slots/$(slotId)).data.bookingId == bookingId;
     }
 
     function hasBookingSlotLocks(bookingId, booking) {
@@ -83,29 +78,30 @@ service cloud.firestore {
         && booking.slotIds.size() <= 4
         && booking.slotIds.size() == (timeToMinutes(booking.endTime) - timeToMinutes(booking.startTime)) / 30
         && booking.slotIds[0] is string
-        && slotMatchesBooking(bookingId, booking, booking.slotIds[0])
+        && slotMatchesBooking(bookingId, booking.slotIds[0])
         && (booking.slotIds.size() < 2 || (
           booking.slotIds[1] is string
           && booking.slotIds[1] != booking.slotIds[0]
-          && slotMatchesBooking(bookingId, booking, booking.slotIds[1])
+          && slotMatchesBooking(bookingId, booking.slotIds[1])
         ))
         && (booking.slotIds.size() < 3 || (
           booking.slotIds[2] is string
           && booking.slotIds[2] != booking.slotIds[0]
           && booking.slotIds[2] != booking.slotIds[1]
-          && slotMatchesBooking(bookingId, booking, booking.slotIds[2])
+          && slotMatchesBooking(bookingId, booking.slotIds[2])
         ))
         && (booking.slotIds.size() < 4 || (
           booking.slotIds[3] is string
           && booking.slotIds[3] != booking.slotIds[0]
           && booking.slotIds[3] != booking.slotIds[1]
           && booking.slotIds[3] != booking.slotIds[2]
-          && slotMatchesBooking(bookingId, booking, booking.slotIds[3])
+          && slotMatchesBooking(bookingId, booking.slotIds[3])
         ));
     }
 
-    function slotLinksToBooking(bookingId, slotId, slot, booking) {
-      let slotTime = slot.slotTime.replace('00$', ':00').replace('30$', ':30');
+    function slotLinksToBooking(slotId, slot, booking) {
+      // slotTime เป็นรูป HHMM (ผ่าน isValidSlot แล้ว) -> HH:MM โดยไม่ใช้ regex replace
+      let slotTime = slot.slotTime[0:2] + ':' + slot.slotTime[2:4];
       return booking.slotIds is list
         && slotId in booking.slotIds
         && booking.building == slot.building
@@ -117,9 +113,7 @@ service cloud.firestore {
     }
 
     function isSlotLinkedToBooking(bookingId, slotId, slot) {
-      let bookingPath = /databases/$(database)/documents/bookings/$(bookingId);
-      return existsAfter(bookingPath)
-        && slotLinksToBooking(bookingId, slotId, slot, getAfter(bookingPath).data);
+      return slotLinksToBooking(slotId, slot, getAfter(/databases/$(database)/documents/bookings/$(bookingId)).data);
     }
 
     function slotIsRemoved(slotId) {
@@ -199,8 +193,12 @@ service cloud.firestore {
         && isValidSlot(incoming())
         && isSlotLinkedToBooking(incoming().bookingId, slotId, incoming());
       allow update: if false;
+      // ลบ slot ได้เมื่อ (1) การจองถูกลบไปแล้ว หรือ (2) การจองยังอยู่แต่ไม่ได้ใช้ slot นี้แล้ว (แอดมินย้ายห้อง/เวลา)
       allow delete: if isAdmin()
-        && !existsAfter(/databases/$(database)/documents/bookings/$(resource.data.bookingId));
+        && (
+          !existsAfter(/databases/$(database)/documents/bookings/$(resource.data.bookingId))
+          || !(slotId in getAfter(/databases/$(database)/documents/bookings/$(resource.data.bookingId)).data.get('slotIds', []))
+        );
     }
 
     // Admin allowlists are managed in the Firebase Console only. For Google sign-in,
