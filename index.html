@@ -1013,6 +1013,7 @@
 
                 <!-- TAB 2: จัดการรายการจองทั้งหมด -->
                 <div id="adminTabContentBookings" class="hidden space-y-4">
+                    <div id="adminLegacyRoomBanner" class="hidden"></div>
                     <div class="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm">
                         <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 mb-4 border-b border-slate-100">
                             <div>
@@ -4120,7 +4121,117 @@
             renderAdminBookingsTable();
         }
 
+        // ===== ย้ายรายการจองที่ใช้ชื่อห้องเก่า (หลังเปลี่ยนชื่อห้อง) =====
+        // เพิ่มคู่ชื่อเก่า -> ชื่อใหม่ที่นี่ได้เมื่อมีการเปลี่ยนชื่อห้องในอนาคต
+        const ROOM_RENAMES = [
+            { building: 'Saint Benedict', from: 'Multiple Purpose Room', to: 'Multi-purpose Room' }
+        ];
+
+        function getLegacyRoomBookings() {
+            return allBookings.filter(b => {
+                if (!b.id || !rooms[b.building]) return false;
+                return !rooms[b.building].map(getRoomValue).includes(b.room);
+            });
+        }
+
+        function getRenameTarget(b) {
+            const r = ROOM_RENAMES.find(x => x.building === b.building && x.from === b.room);
+            return r ? r.to : null;
+        }
+
+        function updateLegacyRoomBanner() {
+            const el = document.getElementById('adminLegacyRoomBanner');
+            if (!el) return;
+            const legacy = getLegacyRoomBookings();
+            if (legacy.length === 0) {
+                el.classList.add('hidden');
+                el.innerHTML = '';
+                return;
+            }
+            const renamable = legacy.filter(b => getRenameTarget(b)).length;
+            const other = legacy.length - renamable;
+            el.classList.remove('hidden');
+            el.innerHTML = `
+                <div class="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div class="text-sm text-amber-800">
+                        <div class="font-bold"><i class="fa-solid fa-triangle-exclamation me-1.5"></i>พบ ${legacy.length} รายการที่ใช้ชื่อห้องเก่า</div>
+                        <p class="text-xs mt-1">รายการเหล่านี้จะไม่แสดงในตารางห้อง และไม่ถูกนับว่าชนกับการจองใหม่ จนกว่าจะย้ายเป็นชื่อห้องปัจจุบัน
+                        ${other > 0 ? `(มี ${other} รายการที่ไม่มีคู่ชื่อใหม่ในระบบ ให้กดปุ่มแก้ไขเป็นรายการ)` : ''}</p>
+                    </div>
+                    ${renamable > 0 ? `
+                        <button onclick="handleAdminMigrateRoomNames()" class="shrink-0 px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white font-semibold rounded-xl text-xs transition flex items-center gap-2 shadow-sm">
+                            <i class="fa-solid fa-right-left"></i><span>ย้ายเป็นชื่อห้องใหม่ (${renamable} รายการ)</span>
+                        </button>` : ''}
+                </div>`;
+        }
+
+        async function handleAdminMigrateRoomNames() {
+            const targets = getLegacyRoomBookings().filter(b => getRenameTarget(b));
+            if (targets.length === 0) return;
+
+            const names = [...new Set(targets.map(b => `${b.room} → ${getRenameTarget(b)}`))];
+            const confirmation = await BrandSwal.fire({
+                icon: 'question',
+                title: 'ย้ายเป็นชื่อห้องใหม่?',
+                html: `<p class="mb-2">จะเปลี่ยนชื่อห้องใน <b>${targets.length}</b> รายการ พร้อมย้ายการล็อกช่วงเวลาให้อัตโนมัติ</p>
+                       <ul class="text-left list-none text-sm">${names.map(n => `<li>• ${escapeHtml(n)}</li>`).join('')}</ul>`,
+                showCancelButton: true,
+                confirmButtonText: 'เริ่มย้าย',
+                cancelButtonText: 'กลับ'
+            });
+            if (!confirmation.isConfirmed) return;
+
+            const ops = await waitForFirestoreOps();
+            if (!ops) {
+                BrandSwal.fire({ icon: 'error', title: 'ระบบยังไม่พร้อม', text: 'กรุณาลองใหม่อีกครั้ง' });
+                return;
+            }
+
+            BrandSwal.fire({ title: 'กำลังย้ายข้อมูล...', allowOutsideClick: false, showConfirmButton: false, didOpen: () => Swal.showLoading() });
+
+            let okCount = 0;
+            const failed = [];
+            for (const b of targets) {
+                const newRoom = getRenameTarget(b);
+                const date = (b.date || '').split('T')[0];
+                const s = timeToMinutes(b.startTime), e = timeToMinutes(b.endTime);
+                const clash = allBookings.find(o => o.id !== b.id && o.building === b.building && o.room === newRoom &&
+                    (o.date || '').split('T')[0] === date && s < timeToMinutes(o.endTime) && timeToMinutes(o.startTime) < e);
+                if (clash) {
+                    failed.push({ b, reason: `ชนกับการจองของ ${clash.requester || clash.booker || 'ผู้ใช้อื่น'} ที่จองห้องชื่อใหม่` });
+                    continue;
+                }
+                try {
+                    await ops.updateBookingLocked(b.id, { room: newRoom });
+                    okCount++;
+                } catch (err) {
+                    const msg = err && err.message;
+                    failed.push({
+                        b,
+                        reason: msg === 'SLOT_TAKEN' ? 'ชนกับการจองที่มีอยู่แล้วในห้องชื่อใหม่'
+                            : msg === 'INVALID_TIME_RANGE' ? 'ช่วงเวลาไม่ถูกต้องหรือเกิน 2 ชั่วโมง'
+                            : 'บันทึกไม่สำเร็จ'
+                    });
+                }
+            }
+
+            await refreshAdminData();
+            loadBookings();
+
+            const failHtml = failed.length === 0 ? '' : `
+                <p class="mt-3 mb-1 font-semibold text-rose-600">ย้ายไม่ได้ ${failed.length} รายการ (ต้องแก้ไขเอง)</p>
+                <ul class="text-left list-none text-xs space-y-1">
+                    ${failed.map(f => `<li>• ${escapeHtml(formatDateThai(f.b.date))} ${escapeHtml(f.b.startTime)}-${escapeHtml(f.b.endTime)} ${escapeHtml(f.b.requester || f.b.booker || '')} — ${escapeHtml(f.reason)}</li>`).join('')}
+                </ul>`;
+            BrandSwal.fire({
+                icon: failed.length ? 'warning' : 'success',
+                title: failed.length ? 'ย้ายเสร็จบางส่วน' : 'ย้ายเรียบร้อย',
+                html: `<p>ย้ายสำเร็จ <b>${okCount}</b> รายการ</p>${failHtml}`
+            });
+        }
+
         function renderAdminBookingsTable() {
+            updateLegacyRoomBanner();
             const tbody = document.getElementById('adminBookingsTableBody');
             const summary = document.getElementById('adminBookingStatsSummary');
             if (!tbody) return;
