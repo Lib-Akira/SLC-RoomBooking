@@ -1033,6 +1033,69 @@
                             </div>
                         </div>
 
+                        <!-- ตัวกรองรายการจอง -->
+                        <div class="bg-slate-50 border border-slate-100 rounded-xl p-3 mb-4">
+                            <div class="flex flex-wrap items-end gap-x-3 gap-y-2.5 text-xs">
+                                <div>
+                                    <label for="adminFilterPeriod" class="block font-semibold text-slate-500 mb-1">ช่วงเวลา</label>
+                                    <select id="adminFilterPeriod" onchange="filterAdminBookings()" class="bg-white border border-slate-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500/20">
+                                        <option value="all">ทั้งหมด</option>
+                                        <option value="today">วันนี้</option>
+                                        <option value="upcoming">วันนี้เป็นต้นไป</option>
+                                        <option value="past">ที่ผ่านมาแล้ว</option>
+                                        <option value="month">เดือนนี้</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label for="adminFilterDateFrom" class="block font-semibold text-slate-500 mb-1">ตั้งแต่วันที่</label>
+                                    <input type="date" id="adminFilterDateFrom" onchange="filterAdminBookings()" class="bg-white border border-slate-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500/20">
+                                </div>
+                                <div>
+                                    <label for="adminFilterDateTo" class="block font-semibold text-slate-500 mb-1">ถึงวันที่</label>
+                                    <input type="date" id="adminFilterDateTo" onchange="filterAdminBookings()" class="bg-white border border-slate-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500/20">
+                                </div>
+                                <div>
+                                    <label for="adminFilterBuilding" class="block font-semibold text-slate-500 mb-1">อาคาร</label>
+                                    <select id="adminFilterBuilding" onchange="onAdminFilterBuildingChange()" class="bg-white border border-slate-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500/20">
+                                        <option value="">ทั้งหมด</option>
+                                        <option value="Saint Louis">Saint Louis</option>
+                                        <option value="Saint Benedict">Saint Benedict</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label for="adminFilterRoom" class="block font-semibold text-slate-500 mb-1">ห้อง</label>
+                                    <select id="adminFilterRoom" onchange="filterAdminBookings()" class="bg-white border border-slate-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500/20 max-w-[170px]">
+                                        <option value="">ทั้งหมด</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label for="adminFilterStatus" class="block font-semibold text-slate-500 mb-1">สถานะผู้ใช้</label>
+                                    <select id="adminFilterStatus" onchange="filterAdminBookings()" class="bg-white border border-slate-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500/20">
+                                        <option value="">ทั้งหมด</option>
+                                        <option value="นักศึกษา">นักศึกษา</option>
+                                        <option value="อาจารย์">อาจารย์</option>
+                                        <option value="บุคลากร">บุคลากร</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label for="adminFilterDepartment" class="block font-semibold text-slate-500 mb-1">คณะ / หน่วยงาน</label>
+                                    <select id="adminFilterDepartment" onchange="filterAdminBookings()" class="bg-white border border-slate-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500/20 max-w-[170px]">
+                                        <option value="">ทั้งหมด</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label for="adminFilterSort" class="block font-semibold text-slate-500 mb-1">เรียงลำดับ</label>
+                                    <select id="adminFilterSort" onchange="filterAdminBookings()" class="bg-white border border-slate-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500/20">
+                                        <option value="desc">วันที่ใหม่ → เก่า</option>
+                                        <option value="asc">วันที่เก่า → ใหม่</option>
+                                    </select>
+                                </div>
+                                <button type="button" onclick="resetAdminBookingFilters()" class="px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-100 text-slate-600 font-semibold transition flex items-center gap-1.5">
+                                    <i class="fa-solid fa-rotate-left"></i>ล้างตัวกรอง
+                                </button>
+                            </div>
+                        </div>
+
                         <!-- ตารางรายการจองสำหรับแอดมิน -->
                         <div class="overflow-x-auto">
                             <table class="w-full text-left text-xs border-collapse">
@@ -1867,7 +1930,7 @@
             "Saint Benedict": [
                 { value: "Conference Room 1", label: "Conference Room 1 (3-6 คน)" },
                 { value: "Conference Room 2", label: "Conference Room 2 (ไม่เกิน 10 คน)" },
-                "Multi-purpose Room"
+                "Multi-Purpose Room"
             ]
         };
 
@@ -2280,22 +2343,12 @@
             if (!ok) return;
 
             const totalBookingsCount = allBookings.length;
-            const searchInput = document.getElementById("adminBookingSearch");
-            const searchQuery = searchInput ? searchInput.value.trim() : "";
             const closuresCount = (typeof maintenanceSlots !== 'undefined' && Array.isArray(maintenanceSlots)) ? maintenanceSlots.length : 0;
 
-            let searchMatchCount = 0;
-            if (searchQuery) {
-                const q = searchQuery.toLowerCase();
-                searchMatchCount = allBookings.filter(b => {
-                    return (b.requester && b.requester.toLowerCase().includes(q)) ||
-                           (b.name && b.name.toLowerCase().includes(q)) ||
-                           (b.room && b.room.toLowerCase().includes(q)) ||
-                           (b.building && b.building.toLowerCase().includes(q)) ||
-                           (b.department && b.department.toLowerCase().includes(q)) ||
-                           (b.purpose && b.purpose.toLowerCase().includes(q));
-                }).length;
-            }
+            // ใช้ตัวกรองเดียวกับตารางในหน้า Admin (คำค้นหา + ตัวกรองทั้งหมด)
+            const filtersActive = hasActiveAdminFilters();
+            const searchQuery = filtersActive ? describeAdminFilters() : "";
+            const searchMatchCount = filtersActive ? getAdminFilteredBookings().length : 0;
 
             const htmlContent = `
                 <div class="text-left text-sm text-slate-600 space-y-3">
@@ -2311,13 +2364,13 @@
                             </div>
                         </label>
 
-                        ${searchQuery ? `
+                        ${filtersActive ? `
                         <label class="flex items-start gap-3 p-3 rounded-xl border border-slate-200 hover:border-emerald-500 hover:bg-emerald-50/40 cursor-pointer transition">
                             <input type="radio" name="adminExportScope" value="search" class="mt-1 w-4 h-4 text-emerald-600 focus:ring-emerald-500">
                             <div>
-                                <div class="font-bold text-slate-800">2. รายการจองตามคำค้นหาใน Admin ("${escapeHtml(searchQuery)}")</div>
+                                <div class="font-bold text-slate-800">2. รายการจองตามตัวกรองใน Admin (${escapeHtml(searchQuery)})</div>
                                 <div class="text-xs text-slate-500 mt-0.5">
-                                    จำนวน <strong class="text-emerald-700 font-semibold">${searchMatchCount}</strong> รายการที่ตรงกับคำค้นหา
+                                    จำนวน <strong class="text-emerald-700 font-semibold">${searchMatchCount}</strong> รายการที่ตรงกับตัวกรอง
                                 </div>
                             </div>
                         </label>
@@ -2377,16 +2430,7 @@
             let includeMaintenance = false;
 
             if (scope === 'search') {
-                const searchInput = document.getElementById("adminBookingSearch");
-                const searchQuery = searchInput ? searchInput.value.trim().toLowerCase() : "";
-                exportList = allBookings.filter(b => {
-                    return (b.requester && b.requester.toLowerCase().includes(searchQuery)) ||
-                           (b.name && b.name.toLowerCase().includes(searchQuery)) ||
-                           (b.room && b.room.toLowerCase().includes(searchQuery)) ||
-                           (b.building && b.building.toLowerCase().includes(searchQuery)) ||
-                           (b.department && b.department.toLowerCase().includes(searchQuery)) ||
-                           (b.purpose && b.purpose.toLowerCase().includes(searchQuery));
-                });
+                exportList = getAdminFilteredBookings();
                 fileSuffix = "_filtered";
             } else if (scope === 'package') {
                 exportList = [...allBookings];
@@ -4116,6 +4160,136 @@
             renderAdminBookingsTable();
         }
 
+        // ===== ตัวกรองรายการจอง (Admin) =====
+        function getAdminFilterState() {
+            const v = (id) => (document.getElementById(id)?.value || '');
+            return {
+                search: v('adminBookingSearch').trim().toLowerCase(),
+                period: v('adminFilterPeriod') || 'all',
+                dateFrom: v('adminFilterDateFrom'),
+                dateTo: v('adminFilterDateTo'),
+                building: v('adminFilterBuilding'),
+                room: v('adminFilterRoom'),
+                status: v('adminFilterStatus'),
+                department: v('adminFilterDepartment'),
+                sort: v('adminFilterSort') || 'desc'
+            };
+        }
+
+        function hasActiveAdminFilters() {
+            const f = getAdminFilterState();
+            return Boolean(f.search || f.period !== 'all' || f.dateFrom || f.dateTo ||
+                f.building || f.room || f.status || f.department);
+        }
+
+        function getAdminFilteredBookings() {
+            const f = getAdminFilterState();
+            const today = getTodayDateString();
+            const monthPrefix = today.slice(0, 7);
+
+            return allBookings.filter(b => {
+                const d = (b.date || '').split('T')[0];
+                if (f.period === 'today' && d !== today) return false;
+                if (f.period === 'upcoming' && d < today) return false;
+                if (f.period === 'past' && d >= today) return false;
+                if (f.period === 'month' && !d.startsWith(monthPrefix)) return false;
+                if (f.dateFrom && d < f.dateFrom) return false;
+                if (f.dateTo && d > f.dateTo) return false;
+                if (f.building && b.building !== f.building) return false;
+                if (f.room && b.room !== f.room) return false;
+                if (f.status && (b.userStatus || b.status || '') !== f.status) return false;
+                if (f.department && (b.faculty || b.department || '') !== f.department) return false;
+                if (f.search) {
+                    const str = [
+                        b.name, b.requester, b.booker,
+                        b.userStatus, b.status,
+                        b.faculty, b.department,
+                        b.building, b.room,
+                        b.objective, b.purpose, b.reason,
+                        b.date
+                    ].filter(Boolean).join(' ').toLowerCase();
+                    if (!str.includes(f.search)) return false;
+                }
+                return true;
+            });
+        }
+
+        function describeAdminFilters() {
+            const f = getAdminFilterState();
+            const periodLabels = { today: 'วันนี้', upcoming: 'วันนี้เป็นต้นไป', past: 'ที่ผ่านมาแล้ว', month: 'เดือนนี้' };
+            const parts = [];
+            if (f.search) parts.push(`ค้นหา "${f.search}"`);
+            if (f.period !== 'all') parts.push(periodLabels[f.period]);
+            if (f.dateFrom) parts.push(`ตั้งแต่ ${f.dateFrom}`);
+            if (f.dateTo) parts.push(`ถึง ${f.dateTo}`);
+            if (f.building) parts.push(f.building);
+            if (f.room) parts.push(f.room);
+            if (f.status) parts.push(f.status);
+            if (f.department) parts.push(f.department);
+            return parts.join(' · ');
+        }
+
+        // สร้างตัวเลือก "ห้อง" และ "คณะ/หน่วยงาน" จากข้อมูลจริง (รวมชื่อห้องเก่าที่ยังเหลืออยู่) โดยคงค่าที่เลือกไว้
+        function refreshAdminFilterOptions() {
+            const roomSel = document.getElementById('adminFilterRoom');
+            const depSel = document.getElementById('adminFilterDepartment');
+            const building = document.getElementById('adminFilterBuilding')?.value || '';
+
+            if (roomSel) {
+                const buildings = building ? [building] : Object.keys(rooms);
+                const known = [];
+                buildings.forEach(bd => (rooms[bd] || []).forEach(r => { if (!known.includes(getRoomValue(r))) known.push(getRoomValue(r)); }));
+                const extra = [];
+                allBookings.forEach(b => {
+                    if (!b.room || (building && b.building !== building)) return;
+                    if (!known.includes(b.room) && !extra.includes(b.room)) extra.push(b.room);
+                });
+                const list = [...known, ...extra.sort((a, c) => a.localeCompare(c))];
+                const sig = list.join('|');
+                if (roomSel.dataset.sig !== sig) {
+                    const selected = roomSel.value;
+                    roomSel.innerHTML = '<option value="">ทั้งหมด</option>' +
+                        list.map(r => `<option value="${escapeHtml(r)}">${escapeHtml(r)}${extra.includes(r) ? ' (ชื่อเก่า)' : ''}</option>`).join('');
+                    roomSel.value = list.includes(selected) ? selected : '';
+                    roomSel.dataset.sig = sig;
+                }
+            }
+
+            if (depSel) {
+                const deps = [...new Set(allBookings.map(b => (b.faculty || b.department || '').trim()).filter(Boolean))]
+                    .sort((a, c) => a.localeCompare(c, 'th'));
+                const sig = deps.join('|');
+                if (depSel.dataset.sig !== sig) {
+                    const selected = depSel.value;
+                    depSel.innerHTML = '<option value="">ทั้งหมด</option>' +
+                        deps.map(d => `<option value="${escapeHtml(d)}">${escapeHtml(d)}</option>`).join('');
+                    depSel.value = deps.includes(selected) ? selected : '';
+                    depSel.dataset.sig = sig;
+                }
+            }
+        }
+
+        function onAdminFilterBuildingChange() {
+            const roomSel = document.getElementById('adminFilterRoom');
+            if (roomSel) roomSel.value = '';
+            refreshAdminFilterOptions();
+            filterAdminBookings();
+        }
+
+        function resetAdminBookingFilters() {
+            ['adminBookingSearch', 'adminFilterDateFrom', 'adminFilterDateTo', 'adminFilterBuilding',
+             'adminFilterRoom', 'adminFilterStatus', 'adminFilterDepartment'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.value = '';
+            });
+            const period = document.getElementById('adminFilterPeriod');
+            if (period) period.value = 'all';
+            const sort = document.getElementById('adminFilterSort');
+            if (sort) sort.value = 'desc';
+            refreshAdminFilterOptions();
+            filterAdminBookings();
+        }
+
         function changeAdminBookingPage(direction) {
             adminBookingsPage += direction;
             renderAdminBookingsTable();
@@ -4124,7 +4298,8 @@
         // ===== ย้ายรายการจองที่ใช้ชื่อห้องเก่า (หลังเปลี่ยนชื่อห้อง) =====
         // เพิ่มคู่ชื่อเก่า -> ชื่อใหม่ที่นี่ได้เมื่อมีการเปลี่ยนชื่อห้องในอนาคต
         const ROOM_RENAMES = [
-            { building: 'Saint Benedict', from: 'Multiple Purpose Room', to: 'Multi-purpose Room' }
+            { building: 'Saint Benedict', from: 'Multiple Purpose Room', to: 'Multi-Purpose Room' },
+            { building: 'Saint Benedict', from: 'Multi-purpose Room', to: 'Multi-Purpose Room' }
         ];
 
         function getLegacyRoomBookings() {
@@ -4236,28 +4411,14 @@
             const summary = document.getElementById('adminBookingStatsSummary');
             if (!tbody) return;
 
-            const search = (document.getElementById('adminBookingSearch')?.value || '').trim().toLowerCase();
-
-            let list = [...allBookings];
-
-            if (search) {
-                list = list.filter(b => {
-                    const str = [
-                        b.name, b.requester, b.booker,
-                        b.userStatus, b.status,
-                        b.faculty, b.department,
-                        b.building, b.room,
-                        b.objective, b.purpose, b.reason,
-                        b.date
-                    ].filter(Boolean).join(' ').toLowerCase();
-                    return str.includes(search);
-                });
-            }
+            refreshAdminFilterOptions();
+            const list = getAdminFilteredBookings();
+            const dir = getAdminFilterState().sort === 'asc' ? 1 : -1;
 
             list.sort((a, b) => {
-                const dDiff = (b.date || '').localeCompare(a.date || '');
-                if (dDiff !== 0) return dDiff;
-                return (b.startTime || '').localeCompare(a.startTime || '');
+                const dDiff = (a.date || '').localeCompare(b.date || '');
+                if (dDiff !== 0) return dir * dDiff;
+                return dir * (a.startTime || '').localeCompare(b.startTime || '');
             });
 
             const totalPages = Math.max(1, Math.ceil(list.length / ADMIN_BOOKINGS_PER_PAGE));
@@ -4268,7 +4429,9 @@
             if (summary) {
                 const firstItem = list.length === 0 ? 0 : pageStart + 1;
                 const lastItem = Math.min(pageStart + ADMIN_BOOKINGS_PER_PAGE, list.length);
-                summary.textContent = `แสดง ${firstItem}-${lastItem} จากทั้งหมด ${list.length} รายการ`;
+                summary.textContent = hasActiveAdminFilters()
+                    ? `แสดง ${firstItem}-${lastItem} จาก ${list.length} รายการที่ตรงตัวกรอง (ทั้งหมด ${allBookings.length} รายการ)`
+                    : `แสดง ${firstItem}-${lastItem} จากทั้งหมด ${list.length} รายการ`;
             }
 
             const pagination = document.getElementById('adminBookingPagination');
