@@ -2287,6 +2287,9 @@
                 const safeRoomHtml = escapeHtml(b.room);
                 const safeRequesterHtml = escapeHtml(b.requester);
                 const safeStatusHtml = escapeHtml(b.userStatus || '-');
+                // จำนวนผู้ใช้: รับเฉพาะตัวเลขจำนวนเต็มบวก (ข้อมูลเก่าที่ไม่มีค่า จะไม่แสดงป้าย)
+                const attendeesNum = parseInt(b.attendees, 10);
+                const attendeesCount = Number.isFinite(attendeesNum) && attendeesNum > 0 ? attendeesNum : 0;
                 const safeDateAttr = escapeHtml(b.date);
                 const safeStartTimeAttr = escapeHtml(b.startTime);
                 const safeDocId = escapeHtml(b.id || '');
@@ -2306,10 +2309,11 @@
                             <div class="flex justify-between items-center gap-2">
                                 <div class="min-w-0 flex-1">
                                     <div class="font-semibold text-slate-800 truncate text-[13px]" title="${safeRequesterHtml}">${safeRequesterHtml}</div>
-                                    <div class="mt-0.5">
+                                    <div class="mt-0.5 flex flex-wrap items-center gap-1.5">
                                         <span class="inline-block bg-slate-100 text-slate-600 text-[10px] font-medium px-1.5 py-0.5 rounded">
                                             ${safeStatusHtml}
                                         </span>
+                                        ${attendeesCount ? `<span class="inline-flex items-center gap-1 text-[10px] font-semibold text-[#0D2535] bg-blue-50 border border-blue-100/60 px-1.5 py-0.5 rounded" title="จำนวนผู้เข้าใช้งาน ${attendeesCount} คน"><i class="fa-solid fa-user-group text-[#5388D8] text-[9px]"></i>${attendeesCount} คน</span>` : ''}
                                     </div>
                                 </div>
                                 <button class="delete-btn w-8 h-8 rounded-full text-slate-400 hover:text-rose-600 hover:bg-rose-50 flex items-center justify-center transition flex-shrink-0" 
@@ -4807,8 +4811,11 @@
         async function triggerEmailNotification(bookingData) {
   const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbx2G3RXu2xgPzdqo0ZHwi5-REsR-xfPve9rIIpbxGlKOqUfkp-iaouPMAsCRv1KAR4a/exec";
 
+  // ต้องตรงกับ NOTIFY_TOKEN ในสคริปต์ Apps Script ส่งเมลแจ้งเตือน (ถ้าไม่ตรงเมลจะไม่ถูกส่ง)
+  const NOTIFY_TOKEN = "E6TU2WK54TVvSnTqk2konkBXBCi8WaIk";
+
   // แปลง Object เป็น Query String
-  const params = new URLSearchParams(bookingData).toString();
+  const params = new URLSearchParams({ ...bookingData, token: NOTIFY_TOKEN }).toString();
 
   try {
     await fetch(`${WEB_APP_URL}?${params}`, {
