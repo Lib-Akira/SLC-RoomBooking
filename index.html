@@ -2611,6 +2611,17 @@
             });
         }
 
+        function maintenanceAppliesToRoom(maintenance, building, room) {
+            const appliesToAllBuildings = !maintenance.building ||
+                maintenance.building === "ทุกอาคาร" ||
+                maintenance.building === "ALL";
+            const appliesToAllRooms = !maintenance.room ||
+                maintenance.room === "ทุกห้อง" ||
+                maintenance.room === "ALL";
+            return (appliesToAllBuildings || maintenance.building === building) &&
+                (appliesToAllRooms || maintenance.room === room);
+        }
+
         function getMaintenanceConflict(building, room, date, startTime, endTime) {
             const newStart = timeToMinutes(startTime);
             const newEnd = timeToMinutes(endTime);
@@ -2618,8 +2629,7 @@
                 const sDate = m.startDate || m.date || "";
                 const eDate = m.endDate || m.date || sDate;
                 if (date < sDate || date > eDate) return false;
-                if (m.building && m.building !== "ทุกอาคาร" && m.building !== "ALL" && m.building !== building) return false;
-                if (m.room && m.room !== "ทุกห้อง" && m.room !== "ALL" && m.room !== room) return false;
+                if (!maintenanceAppliesToRoom(m, building, room)) return false;
                 const mStart = timeToMinutes(m.start || m.startTime || "00:00");
                 const mEnd = timeToMinutes(m.end || m.endTime || "23:59");
                 return newStart < mEnd && mStart < newEnd;
@@ -2974,11 +2984,22 @@
             const horizonStr = horizon.toLocaleDateString('sv-SE');
 
             const upcomingClosures = maintenanceSlots
-                .filter(m => m.startDate <= horizonStr && m.endDate >= todayStr)
-                .sort((a, b) => a.startDate.localeCompare(b.startDate));
+                .filter(m => {
+                    const startDate = m.startDate || m.date || "";
+                    const endDate = m.endDate || m.date || startDate;
+                    return startDate <= horizonStr && endDate >= todayStr;
+                })
+                .sort((a, b) => (a.startDate || a.date || "").localeCompare(b.startDate || b.date || ""));
 
             if (upcomingClosures.length > 0) {
-                showClosureListPopup('ประกาศปิดให้บริการ', upcomingClosures);
+                const hasLibraryClosure = upcomingClosures.some(m => maintenanceAppliesToRoom(m, "ALL", "ALL"));
+                const hasScopedMaintenance = upcomingClosures.some(m => !maintenanceAppliesToRoom(m, "ALL", "ALL"));
+                const title = hasLibraryClosure && hasScopedMaintenance
+                    ? 'ประกาศวันหยุดและปิดปรับปรุง'
+                    : hasLibraryClosure
+                        ? 'ประกาศวันหยุด / ปิดบริการห้องสมุด'
+                        : 'ประกาศปิดปรับปรุงเฉพาะห้อง / พื้นที่';
+                showClosureListPopup(title, upcomingClosures);
             }
         }
 
@@ -2991,6 +3012,7 @@
                 const mStart = timeToMinutes(m.start || m.startTime || "00:00");
                 const mEnd = timeToMinutes(m.end || m.endTime || "23:59");
                 return dateStr >= sDate && dateStr <= eDate &&
+                    maintenanceAppliesToRoom(m, "ALL", "ALL") &&
                     mStart <= 1 && mEnd >= (23 * 60 + 50);
             });
         }
@@ -3014,21 +3036,32 @@
             }
 
             const isFullDay = isDateFullyClosed(dateStr);
+            const hasLibraryClosure = closuresOnDate.some(m => maintenanceAppliesToRoom(m, "ALL", "ALL"));
+            const hasScopedMaintenance = closuresOnDate.some(m => !maintenanceAppliesToRoom(m, "ALL", "ALL"));
 
             if (isFullDay) {
                 warningEl.textContent = `⚠️ วันที่เลือกห้องสมุดปิดทำการ: ${closuresOnDate[0].reason || 'ปิดทำการชั่วคราว'} — กรุณาเลือกวันอื่น`;
+            } else if (!hasLibraryClosure) {
+                warningEl.textContent = '⚠️ วันที่เลือกมีห้อง/พื้นที่ปิดปรับปรุง ห้องสมุดยังเปิดให้บริการในพื้นที่อื่นตามปกติ';
             } else {
                 const ranges = closuresOnDate.map(c => `${c.start || c.startTime || '00:00'}-${c.end || c.endTime || '23:59'} (${c.reason || 'ปิดใช้งานชั่วคราว'})`).join(', ');
-                warningEl.textContent = `⚠️ วันที่เลือกมีบางช่วงปิด: ${ranges}`;
+                const noticeType = hasScopedMaintenance ? 'บางช่วงปิดบริการหรือปิดปรับปรุง' : 'บางช่วงปิดบริการ';
+                warningEl.textContent = `⚠️ วันที่เลือกมี${noticeType}: ${ranges}`;
             }
             warningEl.classList.remove('hidden');
 
             checkFormCompletion();
 
             showClosureListPopup(
-                isFullDay ? 'วันที่เลือกห้องสมุดปิดทำการ' : 'วันที่เลือกมีบางช่วงปิดให้บริการ',
+                isFullDay
+                    ? 'วันที่เลือกห้องสมุดปิดทำการ'
+                    : hasLibraryClosure && hasScopedMaintenance
+                        ? 'วันที่เลือกมีประกาศปิดบริการและปิดปรับปรุง'
+                        : hasLibraryClosure
+                            ? 'วันที่เลือกมีบางช่วงปิดให้บริการ'
+                            : 'วันที่เลือกมีห้อง/พื้นที่ปิดปรับปรุง',
                 closuresOnDate,
-                isFullDay ? 'กรุณาเลือกวันอื่น' : 'ไม่สามารถจองได้ในช่วงเวลาที่ห้องสมุดปิดทำการ'
+                isFullDay ? 'กรุณาเลือกวันอื่น' : 'ตรวจสอบช่วงเวลาและพื้นที่ที่ระบุในแต่ละรายการก่อนจอง'
             );
         }
 
@@ -3040,15 +3073,23 @@
                 return dt.toLocaleDateString('th-TH', { day: 'numeric', month: 'short' });
             };
 
-            const cardsHtml = closures.map(c => {
-                const scopeLabel = c.building
-                    ? (c.room ? `${escapeHtml(c.building)} • ${escapeHtml(c.room)}` : `อาคาร ${escapeHtml(c.building)}`)
-                    : 'ทุกอาคาร';
-                const isFullDay = timeToMinutes(c.start) <= 1 && timeToMinutes(c.end) >= (23 * 60 + 50);
-                const timeLabel = isFullDay ? 'ปิดทั้งวัน' : `${escapeHtml(c.start)} - ${escapeHtml(c.end)}`;
-                const dateLabel = c.startDate === c.endDate
-                    ? formatDateLabel(c.startDate)
-                    : `${formatDateLabel(c.startDate)} - ${formatDateLabel(c.endDate)}`;
+            const renderClosureCards = (items) => items.map(c => {
+                const appliesToAllBuildings = !c.building || c.building === "ทุกอาคาร" || c.building === "ALL";
+                const appliesToAllRooms = !c.room || c.room === "ทุกห้อง" || c.room === "ALL";
+                const buildingLabel = appliesToAllBuildings ? 'ทุกอาคาร' : escapeHtml(c.building);
+                const roomLabel = appliesToAllRooms ? 'ทุกห้อง' : escapeHtml(c.room);
+                const scopeLabel = appliesToAllBuildings
+                    ? `${buildingLabel} • ${roomLabel}`
+                    : (appliesToAllRooms ? `อาคาร ${buildingLabel} • ${roomLabel}` : `${buildingLabel} • ${roomLabel}`);
+                const startDate = c.startDate || c.date || "";
+                const endDate = c.endDate || c.date || startDate;
+                const startTime = c.start || c.startTime || "00:00";
+                const endTime = c.end || c.endTime || "23:59";
+                const isFullDay = timeToMinutes(startTime) <= 1 && timeToMinutes(endTime) >= (23 * 60 + 50);
+                const timeLabel = isFullDay ? 'ปิดทั้งวัน' : `${escapeHtml(startTime)} - ${escapeHtml(endTime)}`;
+                const dateLabel = startDate === endDate
+                    ? formatDateLabel(startDate)
+                    : `${formatDateLabel(startDate)} - ${formatDateLabel(endDate)}`;
                 return `<div style="text-align:center;background:#eef4fc;border:1px solid #cfe0f5;border-radius:12px;padding:14px 16px;margin-bottom:8px;">
                             <div style="font-weight:700;color:#01224D;font-size:14.5px;margin-bottom:2px;">
                                 ${dateLabel} · ${timeLabel}
@@ -3061,11 +3102,21 @@
                             </div>
                         </div>`;
             }).join('');
+            const libraryClosures = closures.filter(c => maintenanceAppliesToRoom(c, "ALL", "ALL"));
+            const scopedMaintenance = closures.filter(c => !maintenanceAppliesToRoom(c, "ALL", "ALL"));
+            const sectionsHtml = [
+                libraryClosures.length > 0
+                    ? `<h3 style="font-weight:700;color:#01224D;margin:0 0 8px;text-align:left;">วันหยุด / ปิดบริการห้องสมุด</h3>${renderClosureCards(libraryClosures)}`
+                    : '',
+                scopedMaintenance.length > 0
+                    ? `<h3 style="font-weight:700;color:#01224D;margin:12px 0 4px;text-align:left;">ปิดปรับปรุงเฉพาะห้อง / พื้นที่</h3><p style="font-size:13px;color:#64748b;margin:0 0 8px;text-align:left;">ห้องสมุดยังเปิดให้บริการตามปกติในพื้นที่อื่น โดยห้องหรือพื้นที่ที่ระบุจะไม่สามารถจองได้</p>${renderClosureCards(scopedMaintenance)}`
+                    : ''
+            ].join('');
 
             showMascotAlert({
                 icon: 'warning',
                 title: title,
-                html: cardsHtml + (footNote ? `<p style="font-size:13px;color:#94a3b8;margin:0;">${escapeHtml(footNote)}</p>` : ''),
+                html: sectionsHtml + (footNote ? `<p style="font-size:13px;color:#94a3b8;margin:0;">${escapeHtml(footNote)}</p>` : ''),
                 confirmButtonText: 'รับทราบ',
                 allowOutsideClick: true,
                 allowEscapeKey: true
@@ -3457,12 +3508,15 @@
                     const slotStart = timeToMinutes(s);
                     const slotEnd = slotStart + 30;
 
-                    const inMaint = maintenanceSlots.some(m =>
-                        (!m.building || m.building === dashboardBuilding) &&
-                        (!m.room || m.room === room) &&
-                        selectedDate >= m.startDate && selectedDate <= m.endDate &&
-                        slotStart < timeToMinutes(m.end) && timeToMinutes(m.start) < slotEnd
-                    );
+                    const inMaint = maintenanceSlots.some(m => {
+                        const startDate = m.startDate || m.date || "";
+                        const endDate = m.endDate || m.date || startDate;
+                        const maintenanceStart = timeToMinutes(m.start || m.startTime || "00:00");
+                        const maintenanceEnd = timeToMinutes(m.end || m.endTime || "23:59");
+                        return maintenanceAppliesToRoom(m, dashboardBuilding, room) &&
+                            selectedDate >= startDate && selectedDate <= endDate &&
+                            slotStart < maintenanceEnd && maintenanceStart < slotEnd;
+                    });
 
                     const booking = !inMaint && allBookings.find(b => {
                         if (b.building !== dashboardBuilding || b.room !== room) return false;
